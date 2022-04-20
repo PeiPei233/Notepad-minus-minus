@@ -1,0 +1,25 @@
+{
+    "files.associations": {
+        "random.h": "c",
+        "genlib.h": "c",
+        "extgraph.h": "c",
+        "graphics.h": "c",
+        "conio.h": "c",
+        "ole2.h": "c",
+        "ocidl.h": "c",
+        "wingdi.h": "c",
+        "olectl.h": "c",
+        "stdlib.h": "c",
+        "winuser.h": "c",
+        "strlib.h": "c",
+        "windows.h": "c",
+        "mmsystem.h": "c",
+        "stdio.h": "c",
+        "stddef.h": "c",
+        "simpio.h": "c",
+        "libgraphics.h": "c",
+        "typeinfo": "c",
+        "time.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
+}
