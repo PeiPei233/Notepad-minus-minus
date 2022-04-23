@@ -1,5 +1,5 @@
 COMPILER   = gcc
-OPTION	   = -MMD -g -std=c11 -mwindows -lwinmm -lgdi32 -I ./libgraphics -I ./simpleGUI
+OPTION	   = -g -std=c11 -mwindows -lwinmm -lgdi32 -I ./libgraphics -I ./simpleGUI
 TARGET     = main.exe
 SOURCE     = $(wildcard *.c)
 SOURCE    += $(wildcard */*.c)

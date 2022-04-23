@@ -4,23 +4,27 @@
 #include "libgraphics.h"
 #include "imgui.h"
 #include "global.h"
+#include "callback.h"
 //在这里添加所需要的自定义的头文件
+
+double winWidth, winHeight;
 
 void MouseEventProcess(int x, int y, int button, int event) {
 	uiGetMouse(x, y, button, event);
 	//在这里自定义鼠标回调函数
-
+	getMouse(x, y, button, event);
 }
 
 void CharEventProcess(char ch) {
 	uiGetChar(ch);
 	//在这里自定义字符回调函数
-
+	inputChar(ch);
 }
 
 void KeyboardEventProcess(int key, int event) {
 	uiGetKeyboard(key, event);
 	//在这里自定义键盘回调函数
+	inputKeyboard(key, event);
 
 }
 

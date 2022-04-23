@@ -3,51 +3,51 @@
 
 //行列坐标表示
 typedef struct {
-    int line;  //行位置
+    int row;  //行位置
     int column;  //列位置
-}LCNode;
+}RCNode;
 
 extern double winHeight, winWidth;	//窗口高度和宽度
 
 /*
     获取目前窗口左上角的行列位置
 */
-LCNode getWindowCurrentLC();
+RCNode getWindowCurrentRC();
 
 /*
     更改目前窗口左上角的行列位置
 */
-void setWindowCurrentLC();
+void setWindowCurrentRC(RCNode newWindowCurrent);
 
 /*
     根据传入的参数设置光标位置
 */
-void setCursorLC();
+void setCursorRC(RCNode newCursor);
 
 /*
     获取光标位置
 */
-LCNode getCursorLC();
+RCNode getCursorRC();
 
 /*
     获取选择范围起始位置
 */
-LCNode getSelectStartLC();
+RCNode getSelectStartRC();
 
 /*
     获取选择范围终止位置
 */
-LCNode getSelectEndLC();
+RCNode getSelectEndRC();
 
 /*
     设置选择范围起始位置
 */
-void setSelectStartLC();
+void setSelectStartRC(RCNode newStartSelect);
 
 /*
     设置其实范围终止位置
 */
-void setSelectEndLC();
+void setSelectEndRC(RCNode newEndSelect);
 
 /*
     判断光标位置是否在窗口内

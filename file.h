@@ -4,6 +4,7 @@
 #ifndef __FILE_H__
 #define __FILE_H__
 
+#include "global.h"
 /*
     打开一个文件
     这个应该要和Windows交互
@@ -38,13 +39,13 @@ void updateCurrentString();
     根据传入的字符更新currentString与缓存文件
     并更新光标位置（如有必要也更新窗口左上角位置）
 */
-void addChar();
+void addChar(char ch);
 
 /*
     根据传入的字符串更新currentString与缓存文件
     并更新光标位置（如有必要也更新窗口左上角位置）
 */
-void addString();
+void addString(char *src);
 
 /*
     根据当前光标位置，删除光标前的一个字符（在currentString与缓存文件中）

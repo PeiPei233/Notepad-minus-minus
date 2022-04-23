@@ -3,20 +3,21 @@
     记得修改对应的同名头文件，再加到main的include里
 */
 
-#include <stdio.h>
-#include "global.h"
+#ifndef __INIT_H__
+#define __INIT_H__
+
 //主要需要实现以下函数
 
 /*
     初始化各种自定义颜色
 */
-void initColor() {
+void initColor();
 
-}
+//可添加其他初始化
 
 /*
     初始化展示窗口
 */
-void initDisplay() {
-    
-}
+void initDisplay();
+
+#endif
