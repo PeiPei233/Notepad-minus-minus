@@ -18,6 +18,13 @@ void openFile();
 void initCache();
 
 /*
+    保存当前打开的文件
+    如果是新建的文件 要和Windows交互选择打开位置
+    否则就存在之前的位置
+*/
+void saveFile();
+
+/*
     获取当前的显示的字符串
 */
 char *getCurrentString();
