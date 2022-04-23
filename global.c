@@ -48,7 +48,7 @@ void setSelectEndLC();
 /*
     判断光标位置是否在窗口内
 */
-bool cursorInWindow();
+int cursorInWindow();
 
 /*
     更改光标位置使其能够展示在窗口内
