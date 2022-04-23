@@ -609,10 +609,6 @@ void drawBox(double x, double y, double w, double h, int fillflag, char *label, 
 {	
 	double fa = GetFontAscent();
 	// rect
-	char *originColor = GetPenColor();
-	SetPenColor("White");
-	drawRectangle(x,y,w,h,1);
-	SetPenColor(originColor);
 	drawRectangle(x,y,w,h,fillflag);
 	// text
 	if( label && strlen(label)>0 ) {
