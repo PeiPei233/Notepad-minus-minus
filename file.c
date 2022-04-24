@@ -10,6 +10,7 @@
 static char currentString[_N];
 static FILE *currentFile;  //当前打开的文件
 static FILE *cacheFile;    //缓存文件
+static int isSaved;     //是否保存
 
 /*
     打开一个文件
@@ -34,6 +35,14 @@ void initCache() {
     否则就存在之前的位置
 */
 void saveFile() {
+
+}
+
+/*
+    获取当前的保存状态
+    是否保存
+*/
+int getSaveState() {
 
 }
 

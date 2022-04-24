@@ -26,6 +26,12 @@ void initCache();
 void saveFile();
 
 /*
+    获取当前的保存状态
+    是否保存
+*/
+int getSaveState();
+
+/*
     获取当前的显示的字符串
 */
 char *getCurrentString();
