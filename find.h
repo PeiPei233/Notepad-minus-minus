@@ -18,7 +18,6 @@ void findText(char *src);
     如果当前选中的字符串不是src，则先查找光标后的下一个符合的src并选中，即先执行findText(src)
     否则如果当前选中的字符串就是src，则替换为tar并将选择范围改为替换后的字符串并更新光标位置为选择位置末端吗
 */
-*/
 void replaceText(char *src, char *tar);
 
 #endif
