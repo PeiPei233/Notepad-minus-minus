@@ -23,6 +23,14 @@ void openFile() {
 }
 
 /*
+    新建一个文件
+    对于新建的文件，在保存时要选择存放位置
+*/
+void createFile() {
+    
+}
+
+/*
     初始化缓存文件
 */
 void initCache() {
