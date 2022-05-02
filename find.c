@@ -18,7 +18,7 @@ RCNode findText(char *src) {
     char ch;int row=0,column=0;
     if((fp=fopen(CACHE2,"r"))==NULL)
     	exit(0);
-    while(row<=cursor.row&&column<cursor.column){         //前提光标不要超出文本范围 
+    while(row<cursor.row||column<cursor.column){         //前提光标不要超出文本范围 
     	ch=fgetc(fp);
     	if(ch=='\n')
     		row++;
@@ -86,9 +86,9 @@ void replaceText(char *src, char *tar) {
 		return;               // 需要输出什么吗？ 
 	int row=0,column=0;
 	char ch;
-	while(row<=mynode.row&&column<(mynode.column-strlen(src))){         //前提光标不要超出文本范围 
+	while(row<mynode.row||column<(mynode.column-strlen(src))){         //前提光标不要超出文本范围 
 	    	ch=fgetc(fp);
-	    	fputc(fp2,ch); 
+	    	fputc(ch,fp2); 
 	    	if(ch=='\n')
 	    		row++;
 	    	else
@@ -98,11 +98,11 @@ void replaceText(char *src, char *tar) {
 		fgetc(fp);
 	}
 	for(int i=0;i<strlen(tar);i++)
-		fputc(fp2,*(tar+i));
+		fputc(*(tar+i),fp2);
 		
 	while(!feof(fp)){
 		ch=fgetc(fp);
-		fputc(fp2,ch);
+		fputc(ch,fp2);
 	}
 	fclose(fp);fclose(fp2);
 	display();            //也许需要getcurrentstring? 

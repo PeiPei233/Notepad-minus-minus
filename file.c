@@ -29,7 +29,7 @@ static int wincolumn= GetWindowWidth() /
 */
 void openFile() {
 	currentFile=fopen(FILELOCATION,"r+");
-	fileWrite(currentFile,cacheFile1);
+	fileWrite(currentFile,cacheFile1);            //要求缓存文件首先打开 
 	fileWrite(currentFile,cacheFile2);
 	isSaved=0;
 }
@@ -41,6 +41,15 @@ void openFile() {
 void createFile() {
     currentFile=fopen(,"w+");
     isSaved=0;
+}
+
+void fileWrite(FILE* fp1,FILE* fp2){
+	while(!feof(fp1)){
+		ch=fgetc(fp1);
+		fputc(ch,fp2);
+	}
+	fseek(cacheFile2,0L,0);
+	fseek(cacheFile1,0L,0);	
 }
 
 /*
@@ -174,7 +183,7 @@ void deleteChar() {
     int row=0,column=0;
     while(row<cursor.row||column<cursor.column){        
     	ch=fgetc(cacheFile1);
-    	fputc(ch,cacheFile1);
+    	fputc(ch,cacheFile2);
     	if(ch=='\n')
     		row++;
     	else
