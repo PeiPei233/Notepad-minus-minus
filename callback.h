@@ -24,6 +24,6 @@ void inputChar(char ch);
     根据传入的键盘输入，判断是否需要换行、退格等操作
     上下左右键时移动光标位置（即改变行列数）
 */
-void inputKeyboard(int event, int key);
+void inputKeyboard(int key, int event);
 
 #endif

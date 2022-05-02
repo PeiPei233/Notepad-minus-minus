@@ -323,16 +323,16 @@ int button(int id, double x, double y, double w, double h, char *label)
 	mySetPenColor(frameColor);
 	drawBox(x+sinkx, y+sinky, w, h, gs_button_color.fillflag,
 		label, 'C', labelColor);
-	if( gs_button_color.fillflag ) {
-		mySetPenColor( labelColor );
-		drawRectangle(x+sinkx, y+sinky, w, h, 0);
-	}
+	// if( gs_button_color.fillflag ) {
+	// 	mySetPenColor( labelColor );
+	// 	drawRectangle(x+sinkx, y+sinky, w, h, 0);
+	// }
 
 	// »­¼üÅÌÌáÊ¾, show a small ractangle frane
-	if( gs_UIState.kbdItem == id ) {
-		mySetPenColor( labelColor );
-		drawRectangle(x+sinkx+shrink, y+sinky+shrink, w-2*shrink, h-2*shrink, 0);
-	}
+	// if( gs_UIState.kbdItem == id ) {
+	// 	mySetPenColor( labelColor );
+	// 	drawRectangle(x+sinkx+shrink, y+sinky+shrink, w-2*shrink, h-2*shrink, 0);
+	// }
 
 	if( gs_UIState.clickedItem==id && // must be clicked before
 		! gs_UIState.mousedown )   // but now mouse button is up
@@ -609,10 +609,12 @@ void drawBox(double x, double y, double w, double h, int fillflag, char *label, 
 {	
 	double fa = GetFontAscent();
 	// rect
-	char *originColor = GetPenColor();
-	SetPenColor("White");
-	drawRectangle(x,y,w,h,1);
-	SetPenColor(originColor);
+	if (!fillflag) {
+		char *originColor = GetPenColor();
+		SetPenColor("White");
+		drawRectangle(x,y,w,h,1);
+		SetPenColor(originColor);
+	}
 	drawRectangle(x,y,w,h,fillflag);
 	// text
 	if( label && strlen(label)>0 ) {
