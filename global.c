@@ -5,6 +5,7 @@ static RCNode windowCurrent; //窗口左上角的行列坐标
 static RCNode cursor;  //光标所在的行列坐标
 static RCNode startSelect, endSelect;  //选择范围的起点/终点行列位置
 int bigin, end;
+extern char allText_[max];  //定义储存所有文本的数组
 
 /*
     用户获取目前窗口左上角的行列位置
@@ -150,18 +151,17 @@ char* allText()
 {
     FILE *fp;
     char colunmStr[max];    //定义暂时储存每行文本字符的数组
-    char allText[max];  //定义储存所有文本的数组
-    strcpy(allText, "");
+    strcpy(allText_, "");
     if(fp = fopen("currentFile.txt", "r"))
     {
         //分行进行读取并储存
         while(fgets(colunmStr, max, fp))
         {
-            strcat(allText, colunmStr);
+            strcat(allText_, colunmStr);
             strcpy(colunmStr,"");
         }
         fclose(fp);
-        return allText;
+        return allText_;
     }else
     {
         printf("打开错误！");

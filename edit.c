@@ -21,10 +21,10 @@ void copyText()
     char *cur = curText;  
     int start, end;
     start = numofFormerWords(startSelect);   //计算复制字符的起始位置，结束位置
-    end = numofFormerWords(endSelect);
+    end = numofFormerWords(endSelect) - 1;
     cur += start;   // 指针指向选中复制文本开始处
     strcpy(copystr, cur);   //得到选中复制文本
-    int length = end - start;
+    int length = end-1 - start;
     copystr[length] = '\0';		//设置复制文本结束符（文本计数从1开始）
 
     //与系统剪切板进行交互
@@ -52,7 +52,7 @@ void pasteText() {
     RCNode endSelect = getSelectEndRC();
     int start, end, length;
     start = numofFormerWords(startSelect);
-    end = numofFormerWords(endSelect);
+    end = numofFormerWords(endSelect) - 1;
     length = end - start;  //计算要覆盖的字符的起始位置，终止位置，长度
 
     //与系统剪切板交互读取其中内容并储存在pasteText当中
@@ -110,7 +110,7 @@ void shearText() {
     //删除选中内容
     int start, end, length;
     start = numofFormerWords(startSelect);
-    end = numofFormerWords(endSelect);
+    end = numofFormerWords(endSelect) - 1;
     length = end - start;
     char curText[max];
     strcpy(curText, allText());   //获取所有文本
