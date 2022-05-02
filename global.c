@@ -57,7 +57,7 @@ RCNode getSelectEndRC()
 /*
     设置选择范围起始位置
 */
-void setSelectStartLC(RCNode newStartSelect)
+void setSelectStartRC(RCNode newStartSelect)
 {
     startSelect = newStartSelect;
 }
@@ -65,7 +65,7 @@ void setSelectStartLC(RCNode newStartSelect)
 /*
     设置选择范围终止位置
 */
-void setSelectEndLC(RCNode newEndSelect)
+void setSelectEndRC(RCNode newEndSelect)
 {
     endSelect = newEndSelect;
 }
@@ -104,7 +104,7 @@ int numofFormerWords(RCNode curPosition)
     while(*word != '\0')
     {
         //当到达图形界面每行最大字符数或者遇到换行符时换行
-        if(searchRow == maxn)  //maxn为一行能达到的最大字符数
+        if(searchRow == 1<<30)  //maxn为一行能达到的最大字符数
         {
             searchColumn ++;
             searchRow = 0;
