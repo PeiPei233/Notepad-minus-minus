@@ -43,7 +43,7 @@ int getSaveState();
 char *getCurrentString();
 
 /*
-    自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString       哇兄弟，你这currentstring也不是全局变量啊，更新啥嘞 
+    自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString
 */
 void updateCurrentString();
 
@@ -70,7 +70,5 @@ void deleteChar();
     并更新光标以及选中范围的行列坐标（如有必要也更新窗口左上角位置）
 */
 void deleteSelectString();
-
-void fileWrite(FILE* fp1,FILE* fp2);   //将fp1写入fp2 
 
 #endif
