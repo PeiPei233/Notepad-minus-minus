@@ -20,4 +20,9 @@ void initColor();
 */
 void initDisplay();
 
+/*
+    Ë¢ÐÂÏÔÊ¾
+*/
+void display();
+
 #endif

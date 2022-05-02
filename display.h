@@ -7,6 +7,8 @@
 
 #include "global.h"
 
+void display();
+
 /*
     画菜单 并根据菜单选项执行对应的函数和命令
     在没有打开任何文件时显示新建文件
@@ -16,7 +18,7 @@ void drawMenu();
 /*
     在范围内画文本，建议的参数包括左上角坐标(x, y) 矩形的长宽(w, h) 行高 是否需要自动换行 等等
 */
-void drawTextWithinArea(double x, double y, double w, double h);
+void drawTextArea();
 
 /*
     在文本框窗口中的行列位置(r, c)显示光标
@@ -37,11 +39,11 @@ void drawSelectRange(double rowHeight);
     先绘制底层文本 在绘制查找窗口时先绘制一个白色矩形覆盖底下的文本，在绘制查找窗口
     绘制替换窗口同理
 */
-void drawFindArea(double x, double y, double w, double h);
+void drawFindArea();
 
 /*
     绘制替换窗口 包括两个文本框（分别是查找和替换）以及替换按钮等
 */
-void drawReplaceArea(double x, double y, double w, double h);
+void drawReplaceArea();
 
 #endif
