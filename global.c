@@ -141,7 +141,13 @@ int numofFormerWords(RCNode curPosition)
         	num ++;
 		}
     }
-    return num;
+    if(curPosition.column == 1)  //行数为1时计数会多1
+    {
+        return num-1;
+    }else
+    {
+        return num;
+    }
 }
 
 /*
