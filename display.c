@@ -10,29 +10,77 @@
 #include "edit.h"
 #include "find.h"
 #include "time.h"
-
+#include "init.h"
+#include <windows.h>
 #include <string.h>
 
 static int isShowFind = 0;
 static int isShowReplace = 0;
-
+static int isShowSetting = 0;
+static int isShowKeyboard = 0;
+static int isShowAbout = 0;
 
 static char inputFindText[10010] = "";
 static char inputReplaceText[10010] = "";
 
+/**
+ * 获取查找窗口显示状态
+ */ 
+int getFindDisplayState() {
+    return isShowFind;
+}
+
+/**
+ * 获取替换窗口显示状态
+ */ 
+int getReplaceDisplayState() {
+    return isShowReplace;
+}
+
+/**
+ * 更改查找窗口显示状态
+ */ 
+void setFindDisplayState(int newFindDisplayState) {
+    isShowFind = newFindDisplayState;
+}
+
+/**
+ * 更改替换窗口显示状态
+ */ 
+void setReplaceDisplayState(int newReplaceDisplayState) {
+    isShowReplace = newReplaceDisplayState;
+}
+
+/**
+ * 获取文本区域显示状态
+ */
+int getTextDisplayState() {
+    return !(isShowAbout || isShowSetting || isShowKeyboard);
+}
+
 void display() {
 
     DisplayClear();
-    // drawSelectRange(1);
-    drawTextArea();
-    // drawCursor(1);
-    if (isShowFind) {
-        drawFindArea();
+
+    // winHeight = GetWindowHeight();
+	// winWidth = GetWindowWidth();
+    
+    if (isShowSetting) {
+        drawSettingPage();
+    } else if (isShowKeyboard) {
+        drawKeyboardPage();
+    } else if (isShowAbout) {
+        drawAboutPage();
+    } else {
+        drawTextArea();
+        if (isShowFind) {
+            drawFindArea();
+        }
+        if (isShowReplace) {
+            drawReplaceArea();
+        }
+        drawMenu();
     }
-    if (isShowReplace) {
-        drawReplaceArea();
-    }
-    drawMenu();
 }
 
 /*
@@ -42,13 +90,15 @@ void display() {
 void drawMenu() {
 
     char *originFont = GetFont();
+    int originPointSize = GetPointSize();
     SetFont("微软雅黑");
+    SetPointSize(13);
 
     char *menuListFile[] = {"文件",
-        "新建               Ctrl-N",
-        "打开               Ctrl-O",
-        "保存               Ctrl-S",
-        "退出               Ctrl-W"
+        "新建                  Ctrl-N",
+        "打开                  Ctrl-O",
+        "保存                  Ctrl-S",
+        "退出                  Ctrl-W"
     };
 
     double fH = GetFontHeight();
@@ -81,11 +131,12 @@ void drawMenu() {
     }
 
     char *menuListEdit[] = {"编辑",
-        "剪切               Ctrl-X",
-        "复制               Ctrl-C",
-        "粘贴               Ctrl-V",
-        "查找               Ctrl-F",
-        "替换               Ctrl-H"        
+        "剪切                   Ctrl-X",
+        "复制                   Ctrl-C",
+        "粘贴                   Ctrl-V",
+        "查找                   Ctrl-F",
+        "替换                   Ctrl-H",
+        "全选                   Ctrl-A"        
     };
 
     selection = menuList(GenUIID(0), x + w, y - h, w, wlist, h, menuListEdit, sizeof(menuListEdit) / sizeof(menuListEdit[0]));
@@ -105,8 +156,42 @@ void drawMenu() {
         case 5:     //替换
             isShowReplace ^= 1;
             break;
+        case 6:     //全选
+        {
+            int totr = getTotalRow();
+            int totc = getRowLen(totr);
+            setSelectStartRC((RCNode) {1, 1});
+            setSelectEndRC((RCNode) {totr, totc});
+            setCursorRC((RCNode) {totr, totc});
+            break;
+        }
     }
 
+    char *menuListSetting[] = {"首选项",
+        "设置                   Ctrl-E",
+        "键盘快捷方式      Ctrl-K",
+        "关于 Notepad--",
+        "帮助"
+    };
+
+    selection = menuList(GenUIID(0), x + w * 2, y - h, w, wlist, h, menuListSetting, sizeof(menuListSetting) / sizeof(menuListSetting[0]));
+    switch (selection) {
+        case 1:     //设置
+            isShowSetting ^= 1;
+            break;
+        case 2:     //键盘快捷方式
+            isShowKeyboard ^= 1;
+            break;
+        case 3:     //关于
+            isShowAbout ^= 1;
+            break;
+        case 4:     //帮助
+            // system("start https://github.com/PeiPei233/UnableToCount");
+            WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+            break;
+    }
+
+    //状态栏部分
     SetPenColor("Menu Gray");
     drawRectangle(0, 0, winWidth, fH * 1.4, 1);
     char *s[110];
@@ -116,11 +201,16 @@ void drawMenu() {
     MovePen(TextStringWidth("    "), GetFontDescent() + fH * 0.2);
     DrawTextString(s);
 
+    MovePen(winWidth - TextStringWidth("                ") - TextStringWidth("GBK"), GetFontDescent() + fH * 0.2);
+    DrawTextString("GBK");
+
     SetPenColor(originColor);
     SetFont(originFont);
+    SetPointSize(originPointSize);
 }
 
 static char t[10010];
+static int cid[10010];
 
 /*
     在范围内画文本，建议的参数包括左上角坐标(x, y) 矩形的长宽(w, h) 行高 是否需要自动换行 等等
@@ -131,6 +221,11 @@ void drawTextArea() {
     RCNode cursor = getCursorRC();
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
+    
+    string originFont = GetFont();
+    string originColor=  GetPenColor();
+    int originPointSize = GetPointSize();
+    TextStyle style = getTextStyle();
 
     if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
         RCNode t = startSelect;
@@ -138,107 +233,137 @@ void drawTextArea() {
         endSelect = t;
     }
 
-    int originPointSize = GetPointSize();
-    char *originColor = GetPenColor();
-    SetPointSize(15);
+    SetPointSize(style.fontSize);
+    SetFont(style.fontFamily);
+    if (!defineColorRGB("Text Color", style.textColor)) {
+        DefineColor("Text Color", 0, 0, 0);
+    }
+    if (!defineColorRGB("Background Color", style.backgroundColor)) {
+        DefineColor("Background Color", 1, 1, 1);
+    }
+    SetPenColor("Background Color");
+    drawRectangle(0, 0, winWidth, winHeight, 1);
 
     double fH = GetFontHeight();
     double x = fH;
     double y = winHeight - fH * 3;
-    double w = winWidth - fH * 2;
-    double th = fH * 1.2;
+    double th = fH * style.lineSpacing;
     MovePen(x, y);
-    int i = 0, j = 0, k = 0, cntl = 0, lens = strlen(s);
+    int i = 0, j = 0, k = 0, curl = 0, totl = 0, lens = strlen(s);
     
     double dx = TextStringWidth(" ") * (winCurrent.column - 1);
 
     i = j = 0;
     while (i < lens) {
-        cntl++;
+        totl++;
         t[0] = t[1] = 0;
+        cid[0] = cid[1] = 0;
         while (i < strlen(s) && s[i] != '\n') {
-            t[j] = s[i];
-            i++;
-            j++;
-            t[j] = t[j + 1] = 0;
+            if (s[i] == '\t') {
+                i++;
+                cid[k] = j;
+                k++;
+                // printf("CID[%d]:%d\n", k, cid[k]);
+                if (j % 4 == 0) {
+                    for (int _i = 1; _i <= 4; _i++) {
+                        t[j] = ' ';
+                        j++;
+                        t[j] = t[j + 1] = 0;
+                    }
+                } else {
+                    while (j % 4) {
+                    t[j] = ' ';
+                    j++;
+                    t[j] = t[j + 1] = 0;
+                    }
+                }
+            } else {
+                t[j] = s[i];
+                cid[k] = j;
+                i++;
+                j++;
+                k++;
+                t[j] = t[j + 1] = 0;
+            }
         }
+        cid[k] = j;
         //draw select area
 
-        // if (s[i] == '\n') {
-        //     if (cntl != endSelect.row) {
-        //         t[j] = ' ';
-        //         i++;
-        //         j++;
-        //         t[j] = t[j + 1] = 0;
-        //     } else i++;
-        // }
+        if (s[i] == '\n') {
+            if (totl != endSelect.row) {
+                t[j] = ' ';
+                i++;
+                j++;
+                t[j] = t[j + 1] = 0;
+            } else i++;
+        }
 
         SetPenColor("Select Blue");
         if (winCurrent.row == 1) {
-            if (cntl > startSelect.row && cntl < endSelect.row) {
+            if (totl > startSelect.row && totl < endSelect.row) {
                 double w = TextStringWidth(t);
-                if (w != 0) drawRectangle(x - dx, y - th * (cntl - 1) - GetFontDescent(), w, th, 1);
-            } else if (cntl == startSelect.row && startSelect.row != endSelect.row) {
+                if (w != 0) drawRectangle(x - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
+            } else if (totl == startSelect.row && startSelect.row != endSelect.row) {
                 // printf("SELECT:%d %d %s\n", startSelect.row, startSelect.column, t + startSelect.column - 1);
-                double w = TextStringWidth(t + startSelect.column - 1);
-                char ch = t[startSelect.column - 1];
-                t[startSelect.column - 1] = 0;
-                if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (cntl - 1) - GetFontDescent(), w, th, 1);
-                t[startSelect.column - 1] = ch;
-            } else if (cntl == endSelect.row && startSelect.row != endSelect.row) {
-                char ch = t[endSelect.column - 1];
-                t[endSelect.column - 1] = 0;
+                double w = TextStringWidth(t + cid[startSelect.column - 1]);
+                char ch = t[cid[startSelect.column - 1]];
+                t[cid[startSelect.column - 1]] = 0;
+                if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
+                t[cid[startSelect.column - 1]] = ch;
+            } else if (totl == endSelect.row && startSelect.row != endSelect.row) {
+                char ch = t[cid[endSelect.column - 1]];
+                t[cid[endSelect.column - 1]] = 0;
                 double w = TextStringWidth(t);
-                if (w != 0) drawRectangle(x - dx, y - th * (cntl - 1) - GetFontDescent(), w, th, 1);
-                t[endSelect.column - 1] = ch;
-            } else if (cntl == startSelect.row && startSelect.row == endSelect.row) {
-                char ch1 = t[endSelect.column - 1], ch2 = t[startSelect.column - 1];
-                t[endSelect.column - 1] = 0;
-                double w = TextStringWidth(t + startSelect.column - 1);
-                t[startSelect.column - 1] = 0;
-                if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (cntl - 1) - GetFontDescent(), w, th, 1);
-                t[endSelect.column - 1] = ch1;
-                t[startSelect.column - 1] = ch2;
+                if (w != 0) drawRectangle(x - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
+                t[cid[endSelect.column - 1]] = ch;
+            } else if (totl == startSelect.row && startSelect.row == endSelect.row) {
+                char ch1 = t[cid[endSelect.column - 1]], ch2 = t[cid[startSelect.column - 1]];
+                t[cid[endSelect.column - 1]] = 0;
+                double w = TextStringWidth(t + cid[startSelect.column - 1]);
+                t[cid[startSelect.column - 1]] = 0;
+                if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
+                t[cid[endSelect.column - 1]] = ch1;
+                t[cid[startSelect.column - 1]] = ch2;
             }
         } else {
-            if (cntl >= winCurrent.row - 1) {
-                k++;
-                if (cntl > startSelect.row && cntl < endSelect.row) {
+            if (totl >= winCurrent.row - 1) {
+                curl++;
+                if (totl > startSelect.row && totl < endSelect.row) {
                     double w = TextStringWidth(t);
-                    if (w != 0) drawRectangle(x - dx, y - th * (k - 2) - GetFontDescent(), w, th, 1);
-                } else if (cntl == startSelect.row && startSelect.row != endSelect.row) {
+                    if (w != 0) drawRectangle(x - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
+                } else if (totl == startSelect.row && startSelect.row != endSelect.row) {
                     // printf("SELECT:%d %d %s\n", startSelect.row, startSelect.column, t + startSelect.column - 1);
-                    double w = TextStringWidth(t + startSelect.column - 1);
-                    char ch = t[startSelect.column - 1];
-                    t[startSelect.column - 1] = 0;
-                    if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (k - 2) - GetFontDescent(), w, th, 1);
-                    t[startSelect.column - 1] = ch;
-                } else if (cntl == endSelect.row && startSelect.row != endSelect.row) {
-                    char ch = t[endSelect.column - 1];
-                    t[endSelect.column - 1] = 0;
+                    double w = TextStringWidth(t + cid[startSelect.column - 1]);
+                    char ch = t[cid[startSelect.column - 1]];
+                    t[cid[startSelect.column - 1]] = 0;
+                    if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
+                    t[cid[startSelect.column - 1]] = ch;
+                } else if (totl == endSelect.row && startSelect.row != endSelect.row) {
+                    char ch = t[cid[endSelect.column - 1]];
+                    t[cid[endSelect.column - 1]] = 0;
                     double w = TextStringWidth(t);
-                    if (w != 0) drawRectangle(x - dx, y - th * (k - 2) - GetFontDescent(), w, th, 1);
-                    t[endSelect.column - 1] = ch;
-                } else if (cntl == startSelect.row && startSelect.row == endSelect.row) {
-                    char ch1 = t[endSelect.column - 1], ch2 = t[startSelect.column - 1];
-                    t[endSelect.column - 1] = 0;
-                    double w = TextStringWidth(t + startSelect.column - 1);
-                    t[startSelect.column - 1] = 0;
-                    if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (k - 2) - GetFontDescent(), w, th, 1);
-                    t[endSelect.column - 1] = ch1;
-                    t[startSelect.column - 1] = ch2;
+                    if (w != 0) drawRectangle(x - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
+                    t[cid[endSelect.column - 1]] = ch;
+                } else if (totl == startSelect.row && startSelect.row == endSelect.row) {
+                    char ch1 = t[cid[endSelect.column - 1]], ch2 = t[cid[startSelect.column - 1]];
+                    t[cid[endSelect.column - 1]] = 0;
+                    double w = TextStringWidth(t + cid[startSelect.column - 1]);
+                    t[cid[startSelect.column - 1]] = 0;
+                    if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
+                    t[cid[endSelect.column - 1]] = ch1;
+                    t[cid[startSelect.column - 1]] = ch2;
                 }
             }
 
         }
 
         //draw text
-        SetPenColor("Black");
+        SetPenColor("Text Color");
         if (winCurrent.row == 1) {
-            MovePen(x - dx, y - th * (cntl - 1));
+            MovePen(x - dx, y - th * (totl - 1));
             DrawTextString(t);
-        } else if (cntl >= winCurrent.row - 1) {
-            MovePen(x - dx, y - th * (k - 2));
+        } else if (totl >= winCurrent.row - 1) {
+            MovePen(x - dx, y - th * (curl - 2));
             DrawTextString(t);
         }
 
@@ -247,28 +372,34 @@ void drawTextArea() {
             int originPenSize = GetPenSize();
             SetPenSize(2);
             if (winCurrent.row == 1) {
-                if (cntl == cursor.row) {
-                    t[cursor.column - 1] = 0;
-                    MovePen(x + TextStringWidth(t) - dx, y - th * (cntl - 1) - GetFontDescent());
+                if (totl == cursor.row) {
+                    t[cid[cursor.column - 1]] = 0;
+                    MovePen(x + TextStringWidth(t) - dx, y - th * (totl - 1) - GetFontDescent());
                     DrawLine(0, th);
                 }
-            } else if (cntl >= winCurrent.row - 1) {
-                if (cntl == cursor.row) {
-                    t[cursor.column - 1] = 0;
-                    MovePen(x + TextStringWidth(t) - dx, y - th * (k - 2) - GetFontDescent());
+            } else if (totl >= winCurrent.row - 1) {
+                if (totl == cursor.row) {
+                    t[cid[cursor.column - 1]] = 0;
+                    MovePen(x + TextStringWidth(t) - dx, y - th * (curl - 2) - GetFontDescent());
                     DrawLine(0, th);
                 }
             }
             SetPenSize(originPenSize);
         }
         
-        j = 0;
+        j = k = 0;
         t[0] = t[1] = 0;
-        if (s[i] == '\n') i++;
+        // if (s[i] == '\n') i++;
+        if (winCurrent.row == 1) {
+            if (y - th * totl < 0) break;
+        } else if (totl >= winCurrent.row - 1) {
+            if (y - th * curl < 0) break;
+        }
     }
 
     SetPointSize(originPointSize);
     SetPenColor(originColor);
+    SetFont(originFont);
 }
 
 /*
@@ -452,6 +583,9 @@ void drawSelectRange(double rowHeight) {
     绘制替换窗口同理
 */
 void drawFindArea() {
+    
+    setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
+    setTextBoxColors("White", "Black", "Textbox Hot Blue", "Black", 0);
 
     char *originFont = GetFont();
     SetFont("微软雅黑");
@@ -531,6 +665,9 @@ void drawFindArea() {
     绘制替换窗口 包括两个文本框（分别是查找和替换）以及替换按钮等
 */
 void drawReplaceArea() {
+
+    setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
+    setTextBoxColors("White", "Black", "Textbox Hot Blue", "Black", 0);
 
     char *originFont = GetFont();
     SetFont("微软雅黑");
@@ -634,4 +771,342 @@ void drawReplaceArea() {
 
     SetFont(originFont);
 
+}
+
+static char fontFamily[10010];
+static char fontSize[10010];
+static char lineSpacing[10010];
+static char backgroundColor[10010];
+static char textColor[10010];
+static int initSetting = 1;
+
+void drawSettingPage() {
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+    SetFont("微软雅黑");
+    SetPointSize(13);
+    setTextBoxColors("Menu Hot Gray", "Black", "Textbox Hot Blue", "Black", 0);
+
+    double fH = GetFontHeight();
+    double x = 0;
+    double y = winHeight;
+    double h = fH * 1.5;
+
+    char *originColor = GetPenColor();
+    SetPenColor("Menu Gray");
+    drawRectangle(x, y - h, winWidth, h, 1);
+    SetPenColor(originColor);
+
+    setButtonColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
+
+    TextStyle style = getTextStyle();
+
+    if (initSetting) {
+        initSetting = 0;
+        strcpy(fontFamily, style.fontFamily);
+        strcpy(fontSize, IntegerToString(style.fontSize));
+        strcpy(lineSpacing, RealToString(style.lineSpacing));
+        strcpy(backgroundColor, style.backgroundColor);
+        strcpy(textColor, style.textColor);
+    }
+
+    SetPointSize(40);
+    MovePen(winWidth / 16, winHeight * 6 / 7);
+    DrawTextString("设置");
+
+    x = winWidth / 8;
+    y = winHeight * 6 / 8;
+    SetPointSize(16);
+    double w = TextStringWidth("字体系列：") * 1.1;
+    double tw = winWidth / 3;
+    fH = GetFontHeight();
+    double fD = GetFontDescent();
+    double th = fH * 1.2;
+    h = fH * 3;
+    MovePen(x, y);
+    DrawTextString("字体系列：");
+    SetPenColor("Dark Gray");
+    MovePen(x + w, y);
+    DrawTextString("控制字体系列。");
+    SetPenColor(originColor);
+    if (textbox(GenUIID(0), x + w, y - fD * 2 - fH * 1.1, tw, th, fontFamily, sizeof(fontFamily) / sizeof(fontFamily[0]))) {
+
+    }
+    style.fontFamily = CopyString(fontFamily);
+
+    MovePen(x, y - h);
+    DrawTextString("字体大小：");
+    SetPenColor("Dark Gray");
+    MovePen(x + w, y - h);
+    DrawTextString("控制字体大小（像素）。请输入正整数。");
+    SetPenColor(originColor);
+    if (textbox(GenUIID(0), x + w, y - h - fD * 2 - fH * 1.1, tw, th, fontSize, sizeof(fontSize) / sizeof(fontSize[0]))) {
+
+    }
+    int tmpFontSize;
+    sscanf(fontSize, "%d", &tmpFontSize);
+    if (tmpFontSize > 0) {
+        style.fontSize = tmpFontSize;
+    } else if (strlen(fontSize)) {
+        SetPenColor("Red");
+        MovePen(x + w + tw + fH, y - h - fH - fD);
+        DrawTextString("输入必须为正整数");
+        SetPenColor(originColor);
+    }
+
+    MovePen(x, y - h * 2);
+    DrawTextString("行间距：");
+    SetPenColor("Dark Gray");
+    MovePen(x + w, y - h * 2);
+    DrawTextString("控制行间距（倍数）。请输入正浮点数。");
+    SetPenColor(originColor);
+    if (textbox(GenUIID(0), x + w, y - h * 2 - fD * 2 - fH * 1.1, tw, th, lineSpacing, sizeof(lineSpacing) / sizeof(lineSpacing[0]))) {
+
+    }
+    double tmpLineSpacing;
+    sscanf(lineSpacing, "%lf", &tmpLineSpacing);
+    if (tmpLineSpacing > 0) {
+        style.lineSpacing = tmpLineSpacing;
+    } else if (strlen(lineSpacing)) {
+        SetPenColor("Red");
+        MovePen(x + w + tw + fH, y - h * 2 - fH - fD);
+        DrawTextString("输入必须为正浮点数");
+        SetPenColor(originColor);
+    }
+
+    MovePen(x, y - h * 3);
+    DrawTextString("文字颜色：");
+    SetPenColor("Dark Gray");
+    MovePen(x + w, y - h * 3);
+    DrawTextString("控制字体颜色。请输入十六进制颜色码，如绿色为 #00FF00。");
+    SetPenColor(originColor);
+    if (textbox(GenUIID(0), x + w, y - h * 3 - fD * 2 - fH * 1.1, tw, th, textColor, sizeof(textColor) / sizeof(textColor[0]))) {
+
+    }
+    if (strlen(textColor)) {        
+        if (defineColorRGB("tmpTextColor", textColor)) {
+            SetPenColor("tmpTextColor");
+            drawRectangle(x + w + tw + fH, y - h * 3 - fD * 2 - fH * 1.1, th, th, 1);
+            SetPenColor("Menu Hot Gray");
+            drawRectangle(x + w + tw + fH, y - h * 3 - fD * 2 - fH * 1.1, th, th, 0);
+            SetPenColor(originColor);
+            style.textColor = CopyString(textColor);
+        } else {
+            SetPenColor("Red");
+            MovePen(x + w + tw + fH, y - h * 3 - fH - fD);
+            DrawTextString("无效的十六进制颜色码");
+            SetPenColor(originColor);
+            defineColorRGB("tmpTextColor", style.textColor);
+        }
+    } else {
+        defineColorRGB("tmpTextColor", style.textColor);
+        SetPenColor("tmpTextColor");
+        drawRectangle(x + w + tw + fH, y - h * 3 - fD * 2 - fH * 1.1, th, th, 1);
+        SetPenColor("Menu Hot Gray");
+        drawRectangle(x + w + tw + fH, y - h * 3 - fD * 2 - fH * 1.1, th, th, 0);
+        SetPenColor(originColor);
+    }
+
+    MovePen(x, y - h * 4);
+    DrawTextString("背景颜色：");
+    SetPenColor("Dark Gray");
+    MovePen(x + w, y - h * 4);
+    DrawTextString("控制背景颜色。请输入十六进制颜色码，如绿色为 #00FF00。");
+    SetPenColor(originColor);
+    if (textbox(GenUIID(0), x + w, y - h * 4 - fD * 2 - fH * 1.1, tw, th, backgroundColor, sizeof(backgroundColor) / sizeof(backgroundColor[0]))) {
+
+    }
+    if (strlen(backgroundColor)) {        
+        if (defineColorRGB("tmpBackgroundColor", backgroundColor)) {
+            SetPenColor("tmpBackgroundColor");
+            drawRectangle(x + w + tw + fH, y - h * 4 - fD * 2 - fH * 1.1, th, th, 1);
+            SetPenColor("Menu Hot Gray");
+            drawRectangle(x + w + tw + fH, y - h * 4 - fD * 2 - fH * 1.1, th, th, 0);
+            SetPenColor(originColor);
+            style.backgroundColor = CopyString(backgroundColor);
+        } else {
+            SetPenColor("Red");
+            MovePen(x + w + tw + fH, y - h * 4 - fH - fD);
+            DrawTextString("无效的十六进制颜色码");
+            SetPenColor(originColor);
+            defineColorRGB("tmpBackgroundColor", style.backgroundColor);
+        }
+    } else {
+        defineColorRGB("tmpBackgroundColor", style.backgroundColor);
+        SetPenColor("tmpBackgroundColor");
+        drawRectangle(x + w + tw + fH, y - h * 4 - fD * 2 - fH * 1.1, th, th, 1);
+        SetPenColor("Menu Hot Gray");
+        drawRectangle(x + w + tw + fH, y - h * 4 - fD * 2 - fH * 1.1, th, th, 0);
+        SetPenColor(originColor);
+    }
+
+    if (button(GenUIID(0), x + w + TextStringWidth("控制字体颜色。请输入十六进制颜色码，如红色为 #00FF00。"), y - h * 3 - fD, 
+        TextStringWidth("查询颜色码") * 1.1, th, "查询颜色码")) {
+        WinExec("cmd.exe /k start https://color.adobe.com/zh/create/color-wheel", SW_HIDE);
+    }
+    if (button(GenUIID(0), x + w + TextStringWidth("控制字体颜色。请输入十六进制颜色码，如红色为 #00FF00。"), y - h * 4 - fD, 
+        TextStringWidth("查询颜色码") * 1.1, th, "查询颜色码")) {
+        WinExec("cmd.exe /k start https://color.adobe.com/zh/create/color-wheel", SW_HIDE);
+    }
+
+    double H = h;
+    y = y - h * 5;
+    SetPointSize(style.fontSize);
+    SetFont(style.fontFamily);
+    fH = GetFontHeight();
+    h = fH * style.lineSpacing;
+    H = H > h * 5 ? H : h * 5;
+    char *text[] = {
+        "这是一段实例文本",
+        "This is a demo text style",
+        "Oo0Oo0Oo0Oo0Oo0",
+        "Il1Il1Il1Il1Il1"
+    };
+
+    w = winWidth / 5;
+    for (int i = 0; i < 4; i++) {
+        double t = TextStringWidth(text[i]) * 1.2;
+        w = w > t ? w : t;
+    }
+
+    SetPenColor("tmpBackgroundColor");
+    drawRectangle(x, y - H, w, H, 1);
+    SetPenColor("Menu Hot Gray");
+    drawRectangle(x, y - H, w, H, 0);
+    fD = GetFontDescent();
+    SetPenColor("tmpTextColor");
+    for (int i = 0; i < 4; i++) {
+        MovePen(x + w * 0.1, y - h * i - fH - fD);
+        DrawTextString(text[i]);
+    }
+    
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    fH = GetFontHeight();
+    x = 0;
+    y = winHeight;
+    h = fH * 1.5;
+
+    SetPointSize(24);
+    if (button(GenUIID(0), x + TextStringWidth("  "), y - h, TextStringWidth("←"), h, "←")) {
+        isShowSetting ^= 1;
+        initSetting ^= 1;
+        setTextStyle(style);
+        SetFont(originFont);
+        SetPointSize(originPointSize);
+        SetPenColor(originColor);
+        return;
+    }
+
+    SetPenColor(originColor);
+    SetFont(originFont);
+    SetPointSize(originPointSize);
+}
+
+void drawKeyboardPage() {
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    double fH = GetFontHeight();
+    double x = 0;
+    double y = winHeight;
+    double h = fH * 1.5;
+
+    char *originColor = GetPenColor();
+    SetPenColor("Menu Gray");
+    drawRectangle(x, y - h, winWidth, h, 1);
+    SetPenColor(originColor);
+
+    setButtonColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
+
+
+    SetPointSize(24);
+    if (button(GenUIID(0), x + TextStringWidth("  "), y - h, TextStringWidth("←"), h, "←")) {
+        isShowKeyboard ^= 1;
+    }
+
+    SetPointSize(40);
+    MovePen(winWidth / 16, winHeight * 6 / 7);
+    DrawTextString("键盘快捷键");
+
+    x = winWidth / 5;
+    y = winHeight * 3 / 4;
+    SetPointSize(20);
+    fH = GetFontHeight();
+    double fD = GetFontDescent();
+    h = GetFontHeight() * 1.2;
+
+    static char *tableContent[][2] = {
+        "命令", "键绑定",
+        "打开文件", "Ctrl + O",
+        "保存文件", "Ctrl + S",
+        "退出Notepad--", "Ctrl + W",
+        "剪切", "Ctrl + X",
+        "复制", "Ctrl + C",
+        "粘贴", "Ctrl + V",
+        "查找", "Ctrl + F",
+        "替换", "Ctrl + H",
+        "全选", "Ctrl + A",
+    };
+
+    for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
+        if (i % 2 == 0) {
+            if (i) SetPenColor("Table Gray");
+            else SetPenColor("Button Gray");
+            drawRectangle(winWidth / 16, y - fD - fH * 0.1 - h * i, winWidth * 14 / 16, h, 1);
+            SetPenColor("Dark Gray");
+        }
+        MovePen(x, y - h * i);
+        DrawTextString(tableContent[i][0]);
+        MovePen(x + winWidth * 2 / 5, y - h * i);
+        DrawTextString(tableContent[i][1]);
+    }
+    
+
+    SetPenColor(originColor);
+    SetFont(originFont);
+    SetPointSize(originPointSize);
+}
+
+void drawAboutPage() {
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    double fH = GetFontHeight();
+    double x = 0;
+    double y = winHeight;
+    double h = fH * 1.5;
+
+    char *originColor = GetPenColor();
+    SetPenColor("Menu Gray");
+    drawRectangle(x, y - h, winWidth, h, 1);
+    SetPenColor(originColor);
+
+    setButtonColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
+
+
+    SetPointSize(24);
+    if (button(GenUIID(0), x + TextStringWidth("  "), y - h, TextStringWidth("←"), h, "←")) {
+        isShowAbout ^= 1;
+    }
+
+    SetPointSize(40);
+    MovePen(winWidth / 16, winHeight * 6 / 7);
+    DrawTextString("关于 Notepad--");
+
+    x = winWidth / 8;
+    y = winHeight * 3 / 4;
+    SetPointSize(20);
+    fH = GetFontHeight();
+    double fD = GetFontDescent();
+    h = GetFontHeight() * 1.2;
+
+    SetPenColor(originColor);
+    SetFont(originFont);
+    SetPointSize(originPointSize);
 }
