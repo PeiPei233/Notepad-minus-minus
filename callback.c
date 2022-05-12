@@ -2,67 +2,17 @@
     主要处理鼠标 键盘按键的回调
 */
 
+//TODO:上下左右方向键时中文字符的处理
+
 #include "global.h"
 #include "libgraphics.h"
 #include "display.h"
 #include "file.h"
+#include "init.h"
 
 int isButtonDown = 0;
 int isShift = 0;
 static char t[100010];
-
-/**
- * 获得第 row 行的总列数
- */ 
-int getRowLen(int row) {
-    char *s = getCurrentString();
-    RCNode winCurrent = getWindowCurrentRC();
-
-    int i = 0, j = 0, cntl = 0, lens = strlen(s);
-    
-    t[0] = t[1] = 0;
-    while (i < lens) {
-        cntl++;
-        t[0] = t[1] = 0;
-        while (i < strlen(s) && s[i] != '\n') {
-            t[j] = s[i];
-            i++;
-            j++;
-            t[j] = t[j + 1] = 0;
-        }
-        if (cntl == row) {
-            return j + 1;
-        } 
-        j = 0;
-        t[0] = t[1] = 0;
-        if (s[i] == '\n') i++;
-    }
-    return 0;
-}
-
-/**
- * 获得文件总行数
- */ 
-int getTotalRow() {
-    char *s = getCurrentString();
-
-    int i = 0, j = 0, cntl = 0, lens = strlen(s);
-    t[0] = t[1] = 0;
-    while (i < lens) {
-        cntl++;
-        t[0] = t[1] = 0;
-        while (i < strlen(s) && s[i] != '\n') {
-            t[j] = s[i];
-            i++;
-            j++;
-            t[j] = t[j + 1] = 0;
-        }
-        j = 0;
-        t[0] = t[1] = 0;
-        if (s[i] == '\n') i++;
-    }
-    return cntl;
-}
 
 /**
  * 将窗口的(x, y)像素坐标转换为行列坐标
@@ -74,64 +24,99 @@ RCNode XYtoRC(int x, int y) {
 
     char *s = getCurrentString();
     RCNode winCurrent = getWindowCurrentRC();
+    TextStyle style = getTextStyle();
 
     int originPointSize = GetPointSize();
-    SetPointSize(15);
+    char *originFont = GetFont();
+    SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
     double fH = GetFontHeight();
     double ox = fH;
     double oy = winHeight - fH * 3;
     double w = winWidth - fH * 2;
-    double th = fH * 1.2;
+    double th = fH * style.lineSpacing;
 
-    int i = 0, j = 0, k = 0, cntl = 0, lens = strlen(s);
+    int i = 0, j = 0, k = 0, curl = 0, totl = 0, lens = strlen(s);
     RCNode mouse = (RCNode) {0, 0};
 
     double dx = TextStringWidth(" ") * (winCurrent.column - 1);
 
     i = j = 0;
     while (i < lens) {
-        cntl++;
+        totl++;
         t[0] = t[1] = 0;
         if (winCurrent.row == 1) {
-            if (oy - th * (cntl - 1) - GetFontDescent() <= ny && ny <= oy + th - GetFontDescent()) {
-                mouse.row = cntl;
+            if (oy - th * (totl - 1) - GetFontDescent() <= ny && ny <= oy + th - GetFontDescent()) {
+                mouse.row = totl;
             }
+            if (oy - th * (totl - 2) - GetFontDescent() < 0) break;
         } else {
-            if (cntl >= winCurrent.row - 1) {
-                k++;
-                if (oy - th * (k - 2) - GetFontDescent() <= ny && ny <= oy - th * (k - 3) - GetFontDescent()) {
-                    mouse.row = cntl;
+            if (totl >= winCurrent.row - 1) {
+                curl++;
+                if (oy - th * (curl - 2) - GetFontDescent() <= ny && ny <= oy - th * (curl - 3) - GetFontDescent()) {
+                    mouse.row = totl;
+                } else {
+                    while (i < strlen(s) && s[i] != '\n') {
+                        i++;
+                    }
                 }
+                if (oy - th * (curl - 3) - GetFontDescent() < 0) break;
             }
         }
         while (i < strlen(s) && s[i] != '\n') {
-            t[j] = s[i];
-            i++;
-            j++;
-            t[j] = t[j + 1] = 0;
+            if (s[i] == '\t') {
+                i++;
+                k++;
+                if (j % 4 == 0) {
+                    for (int _i = 1; _i <= 4; _i++) {
+                        t[j] = ' ';
+                        j++;
+                        t[j] = t[j + 1] = 0;
+                    }
+                } else while (j % 4) {
+                    t[j] = ' ';
+                    j++;
+                    t[j] = t[j + 1] = 0;
+                }
+            } else {
+                if (s[i] & 0x80 && s[i + 1] & 0x80) {
+                    t[j] = s[i];
+                    i++;
+                    j++;
+                    k++;
+                    t[j] = t[j + 1] = 0;
+                }
+                t[j] = s[i];
+                i++;
+                j++;
+                t[j] = t[j + 1] = 0;
+                k++;
+            }
             if (mouse.row) {
                 if (nx <= ox - dx + TextStringWidth(t)) {
                     i = lens + 1;
-                    mouse.column = j;
+                    mouse.column = k;
+                    if (k >= 2 && t[k - 1] & 0x80 && t[k - 2] & 0x80) mouse.column = k - 1;
                     break;
                 }
             }
         }
         if (mouse.row) {
-            if (!mouse.column) mouse.column = j + 1;
+            if (!mouse.column) mouse.column = k + 1;
             break;
         }
-        j = 0;
+        j = k = 0;
         t[0] = t[1] = 0;
         if (s[i] == '\n') i++;
     }
     if (!mouse.row) {
-        mouse.row = cntl;
-        mouse.column = getRowLen(cntl);
+        mouse.row = totl;
+        mouse.column = getRowLen(totl);
     }
     // printf("MOUSE:%d %d\n", mouse.row, mouse.column);
 
     SetPointSize(originPointSize);
+    SetFont(originFont);
     return mouse;
 }
 
@@ -144,6 +129,36 @@ RCNode XYtoRC(int x, int y) {
     选择后光标位置应该在选择范围的最后
 */
 void getMouse(int x, int y, int button, int event) {
+
+    double nx = ScaleXInches(x);
+    double ny = ScaleYInches(y);
+
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    double fH = GetFontHeight();
+
+    SetFont(originFont);
+    SetPointSize(originPointSize);
+
+    if (ny >= winHeight - fH * 1.5) return;
+    if (ny <= fH * 1.4) return;
+
+    if (getFindDisplayState()) {
+        if (nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
+            ny > winHeight - fH * 3.5 && ny < winHeight - fH * 3.5 + fH * 1.6) return;
+    }
+
+    if (getReplaceDisplayState()) {
+        if (nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
+            ny > winHeight - fH * 4.9 && ny < winHeight - fH * 4.9 + fH * 3) return;
+    }
+
+    if (!getTextDisplayState()) {
+        return;
+    }
 
     switch (event) {
         case BUTTON_DOWN:
@@ -395,6 +410,10 @@ void inputKeyboard(int key, int event) {
             // case VK_RETURN:
             //     puts("ENTER");
             //     break;
+            case VK_ESCAPE:
+                if (getFindDisplayState()) setFindDisplayState(0);
+                if (getReplaceDisplayState()) setReplaceDisplayState(0);
+                break;
         }
     }
     if (event == KEY_UP) {

@@ -7,6 +7,31 @@
 
 #include "global.h"
 
+/**
+ * 获取查找窗口显示状态
+ */ 
+int getFindDisplayState();
+
+/**
+ * 获取替换窗口显示状态
+ */ 
+int getReplaceDisplayState();
+
+/**
+ * 更改查找窗口显示状态
+ */ 
+void setFindDisplayState(int newFindDisplayState);
+
+/**
+ * 更改替换窗口显示状态
+ */ 
+void setReplaceDisplayState(int newReplaceDisplayState);
+
+/**
+ * 获取文本区域显示状态
+ */
+int getTextDisplayState();
+
 void display();
 
 /*
