@@ -1,6 +1,9 @@
 /*
     主要实现文件交互的相关功能
 */
+/* 首先要确定系统文件位置，初始化CACHE1和CACHE2;
+   打开后即需要立刻初始化缓存，即调用initCache()
+*/
 #ifndef __FILE_H__
 #define __FILE_H__
 
