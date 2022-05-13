@@ -3,7 +3,7 @@
 
 #include "callback.h"
 
-#define max 100000
+#define MAX 100000
 
 //行列坐标表示
 typedef struct {
@@ -46,12 +46,12 @@ RCNode getSelectEndRC();
 /*
     设置选择范围起始位置
 */
-void setSelectStartLC(RCNode newStartSelect);
+void setSelectStartRC(RCNode newStartSelect);
 
 /*
     设置选择范围终止位置
 */
-void setSelectEndLC(RCNode newEndSelect);
+void setSelectEndRC(RCNode newEndSelect);
 
 /*
     判断光标位置是否在窗口内
@@ -69,9 +69,14 @@ void setCursorInWindow();
 */
 int  numofFormerWords(RCNode curPosition);
 
-/*
-    将所有文本内容放入一个数组当中连续储存
-*/
-char* allText();
+/**
+ * 获得第 row 行的总列数
+ */ 
+int getRowLen(int row);
+
+/**
+ * 获得文件总行数
+ */ 
+int getTotalRow();
 
 #endif

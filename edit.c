@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include "global.h"
 #include "edit.h"
+#include "file.h"
 
 
 /*
@@ -15,16 +16,14 @@ void copyText()
 {   
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();    
-    char copystr[max];   //定义需要复制的文本
-    char curText[max];
-    strcpy(curText, allText());  //获取所有文本
-    char *cur = curText;  
+    char copystr[MAX];   //定义需要复制的文本
+    char *cur = getCurrentString();  
     int start, end;
     start = numofFormerWords(startSelect);   //计算复制字符的起始位置，结束位置
     end = numofFormerWords(endSelect) - 1;
     cur += start;   // 指针指向选中复制文本开始处
     strcpy(copystr, cur);   //得到选中复制文本
-    int length = end-1 - start;
+    int length = end - start + 1;
     copystr[length] = '\0';		//设置复制文本结束符（文本计数从1开始）
 
     //与系统剪切板进行交互
@@ -56,7 +55,7 @@ void pasteText() {
     length = end - start;  //计算要覆盖的字符的起始位置，终止位置，长度
 
     //与系统剪切板交互读取其中内容并储存在pasteText当中
-    char pasteText[max];
+    char pasteText[MAX];
     if(!OpenClipboard(NULL))
     {
         printf("打开剪切板出错！\n");
@@ -77,10 +76,9 @@ void pasteText() {
     CloseClipboard();
 
     //对原文本进行粘贴修改
-    char curText[max];  
-    strcpy(curText, allText());  //获取所有文本
+    char *curText = getCurrentString();
     char *cur = curText;
-    char behindText[max];   //定义被选中文本后的字符串
+    char behindText[MAX];   //定义被选中文本后的字符串
     cur += (end+1);    //指针指向被选中文本的之后的第一个字符
     strcpy(behindText, cur);
     curText[start-1] = '\0';     //设置选择文本之前的字符串结束符
@@ -112,9 +110,8 @@ void shearText() {
     start = numofFormerWords(startSelect);
     end = numofFormerWords(endSelect) - 1;
     length = end - start;
-    char curText[max];
-    strcpy(curText, allText());   //获取所有文本
-    char behindText[max];   //定义被选中文本后的字符
+    char *curText = getCurrentString();
+    char behindText[MAX];   //定义被选中文本后的字符
     char *cur = curText;
     cur += (end+1);    //指针指向被选中文本后的第一个字符
     strcpy(behindText, cur);

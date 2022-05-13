@@ -59,7 +59,7 @@ int getTextDisplayState() {
 }
 
 void display() {
-
+    
     DisplayClear();
 
     // winHeight = GetWindowHeight();

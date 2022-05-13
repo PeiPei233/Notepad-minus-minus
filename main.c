@@ -47,11 +47,12 @@ void Main() {
 
 	SetWindowTitle("Notepad--");
 	InitGraphics();
-	// InitConsole();
+	InitConsole();
 	
 	winHeight = GetWindowHeight();
 	winWidth = GetWindowWidth();
 
+	initCache();
 	initDisplay();
 
 	registerCharEvent(CharEventProcess);

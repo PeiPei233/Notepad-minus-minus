@@ -4,21 +4,22 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "global.h"
 #include "find.h"
 
-RCNode findStr[max];
+RCNode findStr[MAX];
 
 /*
     根据传入的字符串查找从当前光标位置开始的下一个匹配的字符串
     查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
 */
-int findText(char *src) {
+int findText(char *src) {printf("FIND:%s\n", src);
     RCNode startCursor = getCursorRC();  //获取当前光标位置作为查找开始坐标
     int row=startCursor.row, column=startCursor.column;
     RCNode findCursor;
     int length = strlen(src);   //计算查找字符长度
-    char *ch = (char*)malloc(sizeof(char)*max);
+    char *ch = (char*)malloc(sizeof(char)*MAX);
     strcpy(ch, getCurrentString());   //获取当前屏幕现实的内容
     char *ch_=ch;   //定义指针储存字符串初始位置
     int flag;
@@ -117,8 +118,7 @@ int findText(char *src) {
     否则如果当前选中的字符串就是src，则替换为tar并将选择范围改为替换后的字符串并更新光标位置为选择位置末端吗
 */
 void replaceText(char *src, char *tar) {
-    char allStr[max];    //获取所有文本
-    strcpy(allStr, allText());
+    char *allStr = getCurrentString();    //获取所有文本
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
@@ -127,7 +127,7 @@ void replaceText(char *src, char *tar) {
     int length = end - start;
 
     //获取选中内容并储存在selectStr中
-    char selectStr[max];
+    char selectStr[MAX];
     char* str = allStr;
     str += start;
     strcpy(selectStr, str);
@@ -140,7 +140,7 @@ void replaceText(char *src, char *tar) {
         replaceText(src, tar);
     }
 
-    char behindText[max];   //定义被选中文本后的字符串
+    char behindText[MAX];   //定义被选中文本后的字符串
     str += (length+1);    //指针指向被选中文本的之后的第一个字符
     strcpy(behindText, str);
     allStr[start-1] = '\0';     //设置选择文本之前的字符串结束符
@@ -149,7 +149,7 @@ void replaceText(char *src, char *tar) {
 
     //将修改后的文本输入
     FILE *currentFile;  
-    if(!(currentFile = fopen("currentFile.txt","w")))
+    if(!(currentFile = fopen("./cache1.txt","w")))
     {
         printf("打开错误");
         return ;
