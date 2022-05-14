@@ -9,9 +9,11 @@
 #include "display.h"
 #include "file.h"
 #include "init.h"
+#include "math.h"
 
-int isButtonDown = 0;
-int isShift = 0;
+static int isButtonDown = 0;
+static int isShift = 0;
+static int isTyping = 1;
 static char t[100010];
 
 /**
@@ -19,10 +21,13 @@ static char t[100010];
  */ 
 RCNode XYtoRC(int x, int y) {
     
+    char *s = getCurrentString();
+    int lens = strlen(s);
+    if (!lens) return (RCNode) {1, 1};
+
     double nx = ScaleXInches(x);
     double ny = ScaleYInches(y);
 
-    char *s = getCurrentString();
     RCNode winCurrent = getWindowCurrentRC();
     TextStyle style = getTextStyle();
 
@@ -30,13 +35,13 @@ RCNode XYtoRC(int x, int y) {
     char *originFont = GetFont();
     SetFont(style.fontFamily);
     SetPointSize(style.fontSize);
+    // printf("MOUSESTYLE:%s %d %lf\n", style.fontFamily, style.fontSize, style.lineSpacing);
     double fH = GetFontHeight();
     double ox = fH;
     double oy = winHeight - fH * 3;
-    double w = winWidth - fH * 2;
     double th = fH * style.lineSpacing;
 
-    int i = 0, j = 0, k = 0, curl = 0, totl = 0, lens = strlen(s);
+    int i = 0, j = 0, k = 0, curl = 0, totl = 0;
     RCNode mouse = (RCNode) {0, 0};
 
     double dx = TextStringWidth(" ") * (winCurrent.column - 1);
@@ -46,7 +51,7 @@ RCNode XYtoRC(int x, int y) {
         totl++;
         t[0] = t[1] = 0;
         if (winCurrent.row == 1) {
-            if (oy - th * (totl - 1) - GetFontDescent() <= ny && ny <= oy + th - GetFontDescent()) {
+            if (oy - th * (totl - 1) - GetFontDescent() <= ny && ny <= oy + th * 2 - GetFontDescent()) {
                 mouse.row = totl;
             }
             if (oy - th * (totl - 2) - GetFontDescent() < 0) break;
@@ -113,7 +118,7 @@ RCNode XYtoRC(int x, int y) {
         mouse.row = totl;
         mouse.column = getRowLen(totl);
     }
-    // printf("MOUSE:%d %d\n", mouse.row, mouse.column);
+    printf("MOUSE:%d %d\n", mouse.row, mouse.column);
 
     SetPointSize(originPointSize);
     SetFont(originFont);
@@ -146,19 +151,66 @@ void getMouse(int x, int y, int button, int event) {
     if (ny >= winHeight - fH * 1.5) return;
     if (ny <= fH * 1.4) return;
 
+    double minY = fH * 1.4;
+
+    if (getFindDisplayState() && event == BUTTON_DOWN && button == LEFT_BUTTON) {
+        if (nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
+            ny > winHeight - fH * 3.5 && ny < winHeight - fH * 3.5 + fH * 1.6) {
+            isTyping = 0;
+        }
+    }
+
+    if (getReplaceDisplayState() && event == BUTTON_DOWN && button == LEFT_BUTTON) {
+        if (nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
+            ny > winHeight - fH * 4.9 && ny < winHeight - fH * 4.9 + fH * 3) {
+            isTyping = 0;
+        }
+    }
+
+    if (!getTextDisplayState()) {
+        isTyping = 0;
+    } else {
+        if (getFindDisplayState() && event == BUTTON_DOWN && button == LEFT_BUTTON) {
+            if (!(nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
+                ny > winHeight - fH * 3.5 && ny < winHeight - fH * 3.5 + fH * 1.6)) {
+                isTyping = 1;
+            }
+        }
+
+        if (getReplaceDisplayState() && event == BUTTON_DOWN && button == LEFT_BUTTON) {
+            if (!(nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
+                ny > winHeight - fH * 4.9 && ny < winHeight - fH * 4.9 + fH * 3)) {
+                isTyping = 1;
+            }
+        }
+    }
+
     if (getFindDisplayState()) {
         if (nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
-            ny > winHeight - fH * 3.5 && ny < winHeight - fH * 3.5 + fH * 1.6) return;
+            ny > winHeight - fH * 3.5 && ny < winHeight - fH * 3.5 + fH * 1.6) {
+            return;
+        }
     }
 
     if (getReplaceDisplayState()) {
         if (nx > winWidth / 2 && nx < winWidth / 2 + winWidth / 2 * 15 / 16 &&
-            ny > winHeight - fH * 4.9 && ny < winHeight - fH * 4.9 + fH * 3) return;
+            ny > winHeight - fH * 4.9 && ny < winHeight - fH * 4.9 + fH * 3) {
+            return;
+        }
     }
 
     if (!getTextDisplayState()) {
         return;
     }
+
+    TextStyle style = getTextStyle();
+    SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
+    fH = GetFontHeight();
+    double h = fH * style.lineSpacing;
+    double ox = fH;
+    double oy = winHeight - fH * 3;
+    int totl = ceil((oy + GetFontAscent() - minY) / h);
 
     switch (event) {
         case BUTTON_DOWN:
@@ -175,12 +227,46 @@ void getMouse(int x, int y, int button, int event) {
                 RCNode mouse = XYtoRC(x, y);
                 setCursorRC(mouse);
                 setSelectEndRC(mouse);
+                RCNode winCurrent = getWindowCurrentRC();
+                if (mouse.row < winCurrent.row) {
+                    winCurrent.row = mouse.row;
+                    setWindowCurrentRC(winCurrent);
+                }
+                if (ny <= oy + GetFontAscent() - (totl - 1) * h) {
+                    winCurrent.row++;
+                    setWindowCurrentRC(winCurrent);
+                }
+                if (nx <= fH) {
+                    winCurrent.column = max(winCurrent.column - 1, 1);
+                    setWindowCurrentRC(winCurrent);
+                }
+                if (nx >= winWidth - fH) {
+                    winCurrent.column++;
+                    setWindowCurrentRC(winCurrent);
+                }
             }
             break;
         case BUTTON_UP:
             if (button == LEFT_BUTTON) {
                 RCNode mouse = XYtoRC(x, y);
                 isButtonDown = 0;
+                RCNode winCurrent = getWindowCurrentRC();
+                if (mouse.row < winCurrent.row) {
+                    winCurrent.row = mouse.row;
+                    setWindowCurrentRC(winCurrent);
+                }
+                if (ny <= oy + GetFontAscent() - (totl - 1) * h) {
+                    winCurrent.row++;
+                    setWindowCurrentRC(winCurrent);
+                }
+                if (nx <= fH) {
+                    winCurrent.column = max(winCurrent.column - 1, 1);
+                    setWindowCurrentRC(winCurrent);
+                }
+                if (nx >= winWidth - fH) {
+                    winCurrent.column++;
+                    setWindowCurrentRC(winCurrent);
+                }
                 setCursorRC(mouse);
                 setSelectEndRC(mouse);
             }
@@ -188,25 +274,20 @@ void getMouse(int x, int y, int button, int event) {
         case ROLL_UP: 
             if (!isShift) {
                 RCNode winCurrent = getWindowCurrentRC();
-                if (winCurrent.row != 1) {
-                    setWindowCurrentRC((RCNode) {winCurrent.row - 1, winCurrent.column});
-                }
-            } else {
+                setWindowCurrentRC((RCNode) {max(winCurrent.row - (ceil(winWidth / 12 / h)), 1), winCurrent.column});
+            } else {    //往左滑动
                 RCNode winCurrent = getWindowCurrentRC();
-                if (winCurrent.column != 1) {
-                    setWindowCurrentRC((RCNode) {winCurrent.row, winCurrent.column - 1});
-                }
+                setWindowCurrentRC((RCNode) {winCurrent.row, max(winCurrent.column - (ceil(winHeight / 12 / TextStringWidth(" "))), 1)});
             }
             break;
         case ROLL_DOWN:
             if (!isShift) {
                 RCNode winCurrent = getWindowCurrentRC();
-                if (winCurrent.row != getTotalRow()) {
-                    setWindowCurrentRC((RCNode) {winCurrent.row + 1, winCurrent.column});
-                }
-            } else {
+                int totr = getTotalRow();
+                setWindowCurrentRC((RCNode) {min(winCurrent.row + (ceil(winWidth / 12 / h)), totr), winCurrent.column});
+            } else {    //往右滑动
                 RCNode winCurrent = getWindowCurrentRC();
-                setWindowCurrentRC((RCNode) {winCurrent.row, winCurrent.column + 1});
+                setWindowCurrentRC((RCNode) {winCurrent.row, winCurrent.column + (ceil(winHeight / 12 / TextStringWidth(" ")))});
             }
             break;
 
@@ -217,7 +298,28 @@ void getMouse(int x, int y, int button, int event) {
     根据传入的字符，行列等，实现将输入的文字添加（插入）到当前文件中某行某列(r, c)的功能。
 */
 void inputChar(char ch) {
-    printf("INPUT:%d\n", ch);
+    // printf("INPUT:%d\n", ch);
+    if (!isTyping) return;
+    if (ch == 23) {
+        ExitGraphics();
+        return;
+    }
+    RCNode cursor = getCursorRC();
+    if (ch == '\r') {
+        ch = '\n';
+        addChar(ch);
+        cursor.row++;
+        cursor.column = 1;
+        setCursorRC(cursor);
+        setSelectStartRC(cursor);
+        setSelectEndRC(cursor);
+        return;
+    } else if (ch > 0 && ch < 32 && ch != '\t') {
+        return;
+    }
+    addChar(ch);
+    cursor.column++;
+    setCursorRC(cursor);
 }
 
 /*
@@ -240,9 +342,17 @@ void inputKeyboard(int key, int event) {
                             setSelectEndRC((RCNode) {currentCursor.row - 1, len});
                         }
                     } else {
-                        setCursorRC((RCNode) {currentCursor.row, currentCursor.column - 1});
-                        setSelectStartRC((RCNode) {currentCursor.row, currentCursor.column - 1});
-                        setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                        string s = getCurrentString();
+                        int i = numofFormerWords(currentCursor);
+                        if (s[i - 1] & 0x80) {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column - 2});
+                            setSelectStartRC((RCNode) {currentCursor.row, currentCursor.column - 2});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column - 2});
+                        } else {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                            setSelectStartRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                        }
                     }
                 } else {
                     RCNode currentCursor = getCursorRC();
@@ -253,8 +363,15 @@ void inputKeyboard(int key, int event) {
                             setSelectEndRC((RCNode) {currentCursor.row - 1, len});
                         }
                     } else {
-                        setCursorRC((RCNode) {currentCursor.row, currentCursor.column - 1});
-                        setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                        string s = getCurrentString();
+                        int i = numofFormerWords(currentCursor);
+                        if (s[i - 1] & 0x80) {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column - 2});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column - 2});
+                        } else {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column - 1});
+                        }
                     }
                 }
                 break;
@@ -269,9 +386,17 @@ void inputKeyboard(int key, int event) {
                             setSelectEndRC((RCNode) {currentCursor.row + 1, 1});
                         }
                     } else {
-                        setCursorRC((RCNode) {currentCursor.row, currentCursor.column + 1});
-                        setSelectStartRC((RCNode) {currentCursor.row, currentCursor.column + 1});
-                        setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                        string s = getCurrentString();
+                        int i = numofFormerWords(currentCursor);
+                        if (s[i] & 0x80) {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column + 2});
+                            setSelectStartRC((RCNode) {currentCursor.row, currentCursor.column + 2});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column + 2});
+                        } else {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                            setSelectStartRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                        }
                     }
                 } else {
                     RCNode currentCursor = getCursorRC();
@@ -281,8 +406,15 @@ void inputKeyboard(int key, int event) {
                             setSelectEndRC((RCNode) {currentCursor.row + 1, 1});
                         }
                     } else {
-                        setCursorRC((RCNode) {currentCursor.row, currentCursor.column + 1});
-                        setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                        string s = getCurrentString();
+                        int i = numofFormerWords(currentCursor);
+                        if (s[i] & 0x80) {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column + 2});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column + 2});
+                        } else {
+                            setCursorRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                            setSelectEndRC((RCNode) {currentCursor.row, currentCursor.column + 1});
+                        }
                     }
                 }
                 break;
@@ -395,13 +527,79 @@ void inputKeyboard(int key, int event) {
                 }
                 break;
             //BACKSPACE
-            // case VK_BACK:
-            //     puts("BACKSPACE");
-            //     break;
-            //DELETE
-            case VK_DELETE:
-                puts("DELETE");
+            case VK_BACK: {
+                RCNode cursor = getCursorRC();
+                RCNode startSelect = getSelectStartRC();
+                RCNode endSelect = getSelectEndRC();
+                if (!(startSelect.column == endSelect.column && startSelect.row == endSelect.row)) {
+                    deleteSelectString();
+                    setCursorRC(startSelect);
+                    setSelectEndRC(startSelect);
+                    return;
+                }
+                int i = numofFormerWords(cursor);
+                string s = getCurrentString();
+                if (i == 0) return;
+                if (s[i - 1] == '\n') {
+                    int t = getRowLen(cursor.row - 1);
+                    deleteChar();
+                    cursor.row--;
+                    cursor.column = t;
+                    setCursorRC(cursor);
+                    setSelectStartRC(cursor);
+                    setSelectEndRC(cursor);
+                } else {
+                    if (s[i - 1] & 0x80) {  //处理中文
+                        deleteChar();
+                        cursor.column--;
+                        setCursorRC(cursor);
+                        setSelectStartRC(cursor);
+                        setSelectEndRC(cursor);
+                    }
+                    deleteChar();
+                    cursor.column--;
+                    setCursorRC(cursor);
+                    setSelectStartRC(cursor);
+                    setSelectEndRC(cursor);
+                }
                 break;
+            }
+            //DELETE
+            case VK_DELETE: {
+                RCNode cursor = getCursorRC();
+                RCNode startSelect = getSelectStartRC();
+                RCNode endSelect = getSelectEndRC();
+                if (!(startSelect.column == endSelect.column && startSelect.row == endSelect.row)) {
+                    deleteSelectString();
+                    setCursorRC(startSelect);
+                    setSelectEndRC(startSelect);
+                    return;
+                }
+                int i = numofFormerWords(cursor);
+                string s = getCurrentString();
+                if (i == strlen(s) - 1) return;
+                if (s[i] == '\n') {
+                    setCursorRC((RCNode) {cursor.row + 1, 1});
+                    deleteChar();
+                    setCursorRC(cursor);
+                    setSelectStartRC(cursor);
+                    setSelectEndRC(cursor);
+                } else {
+                    if (s[i] & 0x80) {  //处理中文
+                        setCursorRC((RCNode) {cursor.row, cursor.column + 2});
+                        deleteChar();
+                        setCursorRC(cursor);
+                        setSelectStartRC(cursor);
+                        setSelectEndRC(cursor);
+                    }
+                    setCursorRC((RCNode) {cursor.row, cursor.column + 1});
+                    deleteChar();
+                    setCursorRC(cursor);
+                    setSelectStartRC(cursor);
+                    setSelectEndRC(cursor);
+                }
+                break;
+            }
             //TAB
             // case VK_TAB:
             //     puts("TAB");

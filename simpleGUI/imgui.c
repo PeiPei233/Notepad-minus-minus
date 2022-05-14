@@ -519,12 +519,20 @@ int textbox(int id, double x, double y, double w, double h, char textbuf[], int 
 		gs_UIState.actingMenu = 0; // menu lose focus
 		if ( gs_UIState.mousedown) {
 			gs_UIState.clickedItem = id;
+			gs_UIState.charInput = 0;
+			gs_UIState.kbdItem = id;
 		}
 	}
 
+	if (gs_UIState.mousedown && !inBox(gs_UIState.mousex, gs_UIState.mousey, x, x + w, y, y + h)) {
+		gs_UIState.kbdItem = -1;
+	}
+
 	// If no widget has keyboard focus, take it
-	if (gs_UIState.kbdItem == 0)
+	if (gs_UIState.kbdItem == 0) {
 		gs_UIState.kbdItem = id;
+		gs_UIState.charInput = 0;
+	}
 
 	if (gs_UIState.kbdItem == id)
 		labelColor = gs_textbox_color.hotLabel;
@@ -535,7 +543,12 @@ int textbox(int id, double x, double y, double w, double h, char textbuf[], int 
 	// show text
 	mySetPenColor(labelColor);
 	MovePen(x+indent, textPosY);
-	DrawTextString(textbuf);
+	int i = 0;
+	while (TextStringWidth(textbuf + i) > w - indent * 2 && i < len) {
+		if (textbuf[i] & 0x80) i++;
+		i++;
+	}
+	DrawTextString(textbuf + i);
 	// add cursor if we have keyboard focus
 	if ( gs_UIState.kbdItem == id && (clock() >> 8) & 1) 
 	{

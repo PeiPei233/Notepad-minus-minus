@@ -59,7 +59,7 @@ int getTextDisplayState() {
 }
 
 void display() {
-    
+
     DisplayClear();
 
     // winHeight = GetWindowHeight();
@@ -226,6 +226,8 @@ void drawTextArea() {
     string originColor=  GetPenColor();
     int originPointSize = GetPointSize();
     TextStyle style = getTextStyle();
+    
+    // printf("DISPLAYSTYLE:%s %d %lf\n", style.fontFamily, style.fontSize, style.lineSpacing);
 
     if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
         RCNode t = startSelect;
@@ -233,8 +235,8 @@ void drawTextArea() {
         endSelect = t;
     }
 
-    SetPointSize(style.fontSize);
     SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
     if (!defineColorRGB("Text Color", style.textColor)) {
         DefineColor("Text Color", 0, 0, 0);
     }
@@ -391,9 +393,9 @@ void drawTextArea() {
         t[0] = t[1] = 0;
         // if (s[i] == '\n') i++;
         if (winCurrent.row == 1) {
-            if (y - th * totl < 0) break;
+            if (y - th * (totl - 1) < 0) break;
         } else if (totl >= winCurrent.row - 1) {
-            if (y - th * curl < 0) break;
+            if (y - th * (curl - 1) < 0) break;
         }
     }
 
@@ -951,11 +953,11 @@ void drawSettingPage() {
 
     double H = h;
     y = y - h * 5;
-    SetPointSize(style.fontSize);
     SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
     fH = GetFontHeight();
     h = fH * style.lineSpacing;
-    H = H > h * 5 ? H : h * 5;
+    H = max(H, h * 5);
     char *text[] = {
         "这是一段实例文本",
         "This is a demo text style",
@@ -965,8 +967,7 @@ void drawSettingPage() {
 
     w = winWidth / 5;
     for (int i = 0; i < 4; i++) {
-        double t = TextStringWidth(text[i]) * 1.2;
-        w = w > t ? w : t;
+        w = max(w, TextStringWidth(text[i])) * 1.2;
     }
 
     SetPenColor("tmpBackgroundColor");

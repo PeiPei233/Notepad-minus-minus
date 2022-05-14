@@ -34,10 +34,13 @@ TextStyle getTextStyle() {
 }
 
 /**
- * 设置当前文字区域样式
+ * 设置当前文字区域样式并保存到配置文件中
  */ 
 void setTextStyle(TextStyle newTextStyle) {
     textStyle = newTextStyle;
+    FILE *styleFile = fopen("styleConfig.properties", "w");
+    fprintf(styleFile, "fontFamily=%s\nfontSize=%d\nlineSpacing=%.16lf\ntextColor=%s\nbackgroundColor=%s", textStyle.fontFamily, textStyle.fontSize, textStyle.lineSpacing, textStyle.textColor, textStyle.backgroundColor);
+    fclose(styleFile);
 }
 
 /**
@@ -83,21 +86,65 @@ int defineColorRGB(char *des, char *rgb) {
     return 1;
 } 
 
+static char t[1000010];
+
 /*
     初始化展示窗口
 */
 void initDisplay() {
 
-    textStyle.fontFamily = CopyString("微软雅黑");
-    textStyle.fontSize = 15;
-    textStyle.lineSpacing = 1.2;
-    textStyle.textColor = CopyString("#000000");
-    textStyle.backgroundColor = CopyString("#FFFFFF");
+    //读取用户风格配置文件
+    FILE *styleFile;
+    if (!(styleFile = fopen("styleConfig.properties", "r"))) {
+        textStyle.fontFamily = CopyString("微软雅黑");
+        textStyle.fontSize = 15;
+        textStyle.lineSpacing = 1.2;
+        textStyle.textColor = CopyString("#000000");
+        textStyle.backgroundColor = CopyString("#FFFFFF");
+        setTextStyle(textStyle);
+    } else {
+        textStyle.fontFamily = CopyString("微软雅黑");
+        textStyle.fontSize = 15;
+        textStyle.lineSpacing = 1.2;
+        textStyle.textColor = CopyString("#000000");
+        textStyle.backgroundColor = CopyString("#FFFFFF");
+        for (int _i = 1; _i <= 5; _i++) {
+            fscanf(styleFile, " %[a-zA-Z] ", t);
+            fscanf(styleFile, " = ");
+            if (StringEqual(t, "fontFamily")) {
+                t[0] = t[1] = 0;
+                fscanf(styleFile, " %[^\n]", t);
+                for (int i = strlen(t) - 1; i >= 0 && t[i] == ' '; i--) {
+                    if (t[i] == ' ') t[i] = 0;
+                }
+                if (strlen(t)) textStyle.fontFamily = CopyString(t);
+            } else if(StringEqual(t, "fontSize")) {
+                int size;
+                fscanf(styleFile, "%d", &size);
+                textStyle.fontSize = size > 0 ? size : 15;
+            } else if(StringEqual(t, "lineSpacing")) {
+                double ls;
+                fscanf(styleFile, "%lf", &ls);
+                textStyle.lineSpacing = ls > 0 ? ls : 1.2;
+            } else if(StringEqual(t, "textColor")) {
+                fscanf(styleFile, "%s", t);
+                if (defineColorRGB("tmpTextColor", t)) {
+                    textStyle.textColor = CopyString(t);
+                }
+            } else if(StringEqual(t, "backgroundColor")) {
+                fscanf(styleFile, "%s", t);
+                if (defineColorRGB("tmpBackgroundColor", t)) {
+                    textStyle.backgroundColor = CopyString(t);
+                }
+            }
+        }
+        fclose(styleFile);
+        // printf("STYLE:%s %d %lf %s %s\n", textStyle.fontFamily, textStyle.fontSize, textStyle.lineSpacing, textStyle.textColor, textStyle.backgroundColor);
+    }
 
     initColor();
     setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
     setTextBoxColors("White", "Black", "Textbox Hot Blue", "Black", 0);
     setMenuColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
-    SetFont("Fira Code");
     display();
 }
