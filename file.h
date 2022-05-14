@@ -9,6 +9,10 @@
 
 #include "global.h"
 /*
+	初始化文件配置 , 一显示图形界面就要调用 
+*/
+void initFileConfig();
+/*
     打开一个文件
     这个应该要和Windows交互
     打开后更新窗口左上角坐标
@@ -44,7 +48,14 @@ int getSaveState();
     获取当前的显示的字符串
 */
 char *getCurrentString();
-
+/*
+	返回当前文件名
+*/ 
+char *getCurrentFileName();
+/*
+	设置当前字符串 
+*/
+void setCurrentString(char *update);
 /*
     自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString       哇兄弟，你这currentstring也不是全局变量啊，更新啥嘞 
 */

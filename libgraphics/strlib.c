@@ -52,6 +52,8 @@ string Concat(string s1, string s2)
     s = CreateString(len1 + len2);
     strcpy(s, s1);
     strcpy(s + len1, s2);
+    freeBlock(s1);
+    freeBlock(s2);
     return (s);
 }
 

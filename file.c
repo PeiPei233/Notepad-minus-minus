@@ -1,27 +1,27 @@
-/* 首先要确定系统文件位置，初始化CACHE1和CACHE2;(建议就在这里新建一个cache文件夹) 
-   其次打开后即需要立刻初始化缓存，即调用initCache()
-   再次winrow 和wincolumn需要调用global的函数，不知咋的找不到最新的 
+/* 
+	记得一显示就要调用initFileConfig() 
 */
 #include <stdio.h>
 #include "file.h"
 #include <windows.h>
 #include <Commdlg.h>
 #include <string.h>
+#include <strlib.h>
 
-#define _N 1000010
-#define CACHE1  "C:\\Users\\29431\\Documents\\GitHub\\UnableToCount\\myCache\\cache1.txt"
-#define CACHE2	"C:\\Users\\29431\\Documents\\GitHub\\UnableToCount\\myCache\\cache2.txt"
-static char currentString[_N];
+char *currentString;
 static FILE *currentFile;  //当前文件 
-static FILE *cacheFile1;    //缓存文件 
-static FILE *cacheFile2;
 OPENFILENAME ofn;
 // a another memory buffer to contain the file name
-char szFile[100];
-static int isSaved;    //是否保存 
-static int isCreated;  //是否已经确定保存位置 
-static int winrow; 
-static int wincolumn;     //这地方应该需要其他地方的数据，表示一个窗口有几行几列 
+char szFile[100];       //存储文件名 
+static int isSaved;    //是否保存         
+static int isCreated;     //是否被创建 
+/*
+	初始化文件配置 , 一显示图形界面就要调用 
+*/
+void initFileConfig(){
+	isSaved=1;
+	isCreated=0;
+}
 /*
     打开一个文件
     这个应该要和Windows交互
@@ -29,7 +29,6 @@ static int wincolumn;     //这地方应该需要其他地方的数据，表示一个窗口有几行几列
     更新currentString字符串
 */
 void openFile() {
-	initCache();
 	    // open a file name
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -47,9 +46,12 @@ void openFile() {
 		currentFile=fopen(ofn.lpstrFile,"r+");
 	else
 	    MessageBox(NULL, "open failed", NULL, MB_OK);  //打开错误 
-	fileWrite(currentFile,cacheFile1);            //更新至缓存中 
-	fileWrite(currentFile,cacheFile2);
-	isSaved=0;
+	int i=0;
+	while(!feof(currentFile)){
+		currentString[i++]=fgetc(currentFile);
+	}
+	currentString[i-1]='\0';
+	isSaved=1;
 	isCreated=1;
 }
 
@@ -75,30 +77,9 @@ void createFile() {
 		currentFile=fopen(ofn.lpstrFile,"w+");
 	else
 	    MessageBox(NULL, "create failed", NULL, MB_OK);  //创建错误 
-    isSaved=0;
+    isSaved=1;
     isCreated=1;
-    initCache();
-}
-
-void fileWrite(FILE* fp1,FILE* fp2){
-	char ch;
-	while(!feof(fp1)){
-		ch=fgetc(fp1);
-		if(ch!=EOF)
-			fputc(ch,fp2);
-	}
-	fseek(cacheFile2,0L,0);
-	fseek(cacheFile1,0L,0);	
-	fseek(currentFile,0L,0);	
-}
-
-/*
-    初始化缓存文件
-*/
-void initCache() {
-	cacheFile1=fopen(CACHE1,"w+");
-	cacheFile2=fopen(CACHE2,"w+");
-	isCreated=0;
+    currentString[0]='\0';
 }
 
 /*
@@ -109,7 +90,7 @@ void initCache() {
 void saveFile() {
 	isSaved=1;
 	if(isCreated)
-		fileWrite(cacheFile2,currentFile);
+		;
 	else{
 		ZeroMemory(&ofn, sizeof(ofn));
 	    ofn.lStructSize = sizeof(ofn);
@@ -125,17 +106,22 @@ void saveFile() {
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	    if (GetSaveFileName(&ofn)){
 			currentFile=fopen(ofn.lpstrFile,"w+");
-			fileWrite(cacheFile2,currentFile);
 		}
 		else
-			MessageBox(NULL, "create failed", NULL, MB_OK);  //保存错误 
-		
+			MessageBox(NULL, "create failed", NULL, MB_OK);  //保存错误 	
 	}
+	if(!isSaved){         //如果未保存，写入currentFile中 
+		int i=0,len=strlen(currentString);
+		while(i<len)
+			fputc(currentString[i++],currentFile);
+		isSaved=1;
+	}
+	else  ;                //也许在callback里设置？ 
 }
 
 /*
-    锟斤拷取锟斤拷前锟侥憋拷锟斤拷状态
-    锟角否保达拷
+    获取当前的保存状态
+    是否保存
 */
 int getSaveState() {
 	return isSaved;
@@ -145,18 +131,26 @@ int getSaveState() {
     获取当前的显示的字符串
 */
 char *getCurrentString() {
-	int i=0;char ch;
-	fseek(cacheFile2,0L,0);
-	fseek(cacheFile1,0L,0);	
-	while(!feof(cacheFile2)){
-		ch=fgetc(cacheFile2);
-		if(ch!=EOF)
-		currentString[i++]=ch;
-	}
-	currentString[i]='\0';
-	return currentString;
+	return currentString; 
 }
-
+/*
+	返回当前文件名
+*/ 
+char *getCurrentFileName(){
+	if(isCreated){
+		return ofn.lpstrFile;
+	} 
+	else{
+		return NULL;
+	}
+}
+/*
+	设置当前字符串 
+*/
+void setCurrentString(char *update){
+	free(currentString);
+	currentString = update;
+}
 /*
     自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString       哇兄弟，你这currentstring也不是全局变量啊，更新啥嘞 
 */
@@ -165,36 +159,17 @@ void updateCurrentString() {
 }
 
 /*
-    根据传入的字符更新currentString与缓存文件
+    根据传入的字符更新currentString,
     并更新光标位置（如有必要也更新窗口左上角位置）
 */
 void addChar(char ch) {
-	fileWrite(cacheFile1,cacheFile2);     //cacheFile1
     RCNode cursor = getCursorRC();
-    RCNode windowCursor=getWindowCurrentRC();
-    int row=1,column=1;char chx;
-    while(row<cursor.row||column<cursor.column){        
-    	chx=fgetc(cacheFile2);
-    	fgetc(cacheFile1);
-    	if(chx=='\n')
-    		row++;
-    	else
-    		column++;
-	} 
-	fputc(ch,cacheFile2);
-	while(!feof(cacheFile1)){
-		chx=fgetc(cacheFile1);
-		if(ch!=EOF)fputc(chx,cacheFile2);
-	}
-	fseek(cacheFile2,0L,0);
-	fseek(cacheFile1,0L,0);             //现在已经完成缓存的更新 
-	if(cursor.column==windowCursor.column+wincolumn-1)
-		windowCursor.column++;
-	setWindowCurrentRC(windowCursor) ;	           //窗口移动 
-	
-	cursor.column++;
-	setCursorRC(cursor);       
-	getCurrentString();     //更新现在的字符串     
+    string s;
+    int i = numofFormerWords(cursor);
+    s = Concat(SubString(currentString, 0, i - 1), CharToString(ch));
+    currentString = Concat(s, SubString(currentString, i, StringLength(currentString)));
+    free(s);   
+    isSaved=0;
 }
 
 /*
@@ -202,31 +177,13 @@ void addChar(char ch) {
     并更新光标位置（如有必要也更新窗口左上角位置）
 */
 void addString(char *src) {
-	fileWrite(cacheFile1,cacheFile2);     //cacheFile1 锟斤拷锟斤拷 
     RCNode cursor = getCursorRC();
-    RCNode windowCursor=getWindowCurrentRC();
-    int row=0,column=0;char ch;
-    while(row<cursor.row||column<cursor.column){        
-    	ch=fgetc(cacheFile2);
-    	if(ch=='\n')
-    		row++;
-    	else
-    		column++;
-	} 
-	fputs(src,cacheFile2);
-	while(!feof(cacheFile1)){
-		ch=fgetc(cacheFile1);
-		if(ch!=EOF)fputc(ch,cacheFile2);
-	}
-	fseek(cacheFile2,0L,0);
-	fseek(cacheFile1,0L,0);             //现在已经完成缓存的更新 
-	int x=cursor.column+strlen(src)-windowCursor.column-wincolumn+1;
-	if(x>0)                                         //x>0 表示窗口应该移动的列数 其实就是把字符串长度加上，不需要换行 
-		windowCursor.column+=x;
-	setWindowCurrentRC(windowCursor);
-	cursor.column+=strlen(src);
-	setCursorRC(cursor); 
-	getCurrentString();            //更新显示 
+    string s;
+    int i = numofFormerWords(cursor);
+    s = Concat(SubString(currentString, 0, i - 1), src);
+    currentString = Concat(s, SubString(currentString, i, StringLength(currentString)));
+    free(s);  
+    isSaved=0;
 }
 
 /*
@@ -234,27 +191,10 @@ void addString(char *src) {
     并更新光标位置（如有必要也更新窗口左上角位置）
 */
 void deleteChar() {
-	fileWrite(cacheFile1,cacheFile2);     //cacheFile1 
     RCNode cursor = getCursorRC();
-    int row=0,column=0;char ch;
-    while(row<cursor.row||column<cursor.column){        
-    	ch=fgetc(cacheFile1);
-    	fputc(ch,cacheFile2);
-    	if(ch=='\n')
-    		row++;
-    	else
-    		column++;
-	} 
-	fgetc(cacheFile1);           // 利用与cache2一模一样的cache1完成操作（只需将cache1多读一位） 
-	while(!feof(cacheFile1)){
-		ch=fgetc(cacheFile1);
-		if(ch!=EOF) fputc(ch,cacheFile2);
-	}
-	fseek(cacheFile2,0L,0);
-	fseek(cacheFile1,0L,0);
-	cursor.column--;
-	setCursorRC(cursor);
-	getCurrentString();
+    int i = numofFormerWords(cursor);
+    currentString = Concat(SubString(currentString, 0, i - 2), SubString(currentString, i, StringLength(currentString)));
+    isSaved=0;
 }
 
 /*
@@ -262,36 +202,17 @@ void deleteChar() {
     并更新光标以及选中范围的行列坐标（如有必要也更新窗口左上角位置）
 */
 void deleteSelectString() {
-	fileWrite(cacheFile1,cacheFile2);     //cacheFile1 
     RCNode startSelect = getSelectStartRC();
-    RCNode endSelect = getSelectEndRC();                 
-    int row=0,column=0;char ch;
-    while(row<startSelect.row||column<startSelect.column){        
-    	ch=fgetc(cacheFile1);
-    	fputc(ch,cacheFile2);
-    	if(ch=='\n')
-    		row++;
-    	else
-    		column++;
-	} 
-	int i;
-    while(row<endSelect.row||column<endSelect.column){        
-    	ch=fgetc(cacheFile1);
-    	if(ch=='\n')
-    		row++;
-    	else
-    		column++;
-	} 
-	fgetc(cacheFile1);     //结束范围那个字符也应删去 
-	while(!feof(cacheFile1)){
-		ch=fgetc(cacheFile1);
-		if(ch!=EOF) fputc(ch,cacheFile2);
-	}
-	setCursorRC(startSelect);
-	setSelectEndRC(startSelect); 
-	fseek(cacheFile1,0L,0);
-	fseek(cacheFile2,0L,0);
-	getCurrentString();
+    RCNode endSelect = getSelectEndRC();
+    int i = numofFormerWords(startSelect);
+    int j = numofFormerWords(endSelect);
+    if (i > j) {
+        int t = i;
+        i = j;
+        j = t;
+    }
+    currentString = Concat(SubString(currentString, 0, i - 1), SubString(currentString, j, StringLength(currentString)));//可以考虑在这里调用genlib.h中的freeblock函数 
+    isSaved=0;
 }
 
 

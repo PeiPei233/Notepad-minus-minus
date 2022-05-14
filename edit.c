@@ -77,23 +77,19 @@ void pasteText() {
 
     //对原文本进行粘贴修改
     char *curText = getCurrentString();
-    char *cur = curText;
+    /*char *cur = curText;
     char behindText[MAX];   //定义被选中文本后的字符串
     cur += (end+1);    //指针指向被选中文本的之后的第一个字符
     strcpy(behindText, cur);
     curText[start-1] = '\0';     //设置选择文本之前的字符串结束符
     strcat(curText, pasteText);    //将选中文本之前字符串连接粘贴文本
     strcat(curText, behindText);    //将粘贴后的文本与选中文本之后的字符串相连
-    
-    //将修改后文本输入缓存文件
-    FILE *currentFile;
-    if(!(currentFile = fopen("currentFile.txt","w")))
-    {
-        printf("打开错误");
-        return ;
-    }
-    fprintf(currentFile, "%s", curText);
-    fclose(currentFile);
+    */
+    string s;
+    s = Concat(SubString(curText, 0, start - 1), pasteText);
+    //修改currentString 
+	setCurrentString(concat(s,SubString(curText, end+1, StringLength(curText))));
+	free(s);
 }
 
 /*
@@ -105,26 +101,19 @@ void shearText() {
     RCNode endSelect = getSelectEndRC();
     copyText();   //先对选中内容进行复制
 
-    //删除选中内容
+   /* //删除选中内容
     int start, end, length;
     start = numofFormerWords(startSelect);
     end = numofFormerWords(endSelect) - 1;
     length = end - start;
     char *curText = getCurrentString();
-    char behindText[MAX];   //定义被选中文本后的字符
+   char behindText[MAX];   //定义被选中文本后的字符
     char *cur = curText;
     cur += (end+1);    //指针指向被选中文本后的第一个字符
     strcpy(behindText, cur);
     curText[start-1] = '\0';    //设置选择文本之前的字符串结束符
     strcat(curText, behindText);    //连接前后字符串，将中间删除
-    
+    */
     //将修改后的文本输入
-    FILE *currentFile;  
-    if(!(currentFile = fopen("currentFile.txt","w")))
-    {
-        printf("打开错误");
-        return ;
-    }
-    fprintf(currentFile, "%s", curText);  
-    fclose(currentFile);
+	deleteSelectString();
 }
