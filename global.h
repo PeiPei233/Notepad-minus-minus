@@ -1,10 +1,6 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
-#include "callback.h"
-
-#define MAX 100000
-
 //行列坐标表示
 typedef struct {
     int row;  //行位置
@@ -49,20 +45,9 @@ RCNode getSelectEndRC();
 void setSelectStartRC(RCNode newStartSelect);
 
 /*
-    设置选择范围终止位置
+    设置其实范围终止位置
 */
 void setSelectEndRC(RCNode newEndSelect);
-
-/*
-    判断光标位置是否在窗口内
-*/
-int cursorInWindow(RCNode curCursor);
-
-/*
-    更改光标位置使其能够展示在窗口内
-    如果光标已经在窗口内则不调整
-*/
-void setCursorInWindow();
 
 /*
     实现将传入的行列数转化为总的字符数，方便在文件当中的读取

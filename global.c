@@ -71,31 +71,14 @@ void setSelectEndRC(RCNode newEndSelect)
 }
 
 /*
-    判断光标位置是否在窗口内
-*/
-int cursorInWindow(RCNode curCursor) 
-{
-    
-}
-
-/*
-    更改光标位置使其能够展示在窗口内
-    如果光标已经在窗口内则不调整
-*/
-void setCursorInWindow() 
-{
-    
-}
-
-/*
     根据传入的坐标计算在所有字符串当中的位置（第几个）
 */
 
 int numofFormerWords(RCNode curPosition)
-{
+{   
     char *s = getCurrentString();
     int i = 0, cntl = 0, lens = strlen(s);
-    while (i < lens) {
+    while (i <= lens) {
         cntl++;
         if (cntl == curPosition.row) {
             return i + curPosition.column - 1;
@@ -105,7 +88,7 @@ int numofFormerWords(RCNode curPosition)
         }
         if (s[i] == '\n') i++;
     }
-    return lens - 1;
+    return 0;
 }
 
 static char t[100010];

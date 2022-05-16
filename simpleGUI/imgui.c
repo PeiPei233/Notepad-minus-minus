@@ -198,6 +198,7 @@ void usePredefinedTexBoxColors(int k)
 void InitGUI()
 {
 	memset(&gs_UIState, 0, sizeof(gs_UIState));
+	gs_UIState.kbdItem = -1;
 }
 
 /* 调用该函数,得到鼠标的状态 */

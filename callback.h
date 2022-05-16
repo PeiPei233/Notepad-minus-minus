@@ -5,6 +5,16 @@
 #ifndef __CALLBACK_H__
 #define __CALLBACK_H__
 
+/**
+ * 获取当前输入状态
+ */
+int getTypingState();
+
+/**
+ * 设置当前输入状态
+ */ 
+void setTypingState(int newTypingState);
+
 /*
     自定义传入参数（如当前坐标，文字绘制范围，行高等） 实现根据当前的(x, y)坐标返回在文件中的行列坐标(r, c)
     r: row 行
