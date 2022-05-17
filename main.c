@@ -13,9 +13,15 @@ double winWidth, winHeight;
 void MouseEventProcess(int x, int y, int button, int event) {
 	uiGetMouse(x, y, button, event);
 	//在这里自定义鼠标回调函数
-	getMouse(x, y, button, event);
+	if (event == BUTTON_DOWN) {
+		display();
+		getMouse(x, y, button, event);
+		display();
+	} else {
+		getMouse(x, y, button, event);
+		display();
+	}
 
-	display();
 }
 
 void CharEventProcess(char ch) {

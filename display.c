@@ -61,6 +61,8 @@ int getTextDisplayState() {
 
 void display() {
 
+    // printf("DISPLAY\n");
+
     DisplayClear();
 
     // winHeight = GetWindowHeight();

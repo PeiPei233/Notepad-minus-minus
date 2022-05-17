@@ -10,6 +10,7 @@
 #include "file.h"
 #include "init.h"
 #include "math.h"
+#include "imgui.h"
 
 static int isButtonDown = 0;
 static int isShift = 0;
@@ -158,12 +159,22 @@ void getMouse(int x, int y, int button, int event) {
     double nx = ScaleXInches(x);
     double ny = ScaleYInches(y);
 
+    UIState gs_UIState = getUIState();
+    // printf("CLICKITEM:%d\n", gs_UIState.clickedItem);
+    if (gs_UIState.clickedItem) {
+        isTyping = 0;
+        return;
+    } else {
+        isTyping = 1;
+    }
+
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
     SetFont("Î¢ÈíÑÅºÚ");
     SetPointSize(13);
 
     double fH = GetFontHeight();
+    double w = TextStringWidth("ÎÄ¼þ") * 2;
 
     SetFont(originFont);
     SetPointSize(originPointSize);
