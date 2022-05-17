@@ -192,11 +192,17 @@ void drawMenu() {
             break;
     }
 
+    //文件名
     SetPenColor("Black");
-    string fileName = getCurrentFileName();
+    string fileName;
     static char name[10010];
-    if (getSaveState()) sprintf(name, "%s - Notepad--", fileName);
-    else sprintf(name, "%s* - Notepad--", fileName);
+    if (!(fileName = getCurrentFileName())) {
+        if (getSaveState()) sprintf(name, "无标题 - Notepad--");
+        else sprintf(name, "无标题* - Notepad--");
+    } else {
+        if (getSaveState()) sprintf(name, "%s - Notepad--", fileName);
+        else sprintf(name, "%s* - Notepad--", fileName);
+    }
     double tw = TextStringWidth(name);
     double tx = max(winWidth / 2 - tw / 2, x + w * 3.5);
     int i = strlen(name) - 1;
