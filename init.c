@@ -24,6 +24,8 @@ void initColor() {
     DefineColor("Textbox Hot Blue", 0, 144 * 1./255, 241 * 1./255);
     DefineColor("Select Blue", 173 * 1./255, 214 * 1./255, 255 * 1./255);
     DefineColor("Table Gray", 249 * 1./255, 249 * 1./255, 249 * 1./255);
+    DefineColor("Link Blue", 0, 62 * 1./255, 146 * 1./255);
+    DefineColor("Link Hot Blue", 0, 26 * 1./255, 104 * 1./255);
 }
 
 /**

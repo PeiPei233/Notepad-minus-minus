@@ -6,6 +6,7 @@
 #include "global.h"
 #include "callback.h"
 #include "init.h"
+#include "display.h"
 //在这里添加所需要的自定义的头文件
 
 double winWidth, winHeight;
@@ -13,7 +14,7 @@ double winWidth, winHeight;
 void MouseEventProcess(int x, int y, int button, int event) {
 	uiGetMouse(x, y, button, event);
 	//在这里自定义鼠标回调函数
-	if (event == BUTTON_DOWN) {
+	if (event == BUTTON_DOWN && getTextDisplayState()) {
 		display();
 		getMouse(x, y, button, event);
 		display();
