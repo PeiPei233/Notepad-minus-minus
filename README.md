@@ -1,5 +1,82 @@
 # UnableToCount
 
+
+## Stage 2
+
+**TODO: undo/redo 二维数组**
+
+**DDL：5.25晚上**
+
+**DDL：5.25晚上**
+
+**DDL：5.25晚上**
+
+### 二维数组
+
+```c
+//storage.c
+int sizeR = 0;   //目前占用的大小
+int capR = 1;   //目前开的总空间大小
+int *sizeL;
+int *capL;
+char **str = (char **) malloc(sizeof(char *) * capR);     //指向某一行
+
+str[0] = (char *) malloc(sizeof(char) * ...);
+
+//遇到换行
+sizeR++; capR? malloc?
+
+//addChar
+//行内：
+sizeL[i] ? capL[i] : malloc or not
+//换行符
+
+//deleteChar 
+
+
+string getRowString() {return str[row];}
+int getRowTotal() {return sizeR};
+string getSelectString(RCNode startSelect, RCNode endSelect);
+int getRowLen(int row);
+void addChar(RCNode loc);
+void addString(RCNode start, string src);
+void deleteChar(RCNode loc);
+void deleteSelectString(RCNode start, RCNode endSelect);
+
+
+```
+
+### redo/undo
+```c
+//unredo.c
+enum {
+    DO_ADD;
+    DO_DELETE;
+};
+
+typedef struct node {
+    int op;
+    RCnode loc;
+    string str;
+    struct node *next;
+    struct node *last;
+} *linkedList;
+
+void record(int op, RCNode loc, string str) {
+    //根据目前的光标位置，选择范围来操作
+}
+void undo();
+void redo();
+```
+
+### 分锅：
+edit: zhb
+
+content: yps
+
+修改:zj
+
+
 ## 第一阶段
 
 **DDL 5.1晚上**
@@ -39,4 +116,6 @@
 
 zhb:
 maxn为图形界面每行最多的字符数
+
 currentFile.txt为当前储存输入内容的文件名
+
