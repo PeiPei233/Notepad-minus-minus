@@ -6,8 +6,10 @@
 #include <windows.h>
 #include <Commdlg.h>
 #include <string.h>
-#include <strlib.h>
-
+#include "strlib.h"
+#include <stdlib.h>
+#define _N 10000
+#define Block 1000
 char *currentString;
 static FILE *currentFile;  //当前文件 
 OPENFILENAME ofn;
@@ -21,6 +23,7 @@ static int isCreated;     //是否被创建
 void initFileConfig(){
 	isSaved=1;
 	isCreated=0;
+	currentString=(char *)calloc(1,1);
 }
 /*
     打开一个文件
@@ -46,11 +49,26 @@ void openFile() {
 		currentFile=fopen(ofn.lpstrFile,"r+");
 	else
 	    MessageBox(NULL, "open failed", NULL, MB_OK);  //打开错误 
-	int i=0;
+	int i=0,degree=1;
+	int j=0;
+	char ch;
+	currentString=(char *)malloc(_N);
 	while(!feof(currentFile)){
-		currentString[i++]=fgetc(currentFile);
+		ch=fgetc(currentFile);
+		if(ch!=EOF)
+			currentString[i++]=ch;
+		if(i>_N*degree-2){
+			char *temp;
+			degree+=3;
+			temp=currentString;
+			currentString=(char *)malloc(_N*degree);
+			for(j=0;j<i;j++){
+				currentString[j]=temp[j];
+			}
+			free(temp);
+		}
 	}
-	currentString[i-1]='\0';
+	currentString[i]='\0';
 	isSaved=1;
 	isCreated=1;
 }
@@ -88,7 +106,6 @@ void createFile() {
     否则就存在之前的位置
 */
 void saveFile() {
-	isSaved=1;
 	if(isCreated)
 		;
 	else{
@@ -105,16 +122,21 @@ void saveFile() {
 	    ofn.lpstrInitialDir = NULL;
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	    if (GetSaveFileName(&ofn)){
-			currentFile=fopen(ofn.lpstrFile,"w+");
+			if(currentFile=fopen(ofn.lpstrFile,"w+"))
+				;
 		}
 		else
 			MessageBox(NULL, "create failed", NULL, MB_OK);  //保存错误 	
 	}
 	if(!isSaved){         //如果未保存，写入currentFile中 
+		fclose(currentFile);
+		currentFile=fopen(ofn.lpstrFile,"w+");        //重新写，确保之前的没了 
 		int i=0,len=strlen(currentString);
 		while(i<len)
 			fputc(currentString[i++],currentFile);
 		isSaved=1;
+		fclose(currentFile);      //要保存 
+		currentFile=fopen(ofn.lpstrFile,"r+");
 	}
 	else  ;                //也许在callback里设置？ 
 }
@@ -164,17 +186,18 @@ void updateCurrentString() {
 */
 void addChar(char ch) {
     RCNode cursor = getCursorRC();
-    string s;
+    string s;string sub;
     int i = numofFormerWords(cursor);
     s = Concat(SubString(currentString, 0, i - 1), CharToString(ch));
-    currentString = Concat(s, SubString(currentString, i, StringLength(currentString)));
-    free(s);   
+    sub = SubString(currentString, i, StringLength(currentString));
+    free(currentString);                      //貌似我们所谓的FreeBlock这里只用到了free这样一个函数，这里就不采用别的了 
+    currentString = Concat(s,sub);
     isSaved=0;
 }
 
 /*
     根据传入的字符串更新currentString与缓存文件
-    并更新光标位置（如有必要也更新窗口左上角位置）
+    并更新光标位置（如有必要也更新窗口左上角位置）        话说这个好像没有用到吧 
 */
 void addString(char *src) {
     RCNode cursor = getCursorRC();
@@ -193,7 +216,11 @@ void addString(char *src) {
 void deleteChar() {
     RCNode cursor = getCursorRC();
     int i = numofFormerWords(cursor);
-    currentString = Concat(SubString(currentString, 0, i - 2), SubString(currentString, i, StringLength(currentString)));
+    string sub1,sub2;
+    sub1=SubString(currentString, 0, i - 2);
+    sub2=SubString(currentString, i, StringLength(currentString));
+    free(currentString);
+    currentString = Concat(sub1,sub2);
     isSaved=0;
 }
 
@@ -211,7 +238,11 @@ void deleteSelectString() {
         i = j;
         j = t;
     }
-    currentString = Concat(SubString(currentString, 0, i - 1), SubString(currentString, j, StringLength(currentString)));//可以考虑在这里调用genlib.h中的freeblock函数 
+    string sub1,sub2;
+	sub1= SubString(currentString, 0, i - 1);
+	sub2=SubString(currentString, j, StringLength(currentString));
+    free(currentString);
+    currentString = Concat(sub1,sub2);//可以考虑在这里调用genlib.h中的freeblock函数 
     isSaved=0;
 }
 

@@ -7,6 +7,7 @@
 #include "callback.h"
 #include "init.h"
 #include "display.h"
+#include "file.h" 
 //在这里添加所需要的自定义的头文件
 
 double winWidth, winHeight;
@@ -58,7 +59,8 @@ void Main() {
 	
 	winHeight = GetWindowHeight();
 	winWidth = GetWindowWidth();
-
+	
+	initFileConfig();
 	InitGUI();
 	initDisplay();
 
