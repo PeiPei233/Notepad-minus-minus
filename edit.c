@@ -7,7 +7,8 @@
 #include "global.h"
 #include "edit.h"
 #include "file.h"
-
+#include "strlib.h"
+#include <string.h>
 
 /*
     根据传入的起始行列坐标与终止行列坐标进行复制
@@ -88,7 +89,7 @@ void pasteText() {
     string s;
     s = Concat(SubString(curText, 0, start - 1), pasteText);
     //修改currentString 
-	setCurrentString(concat(s,SubString(curText, end+1, StringLength(curText))));
+	setCurrentString(Concat(s,SubString(curText, end+1, StringLength(curText))));
 	free(s);
 }
 
