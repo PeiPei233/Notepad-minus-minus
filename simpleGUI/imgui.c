@@ -46,23 +46,15 @@
 #define KMOD_SHIFT 0x01
 #define KMOD_CTRL  0x02
 
-
-/* 鼠标和空间状态 */
-typedef struct {
-	double mousex;
-	double mousey;
-	int    mousedown;
-	int    clickedItem;// item that was clicked
-	int    actingMenu; // acting menu list 
-	int    kbdItem;    // item that takes keyboard
-	int    lastItem;   // item that had focus just before
-	int    keyPress;   // input key
-	int    charInput;  // input char
-	int    keyModifiers;  //  key modifier (shift, ctrl)
-} UIState;
-
 static UIState gs_UIState;
 static double  gs_menuRect[4];
+
+/**
+ * 获得gs_UIState
+ */ 
+UIState getUIState() {
+	return gs_UIState;
+}
 
 /* 测试：坐标点(x,y)是否位于包围和 [x1,x2] X [y1,y2] 内部 */
 static bool inBox(double x, double y, double x1, double x2, double y1, double y2)
@@ -198,6 +190,7 @@ void usePredefinedTexBoxColors(int k)
 void InitGUI()
 {
 	memset(&gs_UIState, 0, sizeof(gs_UIState));
+	gs_UIState.kbdItem = -1;
 }
 
 /* 调用该函数,得到鼠标的状态 */
@@ -323,16 +316,16 @@ int button(int id, double x, double y, double w, double h, char *label)
 	mySetPenColor(frameColor);
 	drawBox(x+sinkx, y+sinky, w, h, gs_button_color.fillflag,
 		label, 'C', labelColor);
-	if( gs_button_color.fillflag ) {
-		mySetPenColor( labelColor );
-		drawRectangle(x+sinkx, y+sinky, w, h, 0);
-	}
+	// if( gs_button_color.fillflag ) {
+	// 	mySetPenColor( labelColor );
+	// 	drawRectangle(x+sinkx, y+sinky, w, h, 0);
+	// }
 
 	// 画键盘提示, show a small ractangle frane
-	if( gs_UIState.kbdItem == id ) {
-		mySetPenColor( labelColor );
-		drawRectangle(x+sinkx+shrink, y+sinky+shrink, w-2*shrink, h-2*shrink, 0);
-	}
+	// if( gs_UIState.kbdItem == id ) {
+	// 	mySetPenColor( labelColor );
+	// 	drawRectangle(x+sinkx+shrink, y+sinky+shrink, w-2*shrink, h-2*shrink, 0);
+	// }
 
 	if( gs_UIState.clickedItem==id && // must be clicked before
 		! gs_UIState.mousedown )   // but now mouse button is up
@@ -519,12 +512,20 @@ int textbox(int id, double x, double y, double w, double h, char textbuf[], int 
 		gs_UIState.actingMenu = 0; // menu lose focus
 		if ( gs_UIState.mousedown) {
 			gs_UIState.clickedItem = id;
+			gs_UIState.charInput = 0;
+			gs_UIState.kbdItem = id;
 		}
 	}
 
+	if (gs_UIState.mousedown && !inBox(gs_UIState.mousex, gs_UIState.mousey, x, x + w, y, y + h)) {
+		gs_UIState.kbdItem = -1;
+	}
+
 	// If no widget has keyboard focus, take it
-	if (gs_UIState.kbdItem == 0)
+	if (gs_UIState.kbdItem == 0) {
 		gs_UIState.kbdItem = id;
+		gs_UIState.charInput = 0;
+	}
 
 	if (gs_UIState.kbdItem == id)
 		labelColor = gs_textbox_color.hotLabel;
@@ -535,7 +536,12 @@ int textbox(int id, double x, double y, double w, double h, char textbuf[], int 
 	// show text
 	mySetPenColor(labelColor);
 	MovePen(x+indent, textPosY);
-	DrawTextString(textbuf);
+	int i = 0;
+	while (TextStringWidth(textbuf + i) > w - indent * 2 && i < len) {
+		if (textbuf[i] & 0x80) i++;
+		i++;
+	}
+	DrawTextString(textbuf + i);
 	// add cursor if we have keyboard focus
 	if ( gs_UIState.kbdItem == id && (clock() >> 8) & 1) 
 	{
@@ -609,10 +615,12 @@ void drawBox(double x, double y, double w, double h, int fillflag, char *label, 
 {	
 	double fa = GetFontAscent();
 	// rect
-	char *originColor = GetPenColor();
-	SetPenColor("White");
-	drawRectangle(x,y,w,h,1);
-	SetPenColor(originColor);
+	if (!fillflag) {
+		char *originColor = GetPenColor();
+		SetPenColor("White");
+		drawRectangle(x,y,w,h,1);
+		SetPenColor(originColor);
+	}
 	drawRectangle(x,y,w,h,fillflag);
 	// text
 	if( label && strlen(label)>0 ) {

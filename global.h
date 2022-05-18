@@ -50,14 +50,18 @@ void setSelectStartRC(RCNode newStartSelect);
 void setSelectEndRC(RCNode newEndSelect);
 
 /*
-    判断光标位置是否在窗口内
+    实现将传入的行列数转化为总的字符数，方便在文件当中的读取
 */
-int cursorInWindow();
+int  numofFormerWords(RCNode curPosition);
 
-/*
-    更改光标位置使其能够展示在窗口内
-    如果光标已经在窗口内则不调整
-*/
-void setCursorInWindow();
+/**
+ * 获得第 row 行的总列数
+ */ 
+int getRowLen(int row);
+
+/**
+ * 获得文件总行数
+ */ 
+int getTotalRow();
 
 #endif

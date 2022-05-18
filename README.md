@@ -34,3 +34,9 @@
  - 由于已经配置好 Makefile 以及 task.json，在 Vscode 中按 `Ctrl+Shift+B` 即可自行编译，若有报错会显示。编译后在下方终端中（或者 `` Ctrl+` ``）输入 `./main` 即可执行程序。（要先配好 MinGW 的环境变量！）
 
  - 在 push 到 GitHub 仓库前请先在终端中执行 `mingw32-make clean` 删除`*.o`、`*.d`、`main.exe` 文件后再 push
+
+
+
+zhb:
+maxn为图形界面每行最多的字符数
+currentFile.txt为当前储存输入内容的文件名

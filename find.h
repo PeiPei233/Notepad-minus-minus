@@ -5,12 +5,13 @@
 #define __FIND_H__
 
 #include "global.h"
+#include "file.h"
 
 /*
     根据传入的字符串查找从当前光标位置开始的下一个匹配的字符串
     查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
 */
-void findText(char *src);
+int findText(char *src);
 
 /*
     根据传入的两个字符串（这里假设src为原先的字符串, tar为替换成的字符串）进行替换操作
