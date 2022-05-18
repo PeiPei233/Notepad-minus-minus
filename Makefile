@@ -1,6 +1,6 @@
 COMPILER   = gcc
 OPTION	   = -g -std=c11 -mwindows -lwinmm -lgdi32 -I ./libgraphics -I ./simpleGUI
-TARGET     = notepad--.exe
+TARGET     = Notepad--.exe
 SOURCE     = $(wildcard *.c)
 SOURCE    += $(wildcard */*.c)
 OBJECT     = $(SOURCE:.c=.o)

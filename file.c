@@ -123,7 +123,7 @@ void saveFile() {
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	    if (GetSaveFileName(&ofn)){
 			if(currentFile=fopen(ofn.lpstrFile,"w+"))
-				;
+				isCreated = 1;
 		}
 		else
 			MessageBox(NULL, "create failed", NULL, MB_OK);  //±£´æ´íÎó 	

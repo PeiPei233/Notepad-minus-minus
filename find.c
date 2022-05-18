@@ -1,5 +1,5 @@
 /*
-    ï¿½ï¿½ÒªÊµï¿½Ö²ï¿½ï¿½ï¿½ï¿½æ»»ï¿½ï¿½ï¿½ï¿½
+    Ö÷ÒªÊµÏÖ²éÕÒÌæ»»¹¦ÄÜ
 */
 
 #include <stdio.h>
@@ -9,29 +9,28 @@
 #include "find.h"
 #include "libgraphics.h"
 
-RCNode findStr[MAX];
-
 /*
-    ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò´Óµï¿½Ç°ï¿½ï¿½ï¿½Î»ï¿½Ã¿ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½
-    ï¿½ï¿½ï¿½Ò³É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Î§Îªï¿½ï¿½Ò»ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î»ï¿½ï¿½ÎªÑ¡ï¿½ï¿½Î§Ä©ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê²»ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+    ¸ù¾Ý´«ÈëµÄ×Ö·û´®²éÕÒ´Óµ±Ç°¹â±êÎ»ÖÃ¿ªÊ¼µÄÏÂÒ»¸öÆ¥ÅäµÄ×Ö·û´®
+    ²éÕÒ³É¹¦ºó¸üÐÂÑ¡Ôñ·¶Î§ÎªÏÂÒ»¸öÆ¥ÅäµÄ×Ö·û´®£¬²¢¸üÐÂ¹â±êÎ»ÖÃÎªÑ¡Ôñ·¶Î§Ä©¶Ë£¬Èç¹û¹â±ê²»ÔÚ´°¿ÚÄÚÔò¸üÐÂ´°¿ÚÎ»ÖÃ
 */
 int findText(char *src) {
-	printf("FIND:%s\n", src);
-    RCNode startCursor = getCursorRC();  //ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½Ò¿ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
+	// printf("FIND:%s\n", src);
+    RCNode startCursor = getCursorRC();  //»ñÈ¡µ±Ç°¹â±êÎ»ÖÃ×÷Îª²éÕÒ¿ªÊ¼×ø±ê
     int row=startCursor.row, column=startCursor.column;
     RCNode findCursor;
-    int length = strlen(src);   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½
-    char *ch = (char*)malloc(sizeof(char)*MAX);
-    strcpy(ch, getCurrentString());   //ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½Ä»ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-    char *ch_=ch;   //ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ë´¢ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼Î»ï¿½ï¿½
+    int length = strlen(src);   //¼ÆËã²éÕÒ×Ö·û³¤¶È
+    RCNode *findStr;
+    char *ch = getCurrentString();
+    char *ch_=ch;   //¶¨ÒåÖ¸Õë´¢´æ×Ö·û´®³õÊ¼Î»ÖÃ
     int flag;
     int startW = numofFormerWords(startCursor);
     ch += startW;
-    while(ch != NULL)
-    {
+    while(*ch != 0)
+    {   
+        // printf("FIND:%s\n", ch);
         int i;
         flag = 1;
-        //ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½
+        //ÅÐ¶ÏÊÇ·ñÊÇ²éÕÒ×Ö·û´®
         for(i=0; i<length; i++)
         {
             if(*(ch+i) != *(src+i))
@@ -40,41 +39,40 @@ int findText(char *src) {
                 break;
             }
         }
-        if(flag)   //ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½
+        if(flag)   //Èç¹ûÕÒµ½ÁËÔò¶¨Î»²éÕÒ×Ö·û
         {
             findCursor.column = column;
             findCursor.row = row;
-            if(!cursorInWindow(findCursor))  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
-            {
-                setCursorInWindow();
-            }
-            setSelectStartRC(findCursor);   //ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
-            findCursor.row += length;
-            setSelectEndRC(findCursor);   //ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-            setCursorRC(findCursor);    //ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            setSelectStartRC(findCursor);   //ÉèÖÃÑ¡Ôñ¿ªÊ¼×ø±ê
+            findCursor.column += length;
+            setSelectEndRC(findCursor);   //ÉèÖÃÑ¡Ôñ½áÊø×ø±ê
+            setCursorRC(findCursor);    //ÉèÖÃ¹â±ê×ø±ê
+            setCursorInWindow();
             return 1;          
-        }else  //ï¿½ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½Æ¶ï¿½Ö¸ï¿½ï¿½
+        }else  //²»ÊÇ²éÕÒÄÚÈÝÔò¸Ä±äÐÐÁÐÊý£¬Í¬Ê±ÒÆ¶¯Ö¸Õë
         {
             ch ++;
             if(*ch != '\n')
             {
-                row ++;
-            }else
-            {
                 column ++;
+            }else
+            {   
+                ch++;
+                column = 1;
+                row++;
             }
         }
     }
     
-    //ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Ä±ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½ï¿½Ä±ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½Ò£ï¿½Ö±ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Ä±ï¿½Ö®Ç°
-    column = 0;
-    row = 0;
+    //Èç¹ûÑ¡ÖÐÎÄ±¾Ö®ºóÄÚÈÝÃ»ÓÐ²éÕÒµ½£¬Ôò·µ»ØÎÄ±¾¿ªÍ·²éÕÒ£¬Ö±µ½Ñ¡ÖÐÎÄ±¾Ö®Ç°
+    column = 1;
+    row = 1;
     int k;
     for(k=0; k<startW-length; k++)
     {
         int i;
         flag = 1;
-        //ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½
+        //ÅÐ¶ÏÊÇ·ñÊÇ²éÕÒ×Ö·û´®
         for(i=0; i<length; i++)
         {
             if(*(ch_+i) != *(src+i))
@@ -83,67 +81,89 @@ int findText(char *src) {
                 break;
             }
         }
-        if(flag)   //ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½
+        if(flag)   //Èç¹ûÕÒµ½ÁËÔò¶¨Î»²éÕÒ×Ö·û
         {
             findCursor.column = column;
             findCursor.row = row;
-            if(!cursorInWindow(findCursor))  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
-            {
-                setCursorInWindow();
-            }
-            setSelectStartRC(findCursor);   //ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
-            findCursor.row += length;
-            setSelectEndRC(findCursor);   //ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-            setCursorRC(findCursor);    //ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            setCursorInWindow();
+            setSelectStartRC(findCursor);   //ÉèÖÃÑ¡Ôñ¿ªÊ¼×ø±ê
+            findCursor.column += length;
+            setSelectEndRC(findCursor);   //ÉèÖÃÑ¡Ôñ½áÊø×ø±ê
+            setCursorRC(findCursor);    //ÉèÖÃ¹â±ê×ø±ê
             return 1;          
-        }else  //ï¿½ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½Æ¶ï¿½Ö¸ï¿½ï¿½
+        }else  //²»ÊÇ²éÕÒÄÚÈÝÔò¸Ä±äÐÐÁÐÊý£¬Í¬Ê±ÒÆ¶¯Ö¸Õë
         {
             ch_ ++;
             if(*ch_ != '\n')
             {
-                row ++;
+                column ++;
             }else
             {
-                column ++;
+                ch++;
+                row ++;
+                column = 1;
             }
         }
     }
-    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Ä±ï¿½ï¿½ï¿½È»Ã»ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½0
+    //Èç¹û±éÀúÍêÏÔÊ¾ÎÄ±¾ÈÔÈ»Ã»ÓÐÕÒµ½²éÕÒÄÚÈÝ£¬ÉèÖÃ·µ»Ø0
     return 0;
 }
 
 
 /*
-    ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½srcÎªÔ­ï¿½Èµï¿½ï¿½Ö·ï¿½ï¿½ï¿½, tarÎªï¿½æ»»ï¿½Éµï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ»»ï¿½ï¿½ï¿½ï¿½
-    ï¿½æ»»ï¿½ï¿½Éºï¿½Ë¢ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Î§Îªï¿½æ»»ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ï¿½Â¹ï¿½ï¿½Î»ï¿½ï¿½ÎªÑ¡ï¿½ï¿½Î»ï¿½ï¿½Ä©ï¿½ï¿½
-    ï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ñ¡ï¿½Ðµï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½srcï¿½ï¿½ï¿½ï¿½ï¿½È²ï¿½ï¿½Ò¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½srcï¿½ï¿½Ñ¡ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½findText(src)
-    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ñ¡ï¿½Ðµï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½srcï¿½ï¿½ï¿½ï¿½ï¿½æ»»Îªtarï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Î§ï¿½ï¿½Îªï¿½æ»»ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¹ï¿½ï¿½Î»ï¿½ï¿½ÎªÑ¡ï¿½ï¿½Î»ï¿½ï¿½Ä©ï¿½ï¿½ï¿½ï¿½
+    ¸ù¾Ý´«ÈëµÄÁ½¸ö×Ö·û´®£¨ÕâÀï¼ÙÉèsrcÎªÔ­ÏÈµÄ×Ö·û´®, tarÎªÌæ»»³ÉµÄ×Ö·û´®£©½øÐÐÌæ»»²Ù×÷
+    Ìæ»»Íê³ÉºóË¢ÐÂÏÔÊ¾£¬²¢¸üÐÂÑ¡Ôñ·¶Î§ÎªÌæ»»ºóµÄ×Ö·û´®£¬ÇÒ¸üÐÂ¹â±êÎ»ÖÃÎªÑ¡ÔñÎ»ÖÃÄ©¶Ë
+    Èç¹ûµ±Ç°Ñ¡ÖÐµÄ×Ö·û´®²»ÊÇsrc£¬ÔòÏÈ²éÕÒ¹â±êºóµÄÏÂÒ»¸ö·ûºÏµÄsrc²¢Ñ¡ÖÐ£¬¼´ÏÈÖ´ÐÐfindText(src)
+    ·ñÔòÈç¹ûµ±Ç°Ñ¡ÖÐµÄ×Ö·û´®¾ÍÊÇsrc£¬ÔòÌæ»»Îªtar²¢½«Ñ¡Ôñ·¶Î§¸ÄÎªÌæ»»ºóµÄ×Ö·û´®²¢¸üÐÂ¹â±êÎ»ÖÃÎªÑ¡ÔñÎ»ÖÃÄ©¶ËÂð
 */
 void replaceText(char *src, char *tar) {
-    char *allStr = getCurrentString();    //ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½
+    char *allStr = getCurrentString();    //»ñÈ¡ËùÓÐÎÄ±¾
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
-    int start = numofFormerWords(selectStart);    //ï¿½ï¿½È¡Ñ¡ï¿½ï¿½Î§ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ö¹Î»ï¿½ï¿½
-    int end = numofFormerWords(selectEnd) - 1;
+    int start = numofFormerWords(selectStart);    //»ñÈ¡Ñ¡Ôñ·¶Î§µÄÆðÊ¼£¬ÖÕÖ¹Î»ÖÃ
+    int end = numofFormerWords(selectEnd);
+    if (end < start) {
+        int t = end;
+        end = start;
+        start = t;
+    }
     int length = end - start;
 
-    //ï¿½ï¿½È¡Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½selectStrï¿½ï¿½
-    char selectStr[MAX];
+    //»ñÈ¡Ñ¡ÖÐÄÚÈÝ²¢´¢´æÔÚselectStrÖÐ
+    char *selectStr = (char *) malloc(sizeof(char) * (end - start + 1));
     char* str = allStr;
-    str += start;
-    strcpy(selectStr, str);
+    // strcpy(selectStr, str + start);
+    for (int i = 0; i < length; i++) {
+        selectStr[i] = str[start + i];
+    }
     selectStr[length+1] = '\0';
-
-    //ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½    
+    // printf("REPLACE_CMP:%s %s\n", selectStr, src);
+    //ÅÐ¶ÏÊÇ·ñÊÇ²éÕÒÄÚÈÝ£¬²»ÊÇÔòÖØÐÂÑ¡Ôñ    
     if(strcmp(selectStr, src))    
     {
         findText(src);
-        replaceText(src, tar);
+        return;
+    }
+
+    if (selectStart.row > selectEnd.row || (selectStart.row == selectEnd.row && selectStart.column > selectEnd.column)) {
+        RCNode t = selectStart;
+        selectStart = selectEnd;
+        selectEnd = t;
     }
     
-    string s;
-    s = Concat(SubString(allStr, 0, start - 1), tar);
-    //ï¿½Þ¸ï¿½currentString 
-	setCurrentString(Concat(s,SubString(allStr, end+1, StringLength(allStr))));
+    // string s;
+    // s = Concat(SubString(allStr, 0, start - 1), tar);
+    // //ÐÞ¸ÄcurrentString 
+	// setCurrentString(Concat(s,SubString(allStr, end+1, StringLength(allStr))));
+    // free(selectStr);
+    printf("REPLACE:FIND!\n");
+    deleteSelectString();
+    setSelectStartRC(selectStart);
+    setSelectEndRC(selectStart);
+    setCursorRC(selectStart);
+    addString(tar);
+
+    findText(src);
+
 }

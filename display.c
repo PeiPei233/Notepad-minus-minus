@@ -128,7 +128,7 @@ void drawMenu() {
         case 3:     //±£´æ
             saveFile();
             break;
-        case 4:
+        case 4: //ÍË³ö
             ExitGraphics();
             break;
     }

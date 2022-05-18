@@ -164,8 +164,6 @@ void getMouse(int x, int y, int button, int event) {
     if (gs_UIState.clickedItem) {
         isTyping = 0;
         return;
-    } else {
-        isTyping = 1;
     }
 
     char *originFont = GetFont();
@@ -400,6 +398,9 @@ void inputChar(char ch) {
         ExitGraphics();
         return;
     }
+    if (ch > 0 && ch < 32 && ch != '\t' && ch != '\r') {
+        return;
+    }
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
     if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {
@@ -423,8 +424,6 @@ void inputChar(char ch) {
         setSelectStartRC(cursor);
         setSelectEndRC(cursor);
         return;
-    } else if (ch > 0 && ch < 32 && ch != '\t') {
-        return;
     }
     addChar(ch);
     cursor.column++;
@@ -444,6 +443,19 @@ void inputKeyboard(int key, int event) {
             //方向左
             case VK_LEFT: {
                 RCNode currentCursor = getCursorRC();
+                RCNode startSelect = getSelectStartRC();
+                RCNode endSelect = getSelectEndRC();
+                if ((startSelect.column != endSelect.column || startSelect.row != endSelect.row) && !isShift) {   //当前有选中范围，则把光标移动到选中范围前端
+                    if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
+                        RCNode t = startSelect;
+                        startSelect = endSelect;
+                        endSelect = t;
+                    }
+                    setSelectStartRC(startSelect);
+                    setSelectEndRC(startSelect);
+                    setCursorRC(startSelect);
+                    break;
+                }
                 if (currentCursor.column == 1) {
                     if (currentCursor.row > 1) {
                         int len = getRowLen(currentCursor.row - 1);
@@ -470,6 +482,19 @@ void inputKeyboard(int key, int event) {
             //方向右
             case VK_RIGHT: {
                 RCNode currentCursor = getCursorRC();
+                RCNode startSelect = getSelectStartRC();
+                RCNode endSelect = getSelectEndRC();
+                if ((startSelect.column != endSelect.column || startSelect.row != endSelect.row) && !isShift) {   //当前有选中范围且没有按下shift，则把光标移动到选中范围末端
+                    if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
+                        RCNode t = startSelect;
+                        startSelect = endSelect;
+                        endSelect = t;
+                    }
+                    setSelectStartRC(endSelect);
+                    setSelectEndRC(endSelect);
+                    setCursorRC(endSelect);
+                    break;
+                }
                 if (currentCursor.column == getRowLen(currentCursor.row)) {
                     if (currentCursor.row < getTotalRow()) {
                         setCursorRC((RCNode) {currentCursor.row + 1, 1});
@@ -688,6 +713,4 @@ void inputKeyboard(int key, int event) {
                 break;
         }
     }
-    
-    display();
 }
