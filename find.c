@@ -19,12 +19,14 @@ int findText(char *src) {
     int row=startCursor.row, column=startCursor.column;
     RCNode findCursor;
     int length = strlen(src);   //计算查找字符长度
+
     char *ch;
 	ch=getCurrentString(); //获取当前屏幕现实的内容
     char *ch_=ch;    //定义指针储存字符串初始位置
     int flag;
     int startW = numofFormerWords(startCursor);
     ch += startW;
+
     while(*ch != 0)
     {   
         // printf("FIND:%s\n", ch);
@@ -41,6 +43,7 @@ int findText(char *src) {
         }
         if(flag)   //如果找到了则定位查找字符
         {
+            // printf("FIND:%s\n", ch);
             findCursor.column = column;
             findCursor.row = row;
             setSelectStartRC(findCursor);   //设置选择开始坐标
@@ -51,10 +54,10 @@ int findText(char *src) {
             return 1;          
         }else  //不是查找内容则改变行列数，同时移动指针
         {
-            ch ++;
             if(*ch != '\n')
             {
                 column ++;
+                ch ++;
             }else
             {   
                 ch++;
@@ -68,7 +71,7 @@ int findText(char *src) {
     column = 1;
     row = 1;
     int k;
-    for(k=0; k<startW-length; k++)
+    for(k=0; k<startW; k++)
     {
         int i;
         flag = 1;
@@ -82,7 +85,8 @@ int findText(char *src) {
             }
         }
         if(flag)   //如果找到了则定位查找字符
-        {
+        {   
+            // printf("FIND:%s\n", ch_);
             findCursor.column = column;
             findCursor.row = row;
             setSelectStartRC(findCursor);   //设置选择开始坐标
@@ -93,13 +97,13 @@ int findText(char *src) {
             return 1;          
         }else  //不是查找内容则改变行列数，同时移动指针
         {
-            ch_ ++;
             if(*ch_ != '\n')
             {
                 column ++;
+                ch_++;
             }else
             {
-                ch++;
+                ch_++;
                 row ++;
                 column = 1;
             }
