@@ -72,7 +72,7 @@ void redo();
 ### 分锅：
 edit: zhb
 
-content: yps
+storage: yps
 
 修改:zj
 
@@ -115,6 +115,7 @@ content: yps
 
 
 zhb:
+
 maxn为图形界面每行最多的字符数
 
 currentFile.txt为当前储存输入内容的文件名
