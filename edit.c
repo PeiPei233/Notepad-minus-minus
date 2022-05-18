@@ -166,4 +166,15 @@ void shearText() {
     */
     //将修改后的文本输入
 	deleteSelectString();
+    
+    if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
+        RCNode t = startSelect;
+        startSelect = endSelect;
+        endSelect = t;
+    }
+
+    setSelectStartRC(startSelect);
+    setSelectEndRC(startSelect);
+    setCursorRC(startSelect);
+    
 }
