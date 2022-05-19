@@ -21,5 +21,7 @@
         "typeinfo": "c",
         "time.h": "c"
     },
-    "C_Cpp.errorSquiggles": "Enabled"
+    "C_Cpp.errorSquiggles": "Enabled",
+    "files.autoGuessEncoding": true,
+    "files.encoding": "gb2312"
 }
