@@ -4,8 +4,8 @@
 #include "global.h"
 #include "strlib.h"
 
-#define DO_ADD 0x10
-#define DO_DELETE 0x20
+#define OP_ADD 0x10
+#define OP_DELETE 0x20
 
 typedef struct node {
     int op;
@@ -17,7 +17,7 @@ typedef struct node {
 
 /**
  * 记录操作
- * op 操作类型: DO_ADD 添加字符串 DO_DELETE 删除字符串
+ * op 操作类型: OP_ADD 添加字符串 OP_DELETE 删除字符串
  * pos 操作位置
  * str 添加/删除的字符串
  */ 

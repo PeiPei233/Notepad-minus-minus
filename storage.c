@@ -42,29 +42,29 @@ int getRowLen(int row);
  * 添加字符
  * pos:添加的位置
  * ch:添加的字符
- * record:是否需要记录操作  0-不需要  1-需要
+ * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void addChar(RCNode pos, char ch, int record);
+void addChar(RCNode pos, char ch, int doRecord);
 
 /**
  * 添加字符串，并记录操作
  * start:起始位置
  * src:添加的字符串
- * record:是否需要记录操作  0-不需要  1-需要
+ * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void addString(RCNode start, string src, int record);
+void addString(RCNode start, string src, int doRecord);
 
 /**
  * 删除字符
  * pos:添加的位置
- * record:是否需要记录操作  0-不需要  1-需要
+ * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void deleteChar(RCNode pos, int record);
+void deleteChar(RCNode pos, int doRecord);
 
 /**
  * 删除选中的字符串
  * start:起始位置
  * end:终止位置
- * record:是否需要记录操作  0-不需要  1-需要
+ * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void deleteSelectString(RCNode start, RCNode end, int record);
+void deleteSelectString(RCNode start, RCNode end, int doRecord);
