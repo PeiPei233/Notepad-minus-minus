@@ -6,7 +6,6 @@
 
 #include "storage.h"
 #include "unredo.h"
-#include <string.h>
 
 unsigned int sizeR;      //列方向所用总数
 unsigned int capR;       //列方向可承载总数
@@ -123,7 +122,10 @@ unsigned int getRowLen(int row) {
 void addChar(RCNode pos, char ch, int doRecord) {
     int row = pos.row - 1, col = pos.column - 1;    //在数组中下标从零开始
     if (doRecord) {
-        record(OP_ADD, pos, CharToString(ch));
+        string s = (char *) malloc(sizeof(char) * 2);
+        s[0] = ch;
+        s[1] = 0;
+        record(OP_ADD, pos, s);
     }
     if (ch == '\n') {   //若是换行符，则新开一行，其他行下移
         sizeR++;
@@ -202,7 +204,11 @@ void addString(RCNode start, string src, int doRecord) {
     unsigned int lens = strlen(src);
     if (!lens || !src) return;
     if (doRecord) {
-        record(OP_ADD, start, src);
+        string s = (char *) malloc(sizeof(char) * (lens + 1));
+        for (int i = 0; i <= lens; i++) {
+            s[i] = src[i];
+        }
+        record(OP_ADD, start, s);
     }
 
     int row = start.row - 1, col = start.column - 1;
@@ -333,7 +339,10 @@ void addString(RCNode start, string src, int doRecord) {
 void deleteChar(RCNode pos, int doRecord) {
     int row = pos.row - 1, col = pos.column - 1;
     if (doRecord) {
-        record(OP_DELETE, pos, CharToString(str[row][col]));
+        string s = (char *) malloc(sizeof(char) * 2);
+        s[0] = str[row][col];
+        s[1] = 0;
+        record(OP_DELETE, pos, s);
     }
     if (str[row][col] == '\n') {     //若删去的是换行符则行往上移
         //下一行拼接到这一行
