@@ -19,7 +19,9 @@
         "simpio.h": "c",
         "libgraphics.h": "c",
         "typeinfo": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "string.h": "c",
+        "boolean.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled",
     "files.autoGuessEncoding": true,
