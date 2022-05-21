@@ -15,8 +15,17 @@ char **str;
 
 /**
  * 初始化存储
+ * 若之前有数据会被清除！之前的数据会丢失！
  */
 void initStorage() {
+    if (sizeR) {    //如果之前有数据
+        for (int i = 0; i < sizeR; i++) {
+            free(str[i]);
+        }
+        free(str);
+        free(sizeL);
+        free(capL);
+    }
     sizeR = 1;
     capR = 1;
     sizeL = (unsigned int *) malloc(sizeof(unsigned int));
