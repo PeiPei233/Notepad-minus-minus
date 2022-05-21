@@ -364,7 +364,7 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
     }
     if (start.row == end.row && start.column == end.column) return;
     if (doRecord) {
-        string deleteStr = getSelectString(start, end);
+        string deleteStr = getContent(start, end);
         record(OP_DELETE, start, deleteStr);
     }
     if (start.row == end.row) {
