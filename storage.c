@@ -7,11 +7,11 @@
 #include "storage.h"
 #include "unredo.h"
 
-unsigned int sizeR;      //列方向所用总数
-unsigned int capR;       //列方向可承载总数
-unsigned int *sizeL;     //行方向所用总数
-unsigned int *capL;      //行方向可承载总数
-char **str;
+static unsigned int sizeR = 0;      //列方向所用总数
+static unsigned int capR = 0;       //列方向可承载总数
+static unsigned int *sizeL;     //行方向所用总数
+static unsigned int *capL;      //行方向可承载总数
+static char **str;
 
 /**
  * 初始化存储
