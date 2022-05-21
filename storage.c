@@ -29,15 +29,17 @@ void initStorage() {
 }
 
 /**
- * 获得某一行的字符串
+ * 获得某一行的字符串（不要修改！不要修改！不要修改！当作字符串常量来使用！）
+ * 如果需要可修改的某一行的字符串请使用getContent()函数！！
  */ 
-string getRowString(int row) {
+string getRowContent(int row) {
     if (row <= sizeR && row >= 1) return str[row - 1];
     else return NULL;
 }
 
 /**
  * 获得总行数
+ * 包括文末空行
  */ 
 unsigned int getTotalRow() {
     return sizeR;
@@ -45,9 +47,10 @@ unsigned int getTotalRow() {
 
 /**
  * 获得选中范围的字符串的长度
+ * 包括所有的'\n'
  * 注意获得的字符串长度范围为[start, end)左闭右开区间
  */
-unsigned int getSelectStringLength(RCNode start, RCNode end) {
+unsigned int getContentLength(RCNode start, RCNode end) {
     if (start.row > end.row || (start.row == end.row && start.column > end.column)) {
         RCNode t = start;
         start = end;
@@ -67,18 +70,18 @@ unsigned int getSelectStringLength(RCNode start, RCNode end) {
 }
 
 /**
- * 获得选中范围的字符串
+ * 获得选中范围的字符串（为新建字符串，可修改）
  * 用完记得及时free
  * 注意获得的字符串范围为[start, end)左闭右开区间
  * 空字符串则返回NULL
  */ 
-string getSelectString(RCNode start, RCNode end) {
+string getContent(RCNode start, RCNode end) {
     if (start.row > end.row || (start.row == end.row && start.column > end.column)) {
         RCNode t = start;
         start = end;
         end = t;
     }
-    unsigned int len = getSelectStringLength(start, end);
+    unsigned int len = getContentLength(start, end);
     if (!len) return NULL;
     char *res = (char *) malloc(sizeof(char) * (len + 1));
     if (start.row == end.row) {
@@ -107,8 +110,9 @@ string getSelectString(RCNode start, RCNode end) {
 
 /**
  * 获得某一行的长度
+ * 如果行末有'\n'则长度中包括'\n'
  */ 
-unsigned int getRowLen(int row) {
+unsigned int getRowLength(int row) {
     if (row <= sizeR && row >= 1) return sizeL[row - 1] - 1;     //每一行的大小包括最后的'\0' 要减掉
     else return 0;
 }
@@ -119,7 +123,7 @@ unsigned int getRowLen(int row) {
  * ch:添加的字符
  * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void addChar(RCNode pos, char ch, int doRecord) {
+void addContentByChar(RCNode pos, char ch, int doRecord) {
     int row = pos.row - 1, col = pos.column - 1;    //在数组中下标从零开始
     if (doRecord) {
         string s = (char *) malloc(sizeof(char) * 2);
@@ -195,20 +199,20 @@ void addChar(RCNode pos, char ch, int doRecord) {
 }
 
 /**
- * 添加字符串，并记录操作
+ * 添加字符串
  * start:起始位置
  * src:添加的字符串
  * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void addString(RCNode start, string src, int doRecord) {
+void addContentByString(RCNode start, string src, int doRecord) {
     unsigned int lens = strlen(src);
     if (!lens || !src) return;
     if (doRecord) {
-        string s = (char *) malloc(sizeof(char) * (lens + 1));
+        string addStr = (char *) malloc(sizeof(char) * (lens + 1));
         for (int i = 0; i <= lens; i++) {
-            s[i] = src[i];
+            addStr[i] = src[i];
         }
-        record(OP_ADD, start, s);
+        record(OP_ADD, start, addStr);
     }
 
     int row = start.row - 1, col = start.column - 1;
@@ -332,64 +336,27 @@ void addString(RCNode start, string src, int doRecord) {
 }
 
 /**
- * 删除字符
- * pos:删除的位置（注意不是光标前的位置，而是光标所在的位置）
+ * 添加内容（略麻烦）
+ * by:添加方式 BY_CHAR 通过字符形式添加 BY_STRING 通过字符串形式添加
+ * pos:添加位置（起始位置）
  * doRecord:是否需要记录操作  0-不需要  1-需要
  */ 
-void deleteChar(RCNode pos, int doRecord) {
-    int row = pos.row - 1, col = pos.column - 1;
-    if (doRecord) {
-        string s = (char *) malloc(sizeof(char) * 2);
-        s[0] = str[row][col];
-        s[1] = 0;
-        record(OP_DELETE, pos, s);
-    }
-    if (str[row][col] == '\n') {     //若删去的是换行符则行往上移
-        //下一行拼接到这一行
-        if (sizeL[row] + sizeL[row + 1] - 2 > capL[row]) {   //装不下了，重开
-            while (sizeL[row] + sizeL[row + 1] - 2 > capL[row]) {
-                capL[row] <<= 1;
-            }
-            char *t = (char *) malloc(sizeof(char) * capL[row]);
-            for (int i = 0; i < sizeL[row] - 2; i++) {
-                t[i] = str[row][i];
-            }
-            for (int i = 0; i < sizeL[row + 1]; i++) {
-                t[sizeL[row] - 2 + i] = str[row + 1][i];
-            }
-            sizeL[row] += sizeL[row + 1] - 2;
-            free(str[row]);
-            str[row] = t;
-        } else {
-            for (int i = 0; i < sizeL[row + 1]; i++) {
-                str[row][sizeL[row] - 2 + i] = str[row + 1][i];
-            }
-            sizeL[row] += sizeL[row + 1] - 2;
-        }
-        //行往上移
-        free(str[row + 1]);
-        sizeR--;
-        for (int i = row + 1; i < sizeR; i++) {
-            str[i] = str[i + 1];
-            sizeL[i] = sizeL[i + 1];
-            capL[i] = capL[i + 1];
-        }
-    } else {    //若删去普通字符，则这行的右边往左移
-        sizeL[row]--;
-        for (int i = col; i < sizeL[row]; i++) {
-            str[row][i] = str[row][i + 1];
-        }
+void addContent(int by, RCNode pos, char *src, int doRecord) {
+    if (by == BY_CHAR) {
+        addContentByChar(pos, *src, doRecord);
+    } else if (by == BY_STRING) {
+        addContentByString(pos, src, doRecord);
     }
 }
 
 /**
- * 删除选中的字符串
+ * 删除内容
  * start:起始位置
  * end:终止位置
  * doRecord:是否需要记录操作  0-不需要  1-需要
  * 注意删除的范围是[start, end)左闭右开区间
  */ 
-void deleteSelectString(RCNode start, RCNode end, int doRecord) {
+void deleteContent(RCNode start, RCNode end, int doRecord) {
     if (start.row > end.row || (start.row == end.row && start.column > end.column)) {
         RCNode t = start;
         start = end;
