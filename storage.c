@@ -86,6 +86,7 @@ string getSelectString(RCNode start, RCNode end) {
         for (int i = 0; i < len; i++) {
             res[i] = str[start.row - 1][start.column - 1 + i];
         }
+        res[len] = 0;
         return res;
     } else {
         int i = 0;
@@ -100,6 +101,7 @@ string getSelectString(RCNode start, RCNode end) {
         for (int j = 0; j < end.column - 1; i++, j++) {
             res[i] = str[end.row - 1][j];
         }
+        res[len] = 0;
         return res;
     }
 }
