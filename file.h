@@ -47,7 +47,7 @@ int getSaveState();
 /*
     设置保存状态
 */
-void saveSetState(int newSaveState);
+void setSaveState(int newSaveState);
 
 /*
 	返回当前文件名

@@ -32,14 +32,7 @@ void initFileConfig(){
     更新currentString字符串
 */
 void openFile() {
-    int state;
-    if(!isCreated&&!(getTotalRow()==1&&getRowLength(1)==0)){            //若未被创建且当前显示字符串不为0时需弹出覆盖提示
-        state = MessageBox(NULL,"打开后您当前的内容将被覆盖，确定打开吗？",NULL,MB_OKCANCEL);
-        if(state==1)    //ok
-            ;
-        else if(state==2) //cancel
-            return;
-    }
+
 	    // open a file name
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -47,7 +40,7 @@ void openFile() {
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
@@ -60,6 +53,17 @@ void openFile() {
 	    MessageBox(NULL, "打开失败", NULL, MB_OK);  //打开错误
         return;
     } 
+    int state;
+    if(!(getTotalRow()==1&&getRowLength(1)==0)){            //若未被创建且当前显示字符串不为0时需弹出覆盖提示
+        state = MessageBox(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","友情提示",MB_OKCANCEL);
+        if(state==1)    //ok
+            ;
+        else if(state==2){ //cancel
+        	fclose(currentFile);
+            return;
+        }
+    }
+    initStorage();      //覆盖原先的内容 
 	int i=0;
     unsigned int degree=1;
 	int j=0;
@@ -71,7 +75,7 @@ void openFile() {
 			currentString[i++]=ch;
 		if(i>_N*degree-2){
 			char *temp;
-			degree*=2;
+			degree*=2;             //以指数级增长动态内存 
 			temp=currentString;
 			currentString=(char *)malloc(_N*degree);
 			for(j=0;j<i;j++){
@@ -86,7 +90,7 @@ void openFile() {
         return;
     }
 	currentString[i]='\0';
-	RCNode pos={1,1};
+	RCNode pos={1,1}; 
     addContent(BY_STRING,pos,currentString,0);
     free(currentString);
     fclose(currentFile);
@@ -106,7 +110,7 @@ void createFile() {
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
@@ -138,7 +142,7 @@ void saveFile() {
 	    ofn.lpstrFile = szFile;
 	    ofn.lpstrFile[0] = '\0';
 	    ofn.nMaxFile = sizeof(szFile);
-	    ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+	    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
 	    ofn.nFilterIndex = 1;
 	    ofn.lpstrFileTitle = NULL;
 	    ofn.nMaxFileTitle = 0;
@@ -179,7 +183,7 @@ int getSaveState() {
 /*
     设置保存状态
 */
-void saveSetState(int newSaveState){
+void setSaveState(int newSaveState){
     isSaved=newSaveState;
 }
 
