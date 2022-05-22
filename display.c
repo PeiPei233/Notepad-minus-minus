@@ -516,7 +516,7 @@ static void drawFindArea() {
     //查找下一个按钮
     SetPointSize(16);
     if (button(GenUIID(0), buttonFindNextX, buttonFindNextY, buttonFindNextW, buttonFindNextH, "↓")) {
-        findResult = findText(inputFindText);
+        findResult = findNextText(inputFindText);
     }
 
     //查找上一个按钮
@@ -676,7 +676,7 @@ static void drawReplaceArea() {
     //查找下一个按钮
     SetPointSize(16);
     if (button(GenUIID(0), buttonFindNextX, buttonFindNextY, buttonFindNextW, buttonFindNextH, "↓")) {
-        findResult = findText(inputFindText);
+        findResult = findNextText(inputFindText);
     }
 
     //查找上一个按钮

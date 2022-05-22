@@ -9,11 +9,88 @@
 #include "find.h"
 #include "libgraphics.h"
 #include "storage.h"
+#include "display.h"
+
+/**
+ * 根据传入的字符串从光标位置（选择范围前）查找上一个匹配的字符串
+ * 查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
+ */ 
+int findLastText(char *src) {
+    RCNode startSelect = getSelectStartRC();
+    RCNode endSelect = getSelectEndRC();
+    RCNode cursor = getCursorRC();
+    int len = strlen(src);      //查找字符串的长度
+    if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
+        RCNode t = startSelect;
+        startSelect = endSelect;
+        endSelect = t;
+    }
+    cursor = startSelect;   //从选择范围的开头开始往上查找
+    int row = cursor.row, col = cursor.column - 1;  //从光标前开始查
+    string s = getRowContent(row);
+    int find = 0;   //是否查找到
+    for (row = cursor.row; row >= 1; row--) {
+        if (row == cursor.row) col = cursor.column - 1;
+        else col = getRowLength(row) - len + 1;
+        string s = getRowContent(row);
+        while (col >= 1) {
+            int flag = 1;   //用于判断字符串是否相等
+            for (int j = col - 1; j < col - 1 + len; j++) {   //col下标从1开始，要-1
+                if (s[j] != src[j + 1 - col]) {
+                    flag = 0;
+                    break;
+                }
+            }
+            if (flag) {     
+                find = 1;
+                break;
+            }
+            col--;
+        }
+        if (find) {
+            break;
+        }
+    }
+    if (!find) {    //如果仍未找到，则从文章结尾再往前查
+        for (row = getTotalRow(); row >= cursor.row; row--) {
+            col = getRowLength(row) - len + 1;
+            string s = getRowContent(row);
+            while (col >= 1) {
+                int flag = 1;   //用于判断字符串是否相等
+                for (int j = col - 1; j < col - 1 + len; j++) {   //col下标从1开始，要-1
+                    if (s[j] != src[j + 1 - col]) {
+                        flag = 0;
+                        break;
+                    }
+                }
+                if (flag) {
+                    find = 1;
+                    break;
+                }
+                col--;
+            }
+            if (find) {
+                break;
+            }
+        }
+        if (!find) {    //如果还是没找到
+            return 0;
+        }
+    }
+    if (!find) return 0;
+    //成功找到，设置选择范围
+    setSelectStartRC((RCNode) {row, col});
+    setSelectEndRC((RCNode) {row, col + len});
+    setCursorRC((RCNode) {row, col + len});
+    setCursorInWindow();
+    return 1;
+}
+
 /*
     根据传入的字符串查找从当前光标位置开始的下一个匹配的字符串
     查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
 */
-int findText(char *src) {
+int findNextText(char *src) {
 	// printf("FIND:%s\n", src);
     RCNode startCursor = getCursorRC();  //获取当前光标位置作为查找开始坐标
     int row=startCursor.row, column=startCursor.column;
@@ -42,7 +119,7 @@ int findText(char *src) {
             }
             if(flag&&i==length)   //如果找到了则定位查找字符
             {
-                // printf("FIND:%s\n", ch);
+                printf("FIND:\n");
                 findCursor.column = column;
                 findCursor.row = row;
                 setSelectStartRC(findCursor);   //设置选择开始坐标
@@ -61,7 +138,7 @@ int findText(char *src) {
         str = getRowContent(row); //获取当前行显示的内容
     }
     //若未找到则返回开头继续查找
-    row=0;
+    row=1;
     str=getRowContent(row);
     while(row<=totalrow){
         while(*str != 0)
@@ -109,7 +186,7 @@ int findText(char *src) {
     如果当前选中的字符串不是src，则先查找光标后的下一个符合的src并选中，即先执行findText(src)
     否则如果当前选中的字符串就是src，则替换为tar并将选择范围改为替换后的字符串并更新光标位置为选择位置末端吗
 */
-void replaceText(char *src, char *tar) {
+int replaceText(char *src, char *tar) {
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
@@ -127,8 +204,8 @@ void replaceText(char *src, char *tar) {
     //判断是否是查找内容，不是则重新选择    
     if(strcmp(selectStr, src))    
     {
-        findText(src);
-        return;
+        findNextText(src);
+        return 0;
     }
     
     printf("REPLACE:FIND!\n");
@@ -138,6 +215,6 @@ void replaceText(char *src, char *tar) {
     setSelectEndRC(selectStart);              //设置选择范围 
     setCursorRC(selectStart);
 	free(selectStr);
-    findText(src);
+    findNextText(src);
 
 }
