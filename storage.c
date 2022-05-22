@@ -6,6 +6,7 @@
 
 #include "storage.h"
 #include "unredo.h"
+#include "string.h"
 
 static unsigned int sizeR = 0;      //列方向所用总数
 static unsigned int capR = 0;       //列方向可承载总数
