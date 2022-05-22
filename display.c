@@ -13,6 +13,7 @@
 #include "init.h"
 #include "callback.h"
 #include "storage.h"
+#include <math.h>
 #include <windows.h>
 #include <string.h>
 
@@ -97,36 +98,6 @@ void updateTotalDisplayRow() {
     SetPointSize(originPointSize);
     SetPenColor(originColor);
     SetFont(originFont);
-}
-
-/**
- * 显示窗口内容
- */ 
-void display() {
-
-    // printf("DISPLAY\n");
-
-    DisplayClear();
-
-    // winHeight = GetWindowHeight();
-	// winWidth = GetWindowWidth();
-    
-    if (isShowSetting) {
-        drawSettingPage();
-    } else if (isShowKeyboard) {
-        drawKeyboardPage();
-    } else if (isShowAbout) {
-        drawAboutPage();
-    } else {
-        drawTextArea();
-        if (isShowFind) {
-            drawFindArea();
-        }
-        if (isShowReplace) {
-            drawReplaceArea();
-        }
-        drawMenu();
-    }
 }
 
 /*
@@ -264,7 +235,7 @@ static void drawMenu() {
     //状态栏部分
     SetPenColor("Menu Gray");
     drawRectangle(0, 0, winWidth, fH * 1.4, 1);
-    static char *s[110];
+    static char s[110];
     RCNode cursor = getCursorRC();
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
@@ -1130,4 +1101,34 @@ RCNode XYtoRC(int x, int y) {
     SetPointSize(originPointSize);
     SetFont(originFont);
     return mouse;
+}
+
+/**
+ * 显示窗口内容
+ */ 
+void display() {
+
+    // printf("DISPLAY\n");
+
+    DisplayClear();
+
+    // winHeight = GetWindowHeight();
+	// winWidth = GetWindowWidth();
+    
+    if (isShowSetting) {
+        drawSettingPage();
+    } else if (isShowKeyboard) {
+        drawKeyboardPage();
+    } else if (isShowAbout) {
+        drawAboutPage();
+    } else {
+        drawTextArea();
+        if (isShowFind) {
+            drawFindArea();
+        }
+        if (isShowReplace) {
+            drawReplaceArea();
+        }
+        drawMenu();
+    }
 }
