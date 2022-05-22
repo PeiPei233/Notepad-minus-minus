@@ -12,6 +12,7 @@
 #include "time.h"
 #include "init.h"
 #include "callback.h"
+#include "storage.h"
 #include <windows.h>
 #include <string.h>
 
@@ -59,6 +60,48 @@ int getTextDisplayState() {
     return !(isShowAbout || isShowSetting || isShowKeyboard);
 }
 
+static int totDisplayRow;
+
+/**
+ * 获取当前显示的总行数
+ */ 
+int getTotalDisplayRow() {
+    return totDisplayRow;
+}
+
+/**
+ * 更新当前显示的总行数
+ */ 
+void updateTotalDisplayRow() {    
+    string originFont = GetFont();
+    string originColor=  GetPenColor();
+    int originPointSize = GetPointSize();
+    TextStyle style = getTextStyle();
+
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    double fH = GetFontHeight();
+    double menuBarH = fH * 1.5;
+    double minY = fH * 1.4;
+
+    SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
+
+    fH = GetFontHeight();
+    double x = menuBarH / 1.5 * 2 / 3;
+    double th = fH * style.lineSpacing;
+    double y = winHeight - menuBarH - th * 1.25;
+    totDisplayRow = ceil((y + GetFontAscent() - minY) / th);
+    
+    SetPointSize(originPointSize);
+    SetPenColor(originColor);
+    SetFont(originFont);
+}
+
+/**
+ * 显示窗口内容
+ */ 
 void display() {
 
     // printf("DISPLAY\n");
@@ -90,7 +133,7 @@ void display() {
     画菜单 并根据菜单选项执行对应的函数和命令
     在没有打开任何文件时显示新建文件
 */
-void drawMenu() {
+static void drawMenu() {
 
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
@@ -162,7 +205,7 @@ void drawMenu() {
         case 6:     //全选
         {
             int totr = getTotalRow();
-            int totc = getRowLen(totr);
+            int totc = getRowLength(totr) + 1;
             setSelectStartRC((RCNode) {1, 1});
             setSelectEndRC((RCNode) {totr, totc});
             setCursorRC((RCNode) {totr, totc});
@@ -208,7 +251,7 @@ void drawMenu() {
     double tw = TextStringWidth(name);
     double tx = max(winWidth / 2 - tw / 2, x + w * 3.5);
     int i = strlen(name) - 1;
-    while (tx + TextStringWidth(name) > winWidth - h * 2 / 3 && i) {
+    while (tx + TextStringWidth(name) > winWidth - h * 2 / 3 && i) {    //名字过长则最后显示省略号...
         if (name[i] & 0x80) i--;
         i--;
         name[i + 1] = name[i + 2] = name[i + 3] = '.';
@@ -231,13 +274,8 @@ void drawMenu() {
         MovePen(TextStringWidth("    "), GetFontDescent() + fH * 0.2);
         DrawTextString(s);
     } else {
-        int i = numofFormerWords(startSelect), j = numofFormerWords(endSelect);
-        if (i > j) {
-            int t = i;
-            i = j;
-            j = t;
-        }
-        sprintf(s, "行 %d，列 %d（已选择%d）", cursor.row, cursor.column, j - i);
+        int len = getContentLength(getSelectStartRC(), getSelectEndRC());
+        sprintf(s, "行 %d，列 %d（已选择%d）", cursor.row, cursor.column, len);
         SetPenColor("Black");
         MovePen(TextStringWidth("    "), GetFontDescent() + fH * 0.2);
         DrawTextString(s);
@@ -252,14 +290,14 @@ void drawMenu() {
     SetPointSize(originPointSize);
 }
 
-static char t[10010];
-static int cid[10010];
+static unsigned int capT = 0;
+static char *t;     //某一行的字符
+static int *cid;    //cid[i] = j:某一行的字符在str[row][i]对应在t中的下标j，用于处理'\t'
 
 /*
-    在范围内画文本，建议的参数包括左上角坐标(x, y) 矩形的长宽(w, h) 行高 是否需要自动换行 等等
+    绘制文本区域
 */
-void drawTextArea() {
-    char *s = getCurrentString();
+static void drawTextArea() {
     RCNode winCurrent = getWindowCurrentRC();
     RCNode cursor = getCursorRC();
     RCNode startSelect = getSelectStartRC();
@@ -281,7 +319,9 @@ void drawTextArea() {
     SetFont("微软雅黑");
     SetPointSize(13);
 
-    double menuBarH = GetFontHeight() * 1.5;
+    double fH = GetFontHeight();
+    double menuBarH = fH * 1.5;
+    double minY = fH * 1.4;
 
     SetFont(style.fontFamily);
     SetPointSize(style.fontSize);
@@ -294,16 +334,15 @@ void drawTextArea() {
     SetPenColor("Background Color");
     drawRectangle(0, 0, winWidth, winHeight, 1);
 
-    double fH = GetFontHeight();
+    fH = GetFontHeight();
     double x = menuBarH / 1.5 * 2 / 3;
     double th = fH * style.lineSpacing;
     double y = winHeight - menuBarH - th * 1.25;
-    MovePen(x, y);
-    int i = 0, j = 0, k = 0, curl = 0, totl = 0, lens = strlen(s);
+    int totl = ceil((y + GetFontAscent() - minY) / th);
     
     double dx = TextStringWidth(" ") * (winCurrent.column - 1);
 
-    if (lens == 0) {    //空字符串
+    if (getTotalRow() == 1 && getRowLength(1) == 0) {    //空字符串
         if (clock() % 1000 < 500 && getTypingState()) {
             int originPenSize = GetPenSize();
             SetPenColor("Text Color");
@@ -314,147 +353,117 @@ void drawTextArea() {
         }
     }
 
-    i = j = 0;
-    while (i <= lens) {
-        totl++;
+    for (int row = winCurrent.row - 1; row < winCurrent.row + totl; row++) {    //row:当前显示的行
+        string s = getRowContent(row);
+        if (s == NULL) continue;
+        int i = 0, j = 0, lens = getRowLength(row);
+        if (lens && s[lens - 1] == '\n') lens--;
+        unsigned int cntT = 0;   //该行内'\t'的数量
+        while (i < lens) {
+            if (s[i] == '\t') {
+                cntT++;
+            }
+            i++;
+        }
+        i = 0;
+        if (!capT) {    //没初始化过，重新初始化
+            capT = 1024;
+            while (capT < lens + cntT * 4 + 5) {
+                capT <<= 1;
+            }
+            t = (char *) malloc(sizeof(char) * capT);
+            cid = (int *) malloc(sizeof(int) * capT);
+        } 
+        else if (capT < lens + cntT * 4 + 5) {  //装不下了，重新初始化
+            while (capT < lens + cntT * 4 + 5) {
+                capT <<= 1;
+            }
+            free(t);
+            free(cid);
+            t = (char *) malloc(sizeof(char) * capT);
+            cid = (int *) malloc(sizeof(int) * capT);
+        }
         t[0] = t[1] = 0;
         cid[0] = cid[1] = 0;
-        while (i < strlen(s) && s[i] != '\n') {
+        while (i < lens) {      //i:在s中的下标 j:在t中的下标位置
             if (s[i] == '\t') {     //处理制表符
+                cid[i] = j;
                 i++;
-                cid[k] = j;
-                k++;
-                // printf("CID[%d]:%d\n", k, cid[k]);
                 if (j % 4 == 0) {
                     for (int _i = 1; _i <= 4; _i++) {
                         t[j] = ' ';
                         j++;
-                        t[j] = t[j + 1] = 0;
                     }
+                    t[j] = t[j + 1] = 0;
                 } else {
                     while (j % 4) {
-                    t[j] = ' ';
-                    j++;
-                    t[j] = t[j + 1] = 0;
+                        t[j] = ' ';
+                        j++;
                     }
+                    t[j] = t[j + 1] = 0;
                 }
             } else {
                 t[j] = s[i];
-                cid[k] = j;
+                cid[i] = j;
                 i++;
                 j++;
-                k++;
                 t[j] = t[j + 1] = 0;
             }
         }
-        cid[k] = j;
-        //draw select area
+        cid[i] = j;
 
-        if (s[i] == '\n') {
-            if (totl != endSelect.row) {
+        //draw select area
+        if (s[i] == '\n') {     //如果选择部分有'\n'，则以空格表示出来
+            if (row != endSelect.row) {
                 t[j] = ' ';
                 i++;
                 j++;
                 t[j] = t[j + 1] = 0;
-            } else i++;
+            }
         }
 
         SetPenColor("Select Blue");
-        if (winCurrent.row == 1) {
-            if (totl > startSelect.row && totl < endSelect.row) {
-                double w = TextStringWidth(t);
-                if (w != 0) drawRectangle(x - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
-            } else if (totl == startSelect.row && startSelect.row != endSelect.row) {
-                // printf("SELECT:%d %d %s\n", startSelect.row, startSelect.column, t + startSelect.column - 1);
-                double w = TextStringWidth(t + cid[startSelect.column - 1]);
-                char ch = t[cid[startSelect.column - 1]];
-                t[cid[startSelect.column - 1]] = 0;
-                if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
-                t[cid[startSelect.column - 1]] = ch;
-            } else if (totl == endSelect.row && startSelect.row != endSelect.row) {
-                char ch = t[cid[endSelect.column - 1]];
-                t[cid[endSelect.column - 1]] = 0;
-                double w = TextStringWidth(t);
-                if (w != 0) drawRectangle(x - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
-                t[cid[endSelect.column - 1]] = ch;
-            } else if (totl == startSelect.row && startSelect.row == endSelect.row) {
-                char ch1 = t[cid[endSelect.column - 1]], ch2 = t[cid[startSelect.column - 1]];
-                t[cid[endSelect.column - 1]] = 0;
-                double w = TextStringWidth(t + cid[startSelect.column - 1]);
-                t[cid[startSelect.column - 1]] = 0;
-                if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (totl - 1) - GetFontDescent(), w, th, 1);
-                t[cid[endSelect.column - 1]] = ch1;
-                t[cid[startSelect.column - 1]] = ch2;
-            }
-        } else {
-            if (totl >= winCurrent.row - 1) {
-                curl++;
-                if (totl > startSelect.row && totl < endSelect.row) {
-                    double w = TextStringWidth(t);
-                    if (w != 0) drawRectangle(x - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
-                } else if (totl == startSelect.row && startSelect.row != endSelect.row) {
-                    // printf("SELECT:%d %d %s\n", startSelect.row, startSelect.column, t + startSelect.column - 1);
-                    double w = TextStringWidth(t + cid[startSelect.column - 1]);
-                    char ch = t[cid[startSelect.column - 1]];
-                    t[cid[startSelect.column - 1]] = 0;
-                    if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
-                    t[cid[startSelect.column - 1]] = ch;
-                } else if (totl == endSelect.row && startSelect.row != endSelect.row) {
-                    char ch = t[cid[endSelect.column - 1]];
-                    t[cid[endSelect.column - 1]] = 0;
-                    double w = TextStringWidth(t);
-                    if (w != 0) drawRectangle(x - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
-                    t[cid[endSelect.column - 1]] = ch;
-                } else if (totl == startSelect.row && startSelect.row == endSelect.row) {
-                    char ch1 = t[cid[endSelect.column - 1]], ch2 = t[cid[startSelect.column - 1]];
-                    t[cid[endSelect.column - 1]] = 0;
-                    double w = TextStringWidth(t + cid[startSelect.column - 1]);
-                    t[cid[startSelect.column - 1]] = 0;
-                    if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (curl - 2) - GetFontDescent(), w, th, 1);
-                    t[cid[endSelect.column - 1]] = ch1;
-                    t[cid[startSelect.column - 1]] = ch2;
-                }
-            }
-
+        if (row > startSelect.row && row < endSelect.row) {     //该行在选择的行中间
+            double w = TextStringWidth(t);
+            if (w != 0) drawRectangle(x - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
+        } else if (row == startSelect.row && startSelect.row != endSelect.row) {    //该行在选择的第一行
+            // printf("SELECT:%d %d %s\n", startSelect.row, startSelect.column, t + startSelect.column - 1);
+            double w = TextStringWidth(t + cid[startSelect.column - 1]);
+            char ch = t[cid[startSelect.column - 1]];
+            t[cid[startSelect.column - 1]] = 0;
+            if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
+            t[cid[startSelect.column - 1]] = ch;
+        } else if (row == endSelect.row && startSelect.row != endSelect.row) {      //该行在选择的最后一行
+            char ch = t[cid[endSelect.column - 1]];
+            t[cid[endSelect.column - 1]] = 0;
+            double w = TextStringWidth(t);
+            if (w != 0) drawRectangle(x - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
+            t[cid[endSelect.column - 1]] = ch;
+        } else if (row == startSelect.row && startSelect.row == endSelect.row) {    //选择部分在同一行
+            char ch1 = t[cid[endSelect.column - 1]], ch2 = t[cid[startSelect.column - 1]];
+            t[cid[endSelect.column - 1]] = 0;
+            double w = TextStringWidth(t + cid[startSelect.column - 1]);
+            t[cid[startSelect.column - 1]] = 0;
+            if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
+            t[cid[endSelect.column - 1]] = ch1;
+            t[cid[startSelect.column - 1]] = ch2;
         }
 
         //draw text
         SetPenColor("Text Color");
-        if (winCurrent.row == 1) {
-            MovePen(x - dx, y - th * (totl - 1));
-            DrawTextString(t);
-        } else if (totl >= winCurrent.row - 1) {
-            MovePen(x - dx, y - th * (curl - 2));
-            DrawTextString(t);
-        }
+        MovePen(x - dx, y - th * (row - winCurrent.row));
+        DrawTextString(t);
 
         //draw cursor
-        if (clock() % 1000 < 500 && getTypingState()) {
+        if (clock() % 1000 < 500 && getTypingState()) {     //500ms的间隔闪烁，不在输入状态时不显示光标
             int originPenSize = GetPenSize();
             SetPenSize(2);
-            if (winCurrent.row == 1) {
-                if (totl == cursor.row) {
-                    t[cid[cursor.column - 1]] = 0;
-                    MovePen(x + TextStringWidth(t) - dx, y - th * (totl - 1) - GetFontDescent());
-                    DrawLine(0, th);
-                }
-            } else if (totl >= winCurrent.row - 1) {
-                if (totl == cursor.row) {
-                    t[cid[cursor.column - 1]] = 0;
-                    MovePen(x + TextStringWidth(t) - dx, y - th * (curl - 2) - GetFontDescent());
-                    DrawLine(0, th);
-                }
+            if (row == cursor.row) {
+                t[cid[cursor.column - 1]] = 0;
+                MovePen(x + TextStringWidth(t) - dx, y - th * (row - winCurrent.row) - GetFontDescent());
+                DrawLine(0, th);
             }
             SetPenSize(originPenSize);
-        }
-        
-        j = k = 0;
-        t[0] = t[1] = 0;
-        // if (s[i] == '\n') i++;
-        if (winCurrent.row == 1) {
-            if (y - th * (totl - 1) < 0) break;
-        } else if (totl >= winCurrent.row - 1) {
-            if (y - th * (curl - 1) < 0) break;
         }
     }
 
@@ -469,7 +478,7 @@ void drawTextArea() {
     先绘制底层文本 在绘制查找窗口时先绘制一个白色矩形覆盖底下的文本，在绘制查找窗口
     绘制替换窗口同理
 */
-void drawFindArea() {
+static void drawFindArea() {
     
     setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
     setTextBoxColors("White", "Black", "Textbox Hot Blue", "Black", 0);
@@ -556,7 +565,7 @@ void drawFindArea() {
 /*
     绘制替换窗口 包括两个文本框（分别是查找和替换）以及替换按钮等
 */
-void drawReplaceArea() {
+static void drawReplaceArea() {
 
     setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
     setTextBoxColors("White", "Black", "Textbox Hot Blue", "Black", 0);
@@ -680,7 +689,7 @@ static char backgroundColor[10010];
 static char textColor[10010];
 static int initSetting = 1;     //1: 需要初始化
 
-void drawSettingPage() {
+static void drawSettingPage() {
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
     SetFont("微软雅黑");
@@ -727,7 +736,7 @@ void drawSettingPage() {
     DrawTextString("字体系列：");
     SetPenColor("Dark Gray");
     MovePen(x + w, y);
-    DrawTextString("控制字体系列。");
+    DrawTextString("控制字体系列。建议使用等宽字体。");
     SetPenColor(originColor);
     if (textbox(GenUIID(0), x + w, y - fD * 2 - fH * 1.1, tw, th, fontFamily, sizeof(fontFamily) / sizeof(fontFamily[0]))) {
 
@@ -903,7 +912,7 @@ void drawSettingPage() {
     SetPointSize(originPointSize);
 }
 
-void drawKeyboardPage() {
+static void drawKeyboardPage() {
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
     SetFont("微软雅黑");
@@ -970,7 +979,7 @@ void drawKeyboardPage() {
     SetPointSize(originPointSize);
 }
 
-void drawAboutPage() {
+static void drawAboutPage() {
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
     SetFont("微软雅黑");
@@ -1021,4 +1030,104 @@ void drawAboutPage() {
     SetPenColor(originColor);
     SetFont(originFont);
     SetPointSize(originPointSize);
+}
+
+/**
+ * 将窗口的(x, y)像素坐标转换为行列坐标
+ */ 
+RCNode XYtoRC(int x, int y) {
+    
+    if (getTotalRow() == 1 && getRowLength(1) == 0) {
+        return (RCNode) {1, 1};
+    }
+
+    double nx = ScaleXInches(x);
+    double ny = ScaleYInches(y);
+
+    RCNode winCurrent = getWindowCurrentRC();
+    TextStyle style = getTextStyle();
+
+    int originPointSize = GetPointSize();
+    char *originFont = GetFont();
+
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    double fH = GetFontHeight();
+    double menuBarH = GetFontHeight() * 1.5;
+    double minY = fH * 1.4;
+
+    SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
+    
+    fH = GetFontHeight();
+    double ox = menuBarH / 1.5 * 2 / 3;
+    double th = fH * style.lineSpacing;
+    double oy = winHeight - menuBarH - th * 1.25;
+    int totl = ceil((oy + GetFontAscent() - minY) / th);
+
+    RCNode mouse = (RCNode) {0, 0};
+
+    double dx = TextStringWidth(" ") * (winCurrent.column - 1);
+
+    for (int row = winCurrent.row - 1; row < min(winCurrent.row + totl, getTotalRow() + 1); row++) {    //row:当前显示的行
+        if (oy - th * (row - winCurrent.row) - GetFontDescent() <= ny && ny <= oy + th * 2 - GetFontDescent()) {
+            mouse.row = row;
+        } else continue;
+        string s = getRowContent(row);
+        if (s == NULL) continue;
+        int i = 0, j = 0, lens = getRowLength(row);
+        if (s[lens - 1] == '\n') lens--;
+        while (i < lens) {      //i:在s中的下标 j:在t中的下标位置
+            if (s[i] == '\t') {     //处理制表符
+                i++;
+                if (j % 4 == 0) {
+                    for (int _i = 1; _i <= 4; _i++) {
+                        t[j] = ' ';
+                        j++;
+                    }
+                    t[j] = t[j + 1] = 0;
+                } else {
+                    while (j % 4) {
+                        t[j] = ' ';
+                        j++;
+                    }
+                    t[j] = t[j + 1] = 0;
+                }
+            } else {
+                if (s[i] & 0x80) {
+                    t[j] = s[i];
+                    i++;
+                    j++;
+                    t[j] = t[j + 1] = 0;
+                }
+                t[j] = s[i];
+                i++;
+                j++;
+                t[j] = t[j + 1] = 0;
+            }
+            if (mouse.row) {
+                if (nx <= ox - dx + TextStringWidth(t)) {
+                    if (i >= 1 && s[i - 1] & 0x80) mouse.column = i - 1;      //处理汉字
+                    else mouse.column = i;
+                    break;
+                }
+            }
+        }
+        if (mouse.row) {
+            if (!mouse.column) mouse.column = i + 1;
+            break;
+        }
+    }
+
+    if (!mouse.row) {   //光标在文章末尾下面
+        mouse.row = getTotalRow();
+        mouse.column = getRowLength(mouse.row) + 1;
+    }
+
+    // printf("MOUSE:%d %d\n", mouse.row, mouse.column);
+
+    SetPointSize(originPointSize);
+    SetFont(originFont);
+    return mouse;
 }

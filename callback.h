@@ -25,6 +25,11 @@ void setTypingState(int newTypingState);
 */
 void getMouse(int x, int y, int button, int event);
 
+/**
+ * 若光标不在窗口中，则移动窗口使光标在窗口中
+ */ 
+void setCursorInWindow();
+
 /*
     根据传入的字符，行列等，实现将输入的文字添加（插入）到当前文件中某行某列(r, c)的功能。
 */
