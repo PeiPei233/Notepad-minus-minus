@@ -192,61 +192,6 @@ void getMouse(int x, int y, int button, int event) {
     SetPointSize(originPointSize);
 }
 
-/**
- * 若光标不在窗口中，则移动窗口使光标在窗口中
- */ 
-void setCursorInWindow() {
-    RCNode cursor = getCursorRC();
-    RCNode winCurrent = getWindowCurrentRC();
-
-    char *originFont = GetFont();
-    int originPointSize = GetPointSize();
-
-    SetFont("微软雅黑");
-    SetPointSize(13);
-
-    double fH = GetFontHeight();
-
-    double minY = fH * 1.4;
-    double menuBarH = fH * 1.5;
-
-    TextStyle style = getTextStyle();
-    SetFont(style.fontFamily);
-    SetPointSize(style.fontSize);
-    fH = GetFontHeight();
-    double h = fH * style.lineSpacing;
-    double ox = menuBarH / 1.5 * 2 / 3;
-    double oy = winHeight - menuBarH - h * 1.25;
-    int totl = ceil((oy + GetFontAscent() - minY) / h);     //窗口中显示的总行数
-    double dx = TextStringWidth(" ") * (winCurrent.column - 1);
-
-    if (winCurrent.row > cursor.row - 1) {  //光标在窗口上方
-        winCurrent.row = cursor.row;
-    } else {    //光标在窗口下方
-        if (winCurrent.row + totl - 2 < cursor.row + 1) {
-            winCurrent.row = cursor.row - totl + 2;
-        }
-    }
-    
-    string s = getRowContent(cursor.row);
-    char ch = s[cursor.column - 1];
-    s[cursor.column - 1] = 0;
-    double tx = TextStringWidth(s);
-    s[cursor.column - 1] = ch;
-    if (ox - dx + tx < ox) {    //光标在窗口左方
-        winCurrent.column = max(winCurrent.column - ceil((dx - tx) / TextStringWidth(" ")), 1);
-    } else {
-        if (ox - dx + tx > winWidth - ox) {     //光标在窗口右方
-            winCurrent.column = winCurrent.column + ceil((ox - dx + tx - winWidth + ox) / TextStringWidth(" "));
-        }
-    }
-
-    setWindowCurrentRC(winCurrent);
-
-    SetFont(originFont);
-    SetPointSize(originPointSize);
-}
-
 /*
     根据传入的字符，行列等，实现将输入的文字添加（插入）到当前文件中某行某列(r, c)的功能。
 */

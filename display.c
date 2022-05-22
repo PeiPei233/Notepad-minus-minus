@@ -443,6 +443,8 @@ static void drawTextArea() {
     SetFont(originFont);
 }
 
+static int findResult = 1;
+
 /*
     绘制查找窗口 包括一个查找内容文本框和查找按钮等
     建议绘制在文件文本的右上角
@@ -462,7 +464,7 @@ static void drawFindArea() {
     double fH = GetFontHeight();
     double x = winWidth / 2;
     double y = winHeight - fH * 3.5;
-    double w = x * 15 / 16;
+    double w = winWidth * 15 / 32;
     double h = fH * 1.6;
 
     char *originColor = GetPenColor();
@@ -472,44 +474,75 @@ static void drawFindArea() {
     drawRectangle(x, y, w, h, 0);
     SetPenColor(originColor);
 
+    //展开成替换窗口的按钮
     double buttonFindToReplaceX = x + fH * 0.2;
     double buttonFindToReplaceY = y + fH * 0.2;
     double buttonFindToReplaceW = fH * 1.2;
     double buttonFindToReplaceH = fH * 1.2;
 
+    //查找文本框
     double textboxFindX = x + fH * 1.6;
     double textboxFindY = buttonFindToReplaceY;
-    double textboxFindW = w * 2 / 3;
+    double textboxFindW = w / 2;
     double textboxFindH = buttonFindToReplaceH;
 
-    char *findButton = "查找下一个";
-    double buttonFindX = textboxFindX + textboxFindW + (w - textboxFindW - (textboxFindX - x)) / 12;
-    double buttonFindY = textboxFindY;
-    double buttonFindW = TextStringWidth(findButton) * 1.1;
-    double buttonFindH = textboxFindH;
-
+    //关闭查找框按钮
     double buttonCloseX = x + w - fH * 1.4;
     double buttonCloseY = textboxFindY;
     double buttonCloseW = fH * 1.2;
     double buttonCloseH = textboxFindH;
 
+    //查找上一个按钮
+    double buttonFindLastX = buttonCloseX - fH * 1.7;
+    double buttonFindLastY = textboxFindY;
+    double buttonFindLastW = textboxFindH;
+    double buttonFindLastH = textboxFindH;
+
+    //查找下一个按钮
+    double buttonFindNextX = buttonFindLastX - fH * 1.7;
+    double buttonFindNextY = textboxFindY;
+    double buttonFindNextW = textboxFindH;
+    double buttonFindNextH = textboxFindH;
+
+    //输入查找内容的文本框
     SetPenColor("White");
     drawRectangle(textboxFindX, textboxFindY, textboxFindW, textboxFindH, 1);
     SetPenColor(originColor);
+    SetPointSize(13);
     if (textbox(GenUIID(0), textboxFindX, textboxFindY, textboxFindW, textboxFindH, inputFindText, sizeof(inputFindText) / sizeof(inputFindText[0]))) {
         
     }
     
-    if (button(GenUIID(0), buttonFindX, buttonFindY, buttonFindW, buttonFindH, findButton)) {
-        findText(inputFindText);
+    //查找下一个按钮
+    SetPointSize(16);
+    if (button(GenUIID(0), buttonFindNextX, buttonFindNextY, buttonFindNextW, buttonFindNextH, "↓")) {
+        findResult = findText(inputFindText);
+    }
+
+    //查找上一个按钮
+    if (button(GenUIID(0), buttonFindLastX, buttonFindLastY, buttonFindLastW, buttonFindLastH, "↑")) {
+        findResult = findLastText(inputFindText);
+    }
+
+    //如果查找无结果则显示无结果
+    if (!findResult) {
+        SetPointSize(13);
+        MovePen(textboxFindX + textboxFindW + fH * 0.5, textboxFindY + textboxFindH / 2 - GetFontAscent() / 2);
+        SetPenColor("Red");
+        DrawTextString("无结果");
+        SetPenColor(originColor);
     }
     
+    //如果查找的文本框里没有内容，则显示灰色文字 查找 提示
     if (strlen(inputFindText) < 1) {
         SetPenColor("Dark Gray");
+        SetPointSize(13);
         MovePen(textboxFindX + GetFontAscent() / 2, textboxFindY + textboxFindH / 2 - GetFontAscent() / 2);
         DrawTextString("查找");
         SetPenColor(originColor);
     }
+    
+    //展开成替换窗口
     SetPointSize(18);
     if (button(GenUIID(0), buttonFindToReplaceX, buttonFindToReplaceY, buttonFindToReplaceW, buttonFindToReplaceH, "∨")) {
         isShowFind = 0;
@@ -519,6 +552,7 @@ static void drawFindArea() {
         return;
     }
 
+    //关闭按钮
     if (button(GenUIID(0), buttonCloseX, buttonCloseY, buttonCloseW, buttonCloseH, "×")) {
         isShowFind = 0;
         setTypingState(1);
@@ -549,7 +583,7 @@ static void drawReplaceArea() {
     double fH = GetFontHeight();
     double x = winWidth / 2;
     double y = winHeight - fH * 4.9;
-    double w = x * 15 / 16;
+    double w = winWidth * 15 / 32;
     double h = fH * 3;
 
     char *originColor = GetPenColor();
@@ -559,47 +593,57 @@ static void drawReplaceArea() {
     drawRectangle(x, y, w, h, 0);
     SetPenColor(originColor);
 
+    //替换输入文本框
     double textboxReplaceX = x + fH * 1.6;
     double textboxReplaceY = y + fH * 0.2;
-    double textboxReplaceW = w * 2 / 3;
+    double textboxReplaceW = w / 2;
     double textboxReplaceH = fH * 1.2;
-    // memset(inputText, 0, sizeof(inputText));
 
+    //显示查找窗口按钮
     double buttonReplaceToFindX = x + fH * 0.2;
     double buttonReplaceToFindY = y + fH * 0.2;
     double buttonReplaceToFindW = fH * 1.2;
     double buttonReplaceToFindH = fH * 2.6;
 
+    //查找输入文本框
     double textboxFindX = x + fH * 1.6;
     double textboxFindY = y + fH * 0.2 + fH * 1.4;
-    double textboxFindW = w * 2 / 3;
+    double textboxFindW = w / 2;
     double textboxFindH = fH * 1.2;
 
-    char *findButton = "查找下一个";
-    double buttonFindX = textboxFindX + textboxFindW + (w - textboxFindW - (textboxFindX - x)) / 12;
-    double buttonFindY = textboxFindY;
-    double buttonFindW = TextStringWidth(findButton) * 1.1;
-    double buttonFindH = textboxFindH;
-
+    //关闭按钮
     double buttonCloseX = x + w - fH * 1.4;
     double buttonCloseY = textboxFindY;
     double buttonCloseW = fH * 1.2;
     double buttonCloseH = textboxFindH;
 
-    char *replaceButton = "替换";
-    double buttonReplaceX = textboxReplaceX + textboxReplaceW + (w - textboxReplaceW - (textboxReplaceX - x)) / 12;
+    //查找上一个按钮
+    double buttonFindLastX = buttonCloseX - fH * 1.7;
+    double buttonFindLastY = textboxFindY;
+    double buttonFindLastW = textboxFindH;
+    double buttonFindLastH = textboxFindH;
+
+    //查找下一个按钮
+    double buttonFindNextX = buttonFindLastX - fH * 1.7;
+    double buttonFindNextY = textboxFindY;
+    double buttonFindNextW = textboxFindH;
+    double buttonFindNextH = textboxFindH;
+
+    //替换按钮
+    const char *replaceButton = "替换";
+    double buttonReplaceX = textboxReplaceX + textboxReplaceW + fH * 0.5;
     double buttonReplaceY = textboxReplaceY;
-    double buttonReplaceW = TextStringWidth(replaceButton) * 1.1;
+    double buttonReplaceW = TextStringWidth(replaceButton) * 1.3;
     double buttonReplaceH = textboxReplaceH;
 
-    SetPenColor("White");
-    drawRectangle(textboxFindX, textboxFindY, textboxFindW, textboxFindH, 1);
-    SetPenColor(originColor);
+    //替换全部按钮
+    const char * replaceAllButton = "替换全部";
+    double buttonReplaceAllX = buttonReplaceX + buttonReplaceW + fH;
+    double buttonReplaceAllY = textboxReplaceY;
+    double buttonReplaceAllW = TextStringWidth(replaceAllButton) * 1.2;
+    double buttonReplaceAllH = textboxReplaceH;
 
-    if (button(GenUIID(0), buttonFindX, buttonFindY, buttonFindW, buttonFindH, findButton)) {
-        findText(inputFindText);
-    }
-
+    //只显示查找窗口
     SetPointSize(18);
     if (button(GenUIID(0), buttonReplaceToFindX, buttonReplaceToFindY, buttonReplaceToFindW, buttonReplaceToFindH, "∧")) {
         isShowFind = 1;
@@ -609,30 +653,51 @@ static void drawReplaceArea() {
         return;
     }
 
+    //关闭替换窗口
     if (button(GenUIID(0), buttonCloseX, buttonCloseY, buttonCloseW, buttonCloseH, "×")) {
         isShowReplace = 0;
+        isShowFind = 0;
         setTypingState(1);
         SetFont(originFont);
         SetPointSize(originPointSize);
         display();
         return;
     }
-    SetPointSize(13);
-    SetPenColor("White");
-    drawRectangle(textboxReplaceX, textboxReplaceY, textboxReplaceW, textboxReplaceH, 1);
-    SetPenColor(originColor);
 
+    //输入查找内容的文本框
+    SetPenColor("White");
+    drawRectangle(textboxFindX, textboxFindY, textboxFindW, textboxFindH, 1);
+    SetPenColor(originColor);
+    SetPointSize(13);
     if (textbox(GenUIID(0), textboxFindX, textboxFindY, textboxFindW, textboxFindH, inputFindText, sizeof(inputFindText) / sizeof(inputFindText[0]))) {
         
     }
+    
+    //查找下一个按钮
+    SetPointSize(16);
+    if (button(GenUIID(0), buttonFindNextX, buttonFindNextY, buttonFindNextW, buttonFindNextH, "↓")) {
+        findResult = findText(inputFindText);
+    }
 
+    //查找上一个按钮
+    if (button(GenUIID(0), buttonFindLastX, buttonFindLastY, buttonFindLastW, buttonFindLastH, "↑")) {
+        findResult = findLastText(inputFindText);
+    }
+    
+    //如果查找的文本框里没有内容，则显示灰色文字 查找 提示
     if (strlen(inputFindText) < 1) {
         SetPenColor("Dark Gray");
+        SetPointSize(13);
         MovePen(textboxFindX + GetFontAscent() / 2, textboxFindY + textboxFindH / 2 - GetFontAscent() / 2);
         DrawTextString("查找");
         SetPenColor(originColor);
     }
 
+    //显示替换文本输入文本框
+    SetPointSize(13);
+    SetPenColor("White");
+    drawRectangle(textboxReplaceX, textboxReplaceY, textboxReplaceW, textboxReplaceH, 1);
+    SetPenColor(originColor);
     if (textbox(GenUIID(0), textboxReplaceX, textboxReplaceY, textboxReplaceW, textboxReplaceH, inputReplaceText, sizeof(inputReplaceText) / sizeof(inputReplaceText[0]))) {
         
     }
@@ -644,8 +709,23 @@ static void drawReplaceArea() {
         SetPenColor(originColor);
     }
 
+    //如果查找无结果则显示无结果
+    if (!findResult) {
+        SetPointSize(13);
+        MovePen(textboxFindX + textboxFindW + fH * 0.5, textboxFindY + textboxFindH / 2 - GetFontAscent() / 2);
+        SetPenColor("Red");
+        DrawTextString("无结果");
+        SetPenColor(originColor);
+    }
+
+    //显示替换按钮
     if (button(GenUIID(0), buttonReplaceX, buttonReplaceY, buttonReplaceW, buttonReplaceH, replaceButton)) {
         replaceText(inputFindText, inputReplaceText);
+    }
+
+    //显示替换全部按钮
+    if (button(GenUIID(0), buttonReplaceAllX, buttonReplaceAllY, buttonReplaceAllW, buttonReplaceAllH, replaceAllButton)) {
+        while (replaceText(inputFindText, inputReplaceText));
     }
 
     SetFont(originFont);
@@ -1004,6 +1084,97 @@ static void drawAboutPage() {
 }
 
 /**
+ * 若光标不在窗口中，则移动窗口使光标在窗口中
+ */ 
+void setCursorInWindow() {
+    RCNode cursor = getCursorRC();
+    RCNode winCurrent = getWindowCurrentRC();
+
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    double fH = GetFontHeight();
+
+    double minY = fH * 1.4;
+    double menuBarH = fH * 1.5;
+
+    TextStyle style = getTextStyle();
+    SetFont(style.fontFamily);
+    SetPointSize(style.fontSize);
+    fH = GetFontHeight();
+    double h = fH * style.lineSpacing;
+    double ox = menuBarH / 1.5 * 2 / 3;
+    double oy = winHeight - menuBarH - h * 1.25;
+    int totl = ceil((oy + GetFontAscent() - minY) / h);     //窗口中显示的总行数
+    double dx = TextStringWidth(" ") * (winCurrent.column - 1);
+
+    if (winCurrent.row > cursor.row - 1) {  //光标在窗口上方
+        winCurrent.row = cursor.row;
+    } else {    //光标在窗口下方
+        if (winCurrent.row + totl - 2 < cursor.row + 1) {
+            winCurrent.row = cursor.row - totl + 2;
+        }
+    }
+    
+    string s = getRowContent(cursor.row);
+    int lens = getRowLength(cursor.row);
+    if (lens && s[lens - 1] == '\n') lens--;
+    double tx = 0;
+    int i = 0, j = 0;
+    while (i < lens) {
+        if (s[i] == '\t') {     //处理制表符
+            i++;
+            if (j % 4 == 0) {
+                for (int _i = 1; _i <= 4; _i++) {
+                    t[j] = ' ';
+                    j++;
+                }
+                t[j] = t[j + 1] = 0;
+            } else {
+                while (j % 4) {
+                    t[j] = ' ';
+                    j++;
+                }
+                t[j] = t[j + 1] = 0;
+            }
+        } else {
+            if (s[i] & 0x80) {
+                t[j] = s[i];
+                i++;
+                j++;
+                t[j] = t[j + 1] = 0;
+            }
+            t[j] = s[i];
+            i++;
+            j++;
+            t[j] = t[j + 1] = 0;
+        }
+        if (cursor.column == i) {
+            tx = TextStringWidth(t);
+            break;
+        }
+    }
+    if (cursor.column == lens + 1 || tx == 0) {
+        tx = TextStringWidth(t);
+    }
+    if (ox - dx + tx < ox) {    //光标在窗口左方
+        winCurrent.column = max(winCurrent.column - ceil((dx - tx) / TextStringWidth(" ")), 1);
+    } else {
+        if (ox - dx + tx > winWidth - ox) {     //光标在窗口右方
+            winCurrent.column = winCurrent.column + ceil((ox - dx + tx - winWidth + ox) / TextStringWidth(" "));
+        }
+    }
+
+    setWindowCurrentRC(winCurrent);
+
+    SetFont(originFont);
+    SetPointSize(originPointSize);
+}
+
+/**
  * 将窗口的(x, y)像素坐标转换为行列坐标
  */ 
 RCNode XYtoRC(int x, int y) {
@@ -1112,8 +1283,9 @@ void display() {
 
     DisplayClear();
 
-    // winHeight = GetWindowHeight();
-	// winWidth = GetWindowWidth();
+    winHeight = GetWindowHeight();
+	winWidth = GetWindowWidth();
+    updateTotalDisplayRow();
     
     if (isShowSetting) {
         drawSettingPage();
@@ -1131,4 +1303,5 @@ void display() {
         }
         drawMenu();
     }
+
 }

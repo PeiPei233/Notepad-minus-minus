@@ -52,4 +52,9 @@ void display();
  */ 
 RCNode XYtoRC(int x, int y);
 
+/**
+ * 若光标不在窗口中，则移动窗口使光标在窗口中
+ */ 
+void setCursorInWindow();
+
 #endif
