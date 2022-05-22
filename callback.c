@@ -260,6 +260,7 @@ void inputChar(char ch) {
     if (ch > 0 && ch < 32 && ch != '\t' && ch != '\r') {
         return;
     }   //跳过控制字符
+    setSaveState(0);    //新操作未保存
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
     if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {
@@ -483,6 +484,7 @@ void inputKeyboard(int key, int event) {
                     RCNode startSelect = getSelectStartRC();
                     RCNode endSelect = getSelectEndRC();
                     if (!(startSelect.column == endSelect.column && startSelect.row == endSelect.row)) {    //如果有选中就删除选中内容，不再操作
+                        setSaveState(0);    //新操作未保存
                         deleteContent(startSelect, endSelect, 1);
                         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
                             RCNode t = startSelect;
@@ -495,6 +497,7 @@ void inputKeyboard(int key, int event) {
                     }
                     if (cursor.row == 1 && cursor.column == 1) break;   //如果光标在文章开头则不操作
                     string s = getRowContent(cursor.row);
+                    setSaveState(0);    //新操作未保存
                     if (cursor.column == 1) {   //如果光标在行头，则删除换行符，两行合并成一行
                         cursor.row--;
                         cursor.column = getRowLength(cursor.row);
@@ -524,6 +527,7 @@ void inputKeyboard(int key, int event) {
                     RCNode startSelect = getSelectStartRC();
                     RCNode endSelect = getSelectEndRC();
                     if (!(startSelect.column == endSelect.column && startSelect.row == endSelect.row)) {    //如果有选中就删除选中内容，不再操作
+                        setSaveState(0);    //新操作未保存
                         deleteContent(startSelect, endSelect, 1);
                         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
                             RCNode t = startSelect;
@@ -535,6 +539,7 @@ void inputKeyboard(int key, int event) {
                         return;
                     }
                     if (cursor.row == getTotalRow() && cursor.column == getRowLength(cursor.row) + 1) break;    //光标在文章末尾则不操作
+                    setSaveState(0);    //新操作未保存
                     string s = getRowContent(cursor.row);
                     if (s[cursor.column - 1] & 0x80) {      //如果是中文则要删两个字符
                         deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 2}, 1);
@@ -636,10 +641,8 @@ void inputKeyboard(int key, int event) {
         }
     }
     if (event == KEY_UP) {
-        switch (key) {
-            case VK_SHIFT:
-                isShift = 0;
-                break;
+        if (key == VK_SHIFT) {
+            isShift = 0;
         }
     }
 }
