@@ -376,6 +376,10 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
         string deleteStr = getContent(start, end);
         record(OP_DELETE, start, deleteStr);
     }
+    if (end.column == sizeL[end.row - 1] && end.row != sizeR) {     //如果需要删除行末的回车，则相当于end的位置在下一行开头
+        end.row++;
+        end.column = 1;
+    }
     if (start.row == end.row) {
         int row = start.row - 1, len = end.column - start.column;
         sizeL[row] -= len;
@@ -395,13 +399,13 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
                 t[i] = str[start.row][i];
             }
             for (int i = start.column; i < sizeL[start.row]; i++) {
-                t[i] = str[end.row][end.column + i];
+                t[i] = str[end.row][end.column + i - start.column];
             }
             free(str[start.row]);
             str[start.row] = t;
         } else {
             for (int i = start.column; i < sizeL[start.row]; i++) {
-                str[start.row][i] = str[end.row][end.column + i];
+                str[start.row][i] = str[end.row][end.column + i - start.column];
             }
         }
         //删除中间的行
