@@ -1,8 +1,8 @@
 /*
     主要实现文件交互的相关功能
 */
-/* 首先要确定系统文件位置，初始化CACHE1和CACHE2;
-   打开后即需要立刻初始化缓存，即调用initCache()
+/* 
+    请注意，storage的大部分功能已封装在此文件中，display与callback是只需调用该文件函数即可
 */
 #ifndef __FILE_H__
 #define __FILE_H__
@@ -45,46 +45,18 @@ void saveFile();
 int getSaveState();
 
 /*
-    获取当前的显示的字符串
+    设置保存状态
 */
-char *getCurrentString();
+void saveSetState(int newSaveState);
+
 /*
 	返回当前文件名
 */ 
 char *getCurrentFileName();
-/*
-	设置当前字符串 
-*/
-void setCurrentString(char *update);
-/*
-    自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString       哇兄弟，你这currentstring也不是全局变量啊，更新啥嘞 
-*/
-void updateCurrentString();
+/**
+ * 获得某一行的字符串（不要修改！不要修改！不要修改！当作字符串常量来使用！）
+ * 如果需要可修改的某一行的字符串请使用getContent()函数！！
+ */ 
 
-/*
-    根据传入的字符更新currentString与缓存文件
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void addChar(char ch);
-
-/*
-    根据传入的字符串更新currentString与缓存文件
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void addString(char *src);
-
-/*
-    根据当前光标位置，删除光标前的一个字符（在currentString与缓存文件中）
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void deleteChar();
-
-/*
-    根据当前选中的范围，删除选中的字符串（在currentString与cacheFile中）
-    并更新光标以及选中范围的行列坐标（如有必要也更新窗口左上角位置）
-*/
-void deleteSelectString();
-
-void fileWrite(FILE* fp1,FILE* fp2);   //将fp1写入fp2 
 
 #endif

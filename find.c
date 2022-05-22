@@ -8,7 +8,7 @@
 #include "global.h"
 #include "find.h"
 #include "libgraphics.h"
-
+#include "storage.h"
 /*
     根据传入的字符串查找从当前光标位置开始的下一个匹配的字符串
     查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
@@ -20,94 +20,83 @@ int findText(char *src) {
     RCNode findCursor;
     int length = strlen(src);   //计算查找字符长度
 
-    char *ch;
-	ch=getCurrentString(); //获取当前屏幕现实的内容
-    char *ch_=ch;    //定义指针储存字符串初始位置
+    char *str;
+	str = getRowContent(row); //获取当前行显示的内容
     int flag;
-    int startW = numofFormerWords(startCursor);
-    ch += startW;
-
-    while(*ch != 0)
-    {   
-        // printf("FIND:%s\n", ch);
-        int i;
-        flag = 1;
-        ///判断是否是查找字符串
-        for(i=0; i<length; i++)
-        {
-            if(*(ch+i) != *(src+i))
-            {
-                flag = 0;
-                break;
-            }
-        }
-        if(flag)   //如果找到了则定位查找字符
-        {
-            // printf("FIND:%s\n", ch);
-            findCursor.column = column;
-            findCursor.row = row;
-            setSelectStartRC(findCursor);   //设置选择开始坐标
-            findCursor.column += length;
-            setSelectEndRC(findCursor);   //设置选择结束坐标
-            setCursorRC(findCursor);    //设置光标坐标
-            setCursorInWindow();
-            return 1;          
-        }else  //不是查找内容则改变行列数，同时移动指针
-        {
-            if(*ch != '\n')
-            {
-                column ++;
-                ch ++;
-            }else
-            {   
-                ch++;
-                column = 1;
-                row++;
-            }
-        }
-    }
-    
-    //如果选中文本之后内容没有查找到，则返回文本开头查找，直到选中文本之前
-    column = 1;
-    row = 1;
-    int k;
-    for(k=0; k<startW; k++)
-    {
-        int i;
-        flag = 1;
-        //判断是否是查找字符串
-        for(i=0; i<length; i++)
-        {
-            if(*(ch_+i) != *(src+i))
-            {
-                flag = 0;
-                break;
-            }
-        }
-        if(flag)   //如果找到了则定位查找字符
+    str += column;
+    int totalrow=getTotalRow();
+    while(row<=totalrow){
+        while(*str != 0)
         {   
-            // printf("FIND:%s\n", ch_);
-            findCursor.column = column;
-            findCursor.row = row;
-            setSelectStartRC(findCursor);   //设置选择开始坐标
-            findCursor.column += length;
-            setSelectEndRC(findCursor);   //设置选择结束坐标
-            setCursorRC(findCursor);    //设置光标坐标
-            setCursorInWindow();
-            return 1;          
-        }else  //不是查找内容则改变行列数，同时移动指针
-        {
-            if(*ch_ != '\n')
+            // printf("FIND:%s\n", ch);
+            int i;
+            flag = 1;
+            //判断是否是查找字符串
+            for(i=0; i<length&&*str!=0; i++)
             {
-                column ++;
-                ch_++;
-            }else
+                if(*(str+i) != *(src+i))
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if(flag&&i==length)   //如果找到了则定位查找字符
             {
-                ch_++;
-                row ++;
-                column = 1;
+                // printf("FIND:%s\n", ch);
+                findCursor.column = column;
+                findCursor.row = row;
+                setSelectStartRC(findCursor);   //设置选择开始坐标
+                findCursor.column += length;
+                setSelectEndRC(findCursor);   //设置选择结束坐标
+                setCursorRC(findCursor);    //设置光标坐标
+                setCursorInWindow();
+                return 1;          
+            }else  //不是查找内容则移动指针
+            {
+                    column ++;
+                    str ++;
             }
         }
+        row++;
+        str = getRowContent(row); //获取当前行显示的内容
+    }
+    //若未找到则返回开头继续查找
+    row=0;
+    str=getRowContent(row);
+    while(row<=totalrow){
+        while(*str != 0)
+        {   
+            // printf("FIND:%s\n", ch);
+            int i;
+            flag = 1;
+            //判断是否是查找字符串
+            for(i=0; i<length&&*str!=0; i++)
+            {
+                if(*(str+i) != *(src+i))
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if(flag&&i==length)   //如果找到了则定位查找字符
+            {
+                // printf("FIND:%s\n", ch);
+                findCursor.column = column;
+                findCursor.row = row;
+                setSelectStartRC(findCursor);   //设置选择开始坐标
+                findCursor.column += length;
+                setSelectEndRC(findCursor);   //设置选择结束坐标
+                setCursorRC(findCursor);    //设置光标坐标
+                setCursorInWindow();
+                return 1;          
+            }else  //不是查找内容则移动指针
+            {
+                    column ++;
+                    str ++;
+            }
+        }
+        row++;
+        str = getRowContent(row); //获取当前行显示的内容
     }
     //如果遍历完显示文本仍然没有找到查找内容，设置返回0
     return 0;
@@ -125,23 +114,10 @@ void replaceText(char *src, char *tar) {
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
-    int start = numofFormerWords(selectStart);    //获取选择范围的起始，终止位置
-    int end = numofFormerWords(selectEnd);
-    if (end < start) {
-        int t = end;
-        end = start;
-        start = t;
-    }
-    int length = end - start;
 
     //获取选中内容并储存在selectStr中
-    char *selectStr = (char *) malloc(sizeof(char) * (end - start + 1));
-    char* str = allStr;
-    // strcpy(selectStr, str + start);
-    for (int i = 0; i < length; i++) {
-        selectStr[i] = str[start + i];
-    }
-    selectStr[length+1] = '\0';
+    char *selectStr = getContent(selectStart,selectEnd);
+ 
     // printf("REPLACE_CMP:%s %s\n", selectStr, src);
     //判断是否是查找内容，不是则重新选择    
     if(strcmp(selectStr, src))    
@@ -162,11 +138,11 @@ void replaceText(char *src, char *tar) {
 	// setCurrentString(Concat(s,SubString(allStr, end+1, StringLength(allStr))));
     // free(selectStr);
     printf("REPLACE:FIND!\n");
-    deleteSelectString();
+    deleteContent(selectStart,selectEnd,1);
     setSelectStartRC(selectStart);
     setSelectEndRC(selectStart);
     setCursorRC(selectStart);
-    addString(tar);
+    addContent(BY_STRING,selectStart,tar,1);
 
     findText(src);
 
