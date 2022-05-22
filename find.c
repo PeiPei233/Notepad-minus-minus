@@ -110,11 +110,16 @@ int findText(char *src) {
     否则如果当前选中的字符串就是src，则替换为tar并将选择范围改为替换后的字符串并更新光标位置为选择位置末端吗
 */
 void replaceText(char *src, char *tar) {
-    char *allStr = getCurrentString();    //获取所有文本
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
 
+	//设定为start在前，end在后 
+    if (selectStart.row > selectEnd.row || (selectStart.row == selectEnd.row && selectStart.column > selectEnd.column)) {
+        RCNode t = selectStart;
+        selectStart = selectEnd;
+        selectEnd = t;
+    }
     //获取选中内容并储存在selectStr中
     char *selectStr = getContent(selectStart,selectEnd);
  
@@ -125,25 +130,14 @@ void replaceText(char *src, char *tar) {
         findText(src);
         return;
     }
-
-    if (selectStart.row > selectEnd.row || (selectStart.row == selectEnd.row && selectStart.column > selectEnd.column)) {
-        RCNode t = selectStart;
-        selectStart = selectEnd;
-        selectEnd = t;
-    }
     
-    // string s;
-    // s = Concat(SubString(allStr, 0, start - 1), tar);
-    // //修改currentString 
-	// setCurrentString(Concat(s,SubString(allStr, end+1, StringLength(allStr))));
-    // free(selectStr);
     printf("REPLACE:FIND!\n");
-    deleteContent(selectStart,selectEnd,1);
+    deleteContent(selectStart,selectEnd,1);     //删除源字符串 
+    addContent(BY_STRING,selectStart,tar,1);  //粘贴目的字符串 
     setSelectStartRC(selectStart);
-    setSelectEndRC(selectStart);
+    setSelectEndRC(selectStart);              //设置选择范围 
     setCursorRC(selectStart);
-    addContent(BY_STRING,selectStart,tar,1);
-
+	free(selectStr);
     findText(src);
 
 }
