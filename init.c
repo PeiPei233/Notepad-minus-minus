@@ -41,7 +41,7 @@ TextStyle getTextStyle() {
 void setTextStyle(TextStyle newTextStyle) {
     textStyle = newTextStyle;
     updateTotalDisplayRow();
-    FILE *styleFile = fopen("styleConfig.properties", "w");
+    FILE *styleFile = fopen("./styleConfig.properties", "w");
     fprintf(styleFile, "fontFamily=%s\nfontSize=%d\nlineSpacing=%.16lf\ntextColor=%s\nbackgroundColor=%s", textStyle.fontFamily, textStyle.fontSize, textStyle.lineSpacing, textStyle.textColor, textStyle.backgroundColor);
     fclose(styleFile);
 }
@@ -98,7 +98,7 @@ void initDisplay() {
 
     //读取用户风格配置文件
     FILE *styleFile;
-    if (!(styleFile = fopen("styleConfig.properties", "r"))) {
+    if (!(styleFile = fopen("./styleConfig.properties", "r"))) {
         textStyle.fontFamily = CopyString("微软雅黑");
         textStyle.fontSize = 15;
         textStyle.lineSpacing = 1.2;

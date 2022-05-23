@@ -13,6 +13,7 @@
 #include "init.h"
 #include "callback.h"
 #include "storage.h"
+#include "unredo.h"
 #include <math.h>
 #include <windows.h>
 #include <string.h>
@@ -153,7 +154,9 @@ static void drawMenu() {
         "粘贴                   Ctrl-V",
         "查找                   Ctrl-F",
         "替换                   Ctrl-H",
-        "全选                   Ctrl-A"        
+        "全选                   Ctrl-A",
+        "撤销                   Ctrl-Z",
+        "重做                   Ctrl-Y"        
     };
 
     selection = menuList(GenUIID(0), x + w, y - h, w, wlist, h, menuListEdit, sizeof(menuListEdit) / sizeof(menuListEdit[0]));
@@ -182,6 +185,12 @@ static void drawMenu() {
             setCursorRC((RCNode) {totr, totc});
             break;
         }
+        case 7:
+            undo();
+            break;
+        case 8:
+            redo();
+            break;
     }
 
     char *menuListSetting[] = {"首选项",
@@ -222,7 +231,7 @@ static void drawMenu() {
     double tw = TextStringWidth(name);
     double tx = max(winWidth / 2 - tw / 2, x + w * 3.5);
     int i = strlen(name) - 1;
-    while (tx + TextStringWidth(name) > winWidth - h * 2 / 3 && i) {    //名字过长则最后显示省略号...
+    while (tx + TextStringWidth(name) > winWidth - h * 2 / 3 && i >= 0) {    //名字过长则最后显示省略号...
         if (name[i] & 0x80) i--;
         i--;
         name[i + 1] = name[i + 2] = name[i + 3] = '.';
@@ -253,8 +262,8 @@ static void drawMenu() {
     }
     
 
-    MovePen(winWidth - TextStringWidth("                ") - TextStringWidth("GBK"), GetFontDescent() + fH * 0.2);
-    DrawTextString("GBK");
+    MovePen(winWidth - TextStringWidth("            ") - TextStringWidth("GB 2312"), GetFontDescent() + fH * 0.2);
+    DrawTextString("GB 2312");
 
     SetPenColor(originColor);
     SetFont(originFont);
@@ -1009,6 +1018,8 @@ static void drawKeyboardPage() {
         "查找", "Ctrl + F",
         "替换", "Ctrl + H",
         "全选", "Ctrl + A",
+        "撤销", "Ctrl + Z",
+        "重做", "Ctrl + Y"
     };
 
     for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
