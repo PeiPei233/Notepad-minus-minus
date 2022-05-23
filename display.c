@@ -144,39 +144,39 @@ static void drawMenu() {
             saveFile();
             break;
         case 4: //退出
-            ExitGraphics();
+            exitApplication();
             break;
     }
 
     char *menuListEdit[] = {"编辑",
+        "撤销                   Ctrl-Z",
+        "重做                   Ctrl-Y",
         "剪切                   Ctrl-X",
         "复制                   Ctrl-C",
         "粘贴                   Ctrl-V",
         "查找                   Ctrl-F",
         "替换                   Ctrl-H",
-        "全选                   Ctrl-A",
-        "撤销                   Ctrl-Z",
-        "重做                   Ctrl-Y"        
+        "全选                   Ctrl-A"
     };
 
     selection = menuList(GenUIID(0), x + w, y - h, w, wlist, h, menuListEdit, sizeof(menuListEdit) / sizeof(menuListEdit[0]));
     switch (selection) {
-        case 1:     //剪切
+        case 3:     //剪切
             shearText();
             break;
-        case 2:     //复制
+        case 4:     //复制
             copyText();
             break;
-        case 3:     //粘贴
+        case 5:     //粘贴
             pasteText();
             break;
-        case 4:     //查找
+        case 6:     //查找
             isShowFind ^= 1;
             break;
-        case 5:     //替换
+        case 7:     //替换
             isShowReplace ^= 1;
             break;
-        case 6:     //全选
+        case 8:     //全选
         {
             int totr = getTotalRow();
             int totc = getRowLength(totr) + 1;
@@ -185,10 +185,10 @@ static void drawMenu() {
             setCursorRC((RCNode) {totr, totc});
             break;
         }
-        case 7:
+        case 1:     //撤销
             undo();
             break;
-        case 8:
+        case 2:     //重做
             redo();
             break;
     }
