@@ -27,4 +27,9 @@ int findNextText(char *src);
 */
 int replaceText(char *src, char *tar);
 
+/*
+	Ìæ»»È«²¿ 
+*/ 
+void replaceAll(char *src,char *tar);
+
 #endif
