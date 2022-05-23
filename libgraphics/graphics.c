@@ -1179,7 +1179,7 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
         case WM_GETMINMAXINFO: {    //设置窗口最小尺寸
             LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
             lpMMI->ptMinTrackSize.x = 750;
-            lpMMI->ptMinTrackSize.y = 200;
+            lpMMI->ptMinTrackSize.y = 250;
         }
 
         default:
