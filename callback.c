@@ -202,7 +202,7 @@ void inputChar(char ch) {
     // printf("INPUT:%d\n", ch);
     if (!isTyping) return;
     if (ch == 23) {
-        ExitGraphics();
+        exitApplication();
         return;
     }
     if (ch > 0 && ch < 32 && ch != '\t' && ch != '\r') {
