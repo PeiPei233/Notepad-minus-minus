@@ -8,13 +8,13 @@
 #include <string.h>
 #include "strlib.h"
 #include <stdlib.h>
+#include "storage.h"
 #define _N 10000
-#define Block 1000
-char *currentString;
+static char *currentString;
 static FILE *currentFile;  //当前文件 
 OPENFILENAME ofn;
 // a another memory buffer to contain the file name
-char szFile[100];       //存储文件名 
+static char szFile[100];       //存储文件名 
 static int isSaved;    //是否保存         
 static int isCreated;     //是否被创建 
 /*
@@ -23,7 +23,7 @@ static int isCreated;     //是否被创建
 void initFileConfig(){
 	isSaved=1;
 	isCreated=0;
-	currentString=(char *)calloc(1,1);
+	initStorage();
 }
 /*
     打开一个文件
@@ -32,6 +32,7 @@ void initFileConfig(){
     更新currentString字符串
 */
 void openFile() {
+
 	    // open a file name
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -39,17 +40,32 @@ void openFile() {
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    if (GetOpenFileName(&ofn))
+    if (GetOpenFileName(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"r+");
-	else
-	    MessageBox(NULL, "open failed", NULL, MB_OK);  //打开错误 
-	int i=0,degree=1;
+    }
+	else{
+	    MessageBox(NULL, "打开失败", NULL, MB_OK);  //打开错误
+        return;
+    } 
+    int state;
+    if(!(getTotalRow()==1&&getRowLength(1)==0)){            //若未被创建且当前显示字符串不为0时需弹出覆盖提示
+        state = MessageBox(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","友情提示",MB_OKCANCEL);
+        if(state==1)    //ok
+            ;
+        else if(state==2){ //cancel
+        	fclose(currentFile);
+            return;
+        }
+    }
+    initStorage();      //覆盖原先的内容 
+	int i=0;
+    unsigned int degree=1;
 	int j=0;
 	char ch;
 	currentString=(char *)malloc(_N);
@@ -59,7 +75,7 @@ void openFile() {
 			currentString[i++]=ch;
 		if(i>_N*degree-2){
 			char *temp;
-			degree+=3;
+			degree*=2;             //以指数级增长动态内存 
 			temp=currentString;
 			currentString=(char *)malloc(_N*degree);
 			for(j=0;j<i;j++){
@@ -68,7 +84,16 @@ void openFile() {
 			free(temp);
 		}
 	}
+    if(degree>=2e9){                     //若大于2G,则无法打开
+        MessageBox(NULL,"文件过大",NULL,MB_OK);
+        free(currentString);
+        return;
+    }
 	currentString[i]='\0';
+	RCNode pos={1,1}; 
+    addContent(BY_STRING,pos,currentString,0);
+    free(currentString);
+    fclose(currentFile);
 	isSaved=1;
 	isCreated=1;
 }
@@ -85,19 +110,21 @@ void createFile() {
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    if (GetSaveFileName(&ofn))
+    if (GetSaveFileName(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"w+");
-	else
-	    MessageBox(NULL, "create failed", NULL, MB_OK);  //创建错误 
+        fclose(currentFile);
+    }
+	else{
+	    MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 
+    }
     isSaved=1;
     isCreated=1;
-    currentString[0]='\0';
 }
 
 /*
@@ -115,135 +142,77 @@ void saveFile() {
 	    ofn.lpstrFile = szFile;
 	    ofn.lpstrFile[0] = '\0';
 	    ofn.nMaxFile = sizeof(szFile);
-	    ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+	    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
 	    ofn.nFilterIndex = 1;
 	    ofn.lpstrFileTitle = NULL;
 	    ofn.nMaxFileTitle = 0;
 	    ofn.lpstrInitialDir = NULL;
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	    if (GetSaveFileName(&ofn)){
-			if(currentFile=fopen(ofn.lpstrFile,"w+"))
+			if(currentFile=fopen(ofn.lpstrFile,"w+")){
 				isCreated = 1;
+                fclose(currentFile);
+            }
 		}
-		else
-			MessageBox(NULL, "create failed", NULL, MB_OK);  //保存错误 	
+		else{
+			MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 	
+        }
 	}
 	if(!isSaved){         //如果未保存，写入currentFile中 
-		fclose(currentFile);
-		currentFile=fopen(ofn.lpstrFile,"w+");        //重新写，确保之前的没了 
-		int i=0,len=strlen(currentString);
-		while(i<len)
-			fputc(currentString[i++],currentFile);
+		currentFile=fopen(ofn.lpstrFile,"w+");     //此时ofn必有值 
+		int i,row=getTotalRow();
+        for(i=1;i<=row;i++){
+            char *rowcontent=getRowContent(i);
+            fputs(rowcontent,currentFile);
+        }
 		isSaved=1;
 		fclose(currentFile);      //要保存 
-		currentFile=fopen(ofn.lpstrFile,"r+");
 	}
 	else  ;                //也许在callback里设置？ 
 }
 
 /*
     获取当前的保存状态
-    是否保存
+    是否保存 
+    刚创建视为已保存
 */
 int getSaveState() {
 	return isSaved;
 }
 
 /*
-    获取当前的显示的字符串
+    设置保存状态
 */
-char *getCurrentString() {
-	return currentString; 
+void setSaveState(int newSaveState){
+    isSaved=newSaveState;
 }
+
 /*
-	返回当前文件名
+	返回当前文件名(不包括路径)
 */ 
 char *getCurrentFileName(){
 	if(isCreated){
-		return ofn.lpstrFile;
+		return ofn.lpstrFileTitle;
 	} 
 	else{
 		return NULL;
 	}
 }
 /*
-	设置当前字符串 
+    退出时若未保存则提供选项 选择是否要退出 
+    若确定退出则返回1
 */
-void setCurrentString(char *update){
-	free(currentString);
-	currentString = update;
-}
-/*
-    自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString       哇兄弟，你这currentstring也不是全局变量啊，更新啥嘞 
-*/
-void updateCurrentString() {
-    RCNode windowCurrent = getWindowCurrentRC();
-}
-
-/*
-    根据传入的字符更新currentString,
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void addChar(char ch) {
-    RCNode cursor = getCursorRC();
-    string s;string sub;
-    int i = numofFormerWords(cursor);
-    s = Concat(SubString(currentString, 0, i - 1), CharToString(ch));
-    sub = SubString(currentString, i, StringLength(currentString));
-    free(currentString);                      //貌似我们所谓的FreeBlock这里只用到了free这样一个函数，这里就不采用别的了 
-    currentString = Concat(s,sub);
-    isSaved=0;
-}
-
-/*
-    根据传入的字符串更新currentString与缓存文件
-    并更新光标位置（如有必要也更新窗口左上角位置）        话说这个好像没有用到吧 
-*/
-void addString(char *src) {
-    RCNode cursor = getCursorRC();
-    string s;
-    int i = numofFormerWords(cursor);
-    s = Concat(SubString(currentString, 0, i - 1), src);
-    currentString = Concat(s, SubString(currentString, i, StringLength(currentString)));
-    free(s);  
-    isSaved=0;
-}
-
-/*
-    根据当前光标位置，删除光标前的一个字符（在currentString与缓存文件中）
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void deleteChar() {
-    RCNode cursor = getCursorRC();
-    int i = numofFormerWords(cursor);
-    string sub1,sub2;
-    sub1=SubString(currentString, 0, i - 2);
-    sub2=SubString(currentString, i, StringLength(currentString));
-    free(currentString);
-    currentString = Concat(sub1,sub2);
-    isSaved=0;
-}
-
-/*
-    根据当前选中的范围，删除选中的字符串（在currentString与cacheFile中）
-    并更新光标以及选中范围的行列坐标（如有必要也更新窗口左上角位置）
-*/
-void deleteSelectString() {
-    RCNode startSelect = getSelectStartRC();
-    RCNode endSelect = getSelectEndRC();
-    int i = numofFormerWords(startSelect);
-    int j = numofFormerWords(endSelect);
-    if (i > j) {
-        int t = i;
-        i = j;
-        j = t;
+int certainToExit(){
+    if(!isSaved){
+        int a=MessageBox(NULL,"您的工作未保存，是否退出",NULL,MB_OKCANCEL);
+        if(a==1)       //OK
+            return 1;
+        else if(a==2){       //Cancel
+            return 0;
+        }
     }
-    string sub1,sub2;
-	sub1= SubString(currentString, 0, i - 1);
-	sub2=SubString(currentString, j, StringLength(currentString));
-    free(currentString);
-    currentString = Concat(sub1,sub2);//可以考虑在这里调用genlib.h中的freeblock函数 
-    isSaved=0;
+    else
+        return 1;
 }
 
 

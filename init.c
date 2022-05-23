@@ -40,6 +40,7 @@ TextStyle getTextStyle() {
  */ 
 void setTextStyle(TextStyle newTextStyle) {
     textStyle = newTextStyle;
+    updateTotalDisplayRow();
     FILE *styleFile = fopen("styleConfig.properties", "w");
     fprintf(styleFile, "fontFamily=%s\nfontSize=%d\nlineSpacing=%.16lf\ntextColor=%s\nbackgroundColor=%s", textStyle.fontFamily, textStyle.fontSize, textStyle.lineSpacing, textStyle.textColor, textStyle.backgroundColor);
     fclose(styleFile);
@@ -145,6 +146,7 @@ void initDisplay() {
     }
 
     initColor();
+    updateTotalDisplayRow();
     setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
     setTextBoxColors("White", "Black", "Textbox Hot Blue", "Black", 0);
     setMenuColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);

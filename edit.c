@@ -9,7 +9,7 @@
 #include "file.h"
 #include "strlib.h"
 #include <string.h>
-
+#include "storage.h"
 /*
     根据传入的起始行列坐标与终止行列坐标进行复制
 */
@@ -17,24 +17,7 @@ void copyText()
 {   
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();    
-    char *cur = getCurrentString();  
-    // printf("COPY1:%s\n", cur);
-    int start, end;
-    start = numofFormerWords(startSelect);   //计算复制字符的起始位置，结束位置
-    end = numofFormerWords(endSelect);
-    if (start > end) {
-        int t = start;
-        start = end;
-        end = t;
-    }
-    if (start == end) return;   //选择空字符串则不复制
-    char *copystr = (char *) malloc(sizeof(char) * (end - start + 1));   //定义需要复制的文本
-    int length = end - start;
-    //得到选中复制文本
-    for (int i = 0; i < length; i++) {
-        copystr[i] = cur[start + i];
-    }
-    copystr[length] = '\0';		//设置复制文本结束符（文本计数从1开始）
+	char *copystr=getContent(startSelect,endSelect); 
     // printf("COPY:%d %d %s\n", start, end, copystr);
     
     // printf("COPY2:%s\n", cur);
@@ -102,40 +85,21 @@ void pasteText() {
     //关闭剪切板
     CloseClipboard();
 
-    //对原文本进行粘贴修改
-    // char *curText = getCurrentString();
-    /*char *cur = curText;
-    char behindText[MAX];   //定义被选中文本后的字符串
-    cur += (end+1);    //指针指向被选中文本的之后的第一个字符
-    strcpy(behindText, cur);
-    curText[start-1] = '\0';     //设置选择文本之前的字符串结束符
-    strcat(curText, pasteText);    //将选中文本之前字符串连接粘贴文本
-    strcat(curText, behindText);    //将粘贴后的文本与选中文本之后的字符串相连
-    */
-    // string s;
-    // s = Concat(SubString(curText, 0, start - 1), pasteText);
-    // //修改currentString 
-	// setCurrentString(Concat(s,SubString(curText, end+1, StringLength(curText))));
-	// free(s);
-    deleteSelectString();
+    deleteContent(startSelect,endSelect,1);
     setSelectStartRC(startSelect);
-    setSelectEndRC(startSelect);
-    setCursorRC(startSelect);
-    addString(pasteText);
+    addContent(BY_STRING,startSelect,pasteText,1);  //粘贴目的字符串 
 
     //获得末端的行列位置
-    int i = numofFormerWords(startSelect), j = i + strlen(pasteText);
-    string s = getCurrentString();
-    int lens = strlen(s);
-    while (i < lens && i < j) {
-        if (s[i] == '\n') {
+    int lens = strlen(pasteText);
+	int i=0;
+    while (i < lens) {
+        if (pasteText[i] == '\n') {
             startSelect.row++;
             startSelect.column = 1;
         } else startSelect.column++;
         i++;
     }
     
-    setSelectStartRC(startSelect);
     setSelectEndRC(startSelect);
     setCursorRC(startSelect);
 
@@ -151,28 +115,14 @@ void shearText() {
     RCNode endSelect = getSelectEndRC();
     copyText();   //先对选中内容进行复制
 
-   /* //删除选中内容
-    int start, end, length;
-    start = numofFormerWords(startSelect);
-    end = numofFormerWords(endSelect) - 1;
-    length = end - start;
-    char *curText = getCurrentString();
-   char behindText[MAX];   //定义被选中文本后的字符
-    char *cur = curText;
-    cur += (end+1);    //指针指向被选中文本后的第一个字符
-    strcpy(behindText, cur);
-    curText[start-1] = '\0';    //设置选择文本之前的字符串结束符
-    strcat(curText, behindText);    //连接前后字符串，将中间删除
-    */
-    //将修改后的文本输入
-	deleteSelectString();
-    
     if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
         RCNode t = startSelect;
         startSelect = endSelect;
         endSelect = t;
     }
-
+    //将修改后的文本输入
+	deleteContent(startSelect,endSelect,1);
+     //设置选择范围 
     setSelectStartRC(startSelect);
     setSelectEndRC(startSelect);
     setCursorRC(startSelect);

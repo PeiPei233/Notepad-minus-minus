@@ -358,12 +358,20 @@ void DrawArc(double r, double start, double sweep)
 double GetWindowWidth(void)
 {
     InitCheck();
+    RECT bounds;
+    GetClientRect(graphicsWindow, &bounds);
+    pixelWidth = RectWidth(&bounds);
+    windowWidth = pixelWidth * 1. / xResolution;
     return (windowWidth);
 }
 
 double GetWindowHeight(void)
 {
     InitCheck();
+    RECT bounds;
+    GetClientRect(graphicsWindow, &bounds);
+    pixelHeight = RectHeight(&bounds);
+    windowHeight = pixelHeight * 1. / yResolution;
     return (windowHeight);
 }
 
@@ -902,12 +910,17 @@ static void InitDisplay(void)
     
     UpdateWindow(graphicsWindow);
     
+    HWND desktop = GetDesktopWindow();
+    // gdc = GetDC(desktop);
     osdc = CreateCompatibleDC(gdc);
     
     if (osdc == NULL) {
         Error("Internal error: Can't create offscreen device");
     }
-    osBits = CreateCompatibleBitmap(gdc, pixelWidth, pixelHeight);
+
+    GetWindowRect(desktop, &bounds);
+    osBits = CreateCompatibleBitmap(gdc, RectWidth(&bounds), RectHeight(&bounds));
+    // osBits = CreateCompatibleBitmap(gdc, pixelWidth, pixelHeight);
     if (osBits == NULL) {
         Error("Internal error: Can't create offscreen bitmap");
     }
@@ -1220,6 +1233,10 @@ static void CheckEvents(void)
 static void DoUpdate(void)
 {
     HDC dc;
+    RECT bounds;
+    GetClientRect(graphicsWindow, &bounds);
+    pixelWidth = RectWidth(&bounds);
+    pixelHeight = RectHeight(&bounds);
     dc = BeginPaint(graphicsWindow, &ps);
     BitBlt(dc, 0, 0, pixelWidth, pixelHeight, osdc, 0, 0, SRCCOPY);
     EndPaint(graphicsWindow, &ps);

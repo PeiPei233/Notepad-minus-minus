@@ -49,19 +49,4 @@ void setSelectStartRC(RCNode newStartSelect);
 */
 void setSelectEndRC(RCNode newEndSelect);
 
-/*
-    实现将传入的行列数转化为总的字符数，方便在文件当中的读取
-*/
-int  numofFormerWords(RCNode curPosition);
-
-/**
- * 获得第 row 行的总列数
- */ 
-int getRowLen(int row);
-
-/**
- * 获得文件总行数
- */ 
-int getTotalRow();
-
 #endif

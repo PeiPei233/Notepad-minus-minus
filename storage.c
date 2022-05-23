@@ -6,17 +6,27 @@
 
 #include "storage.h"
 #include "unredo.h"
+#include "string.h"
 
-unsigned int sizeR;      //列方向所用总数
-unsigned int capR;       //列方向可承载总数
-unsigned int *sizeL;     //行方向所用总数
-unsigned int *capL;      //行方向可承载总数
-char **str;
+static unsigned int sizeR = 0;      //列方向所用总数
+static unsigned int capR = 0;       //列方向可承载总数
+static unsigned int *sizeL;     //行方向所用总数
+static unsigned int *capL;      //行方向可承载总数
+static char **str;
 
 /**
  * 初始化存储
+ * 若之前有数据会被清除！之前的数据会丢失！
  */
 void initStorage() {
+    if (sizeR) {    //如果之前有数据
+        for (int i = 0; i < sizeR; i++) {
+            free(str[i]);
+        }
+        free(str);
+        free(sizeL);
+        free(capL);
+    }
     sizeR = 1;
     capR = 1;
     sizeL = (unsigned int *) malloc(sizeof(unsigned int));
@@ -367,6 +377,10 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
         string deleteStr = getContent(start, end);
         record(OP_DELETE, start, deleteStr);
     }
+    if (end.column == sizeL[end.row - 1] && end.row != sizeR) {     //如果需要删除行末的回车，则相当于end的位置在下一行开头
+        end.row++;
+        end.column = 1;
+    }
     if (start.row == end.row) {
         int row = start.row - 1, len = end.column - start.column;
         sizeL[row] -= len;
@@ -386,13 +400,13 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
                 t[i] = str[start.row][i];
             }
             for (int i = start.column; i < sizeL[start.row]; i++) {
-                t[i] = str[end.row][end.column + i];
+                t[i] = str[end.row][end.column + i - start.column];
             }
             free(str[start.row]);
             str[start.row] = t;
         } else {
             for (int i = start.column; i < sizeL[start.row]; i++) {
-                str[start.row][i] = str[end.row][end.column + i];
+                str[start.row][i] = str[end.row][end.column + i - start.column];
             }
         }
         //删除中间的行
