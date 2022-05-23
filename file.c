@@ -163,17 +163,19 @@ void saveFile() {
 			MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 	
         }
 	}
-	if(!isSaved){         //如果未保存，写入currentFile中 
+      //写入currentFile中 
 		currentFile=fopen(ofn.lpstrFile,"w+");     //此时ofn必有值 
 		int i,row=getTotalRow();
         for(i=1;i<=row;i++){
             char *rowcontent=getRowContent(i);
-            fputs(rowcontent,currentFile);
+            int len=getRowLength(i);
+            for(int j=0;j<len;j++){
+            	fputc(rowcontent[j],currentFile);
+			}
         }
 		isSaved=1;
 		fclose(currentFile);      //要保存 
-	}
-	else  ;                //也许在callback里设置？ 
+
 }
 
 /*

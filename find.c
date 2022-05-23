@@ -10,7 +10,7 @@
 #include "libgraphics.h"
 #include "storage.h"
 #include "display.h"
-
+static int restart=0; 
 /**
  * 根据传入的字符串从光标位置（选择范围前）查找上一个匹配的字符串
  * 查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
@@ -141,6 +141,7 @@ int findNextText(char *src) {
     //若未找到则返回开头继续查找
     row=1;column=1; 
     str=getRowContent(row);
+    restart++;                     //记录重来的次数，为replaceAll做准备 
     while(row<=totalrow){
         while(*str != 0)
         {   
@@ -225,9 +226,45 @@ int replaceText(char *src, char *tar) {
 	    setCursorRC(selectStart);
 		free(selectStr);
 	    findNextText(src);
+	    return 1; 
 	}
 	else{				//若不能找到结果，返回0 
 		return 0;
 	}
-
+}
+/*
+	比较两个节点在字符串流中的位置前后 
+*/
+int RCcompare(RCNode start,RCNode end){
+	if(start.row>end.row){
+		return 1;
+	}
+	else if(start.row==end.row){
+		if(start.column==end.column){
+			return 0;
+		}
+		else if(start.column>end.column)
+			return 1;
+		else{
+			return -1;
+		}
+	}
+	else{
+		return -1;
+	}
+}
+/*
+	替换全部 
+*/ 
+void replaceAll(char *src,char *tar){
+	restart=0;
+	RCNode start=getSelectStartRC();
+	RCNode now=getSelectStartRC();
+	while((restart==0&&RCcompare(now,start)>=0)||(restart==1&&RCcompare(start,now)>0)){
+		if(!replaceText(src,tar)){
+			break;
+		}
+		now=getSelectStartRC();
+	}
+	restart=0;
 }
