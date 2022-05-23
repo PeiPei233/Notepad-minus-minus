@@ -3,6 +3,8 @@
 
 #include "global.h"
 #include "strlib.h"
+#include "storage.h"
+#include <string.h>
 
 #define OP_ADD 0x10
 #define OP_DELETE 0x20
@@ -13,7 +15,10 @@ typedef struct node {
     string str;
     struct node *next;
     struct node *last;
-} *linkedList;
+} linkedList;
+
+extern linkedList *nodeHead = NULL, *nodeTail = NULL;
+extern linkedList *curNode;
 
 /**
  * 记录操作
@@ -24,13 +29,19 @@ typedef struct node {
 void record(int op, RCNode pos, string str);
 
 /**
- * 撤销
+ * 实现撤销操作
  */ 
 void undo();
 
 /**
- * 恢复
+ * 实现重做操作
  */ 
 void redo();
+
+/**
+ * 计算传入字符的结束坐标
+ * 传入开始的坐标与中间的字符串
+ * */
+RCNode endPos(RCNode startPos, string str);
 
 #endif
