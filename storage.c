@@ -5,7 +5,7 @@
  */ 
 
 #include "storage.h"
-#include "unredo.h"
+#include "record.h"
 #include "string.h"
 
 static unsigned int sizeR = 0;      //列方向所用总数

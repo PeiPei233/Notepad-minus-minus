@@ -8,7 +8,7 @@
 #include "libgraphics.h"
 #include "display.h"
 #include "file.h"
-#include "init.h"
+#include "style.h"
 #include "math.h"
 #include "imgui.h"
 #include "storage.h"

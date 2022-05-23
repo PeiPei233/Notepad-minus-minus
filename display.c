@@ -10,10 +10,10 @@
 #include "edit.h"
 #include "find.h"
 #include "time.h"
-#include "init.h"
+#include "style.h"
 #include "callback.h"
 #include "storage.h"
-#include "unredo.h"
+#include "record.h"
 #include <math.h>
 #include <windows.h>
 #include <string.h>
@@ -143,8 +143,8 @@ static void drawMenu() {
         case 3:     //保存
             saveFile();
             break;
-        case 4: //退出
-            exitApplication();
+        case 4: //退出，在callback > inputChar()时判断输入控制符，此处不再做判断
+            // exitApplication();
             break;
     }
 
