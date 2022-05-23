@@ -9,6 +9,23 @@
 static linkedList *nodeHead = NULL, *nodeTail = NULL;
 static linkedList *curNode = NULL;
 
+
+/**
+ * 初始化操作记录
+ * 若之前有记录过操作数据，则要全部清除！！
+ */ 
+void initRecord()
+{
+    linkedList *temp;
+    while(nodeHead != NULL)
+    {
+        temp = nodeHead->next;
+        free(nodeHead->str);
+        free(nodeHead);
+        nodeHead = temp;
+    }
+}
+
 /**
  * 记录操作
  * op 操作类型: OP_ADD 添加字符串 OP_DELETE 删除字符串
@@ -28,13 +45,15 @@ void record(int op, RCNode pos, string str) {
         nodeHead->last = NULL;
     }else
     {
-        if(curNode != nodeTail)
+        if(curNode != nodeTail)  //如果目前操作不是尾节点，释放后面所有节点
         {
+            linkedList *temp;
             while(curNode != NULL)
             {
+                temp = curNode->next;
                 free(curNode->str);
                 free(curNode);
-                curNode = curNode->next;
+                curNode = temp;
             }
         }
         linkedList *temNode;
