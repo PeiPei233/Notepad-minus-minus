@@ -7,7 +7,7 @@
 #include "unredo.h"
 
 static linkedList *nodeHead = NULL, *nodeTail = NULL;
-static linkedList *curNode;
+static linkedList *curNode = NULL;
 
 /**
  * 记录操作
@@ -16,7 +16,7 @@ static linkedList *curNode;
  * str 添加/删除的字符串
  */ 
 void record(int op, RCNode pos, string str) {
-    if (nodeHead==NULL)   //判断头节点是否为空
+    if (nodeHead == NULL)   //判断头节点是否为空
     {
         nodeHead = (linkedList*)malloc(sizeof(linkedList));
         nodeHead->op = op;
@@ -28,6 +28,15 @@ void record(int op, RCNode pos, string str) {
         nodeHead->last = NULL;
     }else
     {
+        if(curNode != nodeTail)
+        {
+            while(curNode != NULL)
+            {
+                free(curNode->str);
+                free(curNode);
+                curNode = curNode->next;
+            }
+        }
         linkedList *temNode;
         temNode = (linkedList*)malloc(sizeof(linkedList));  
         temNode->op = op;
@@ -111,17 +120,26 @@ RCNode endPos(RCNode startPos, string str)
     char *p = (char*)malloc(sizeof(str));
     strcpy(p, str);
     char *pp = p;
-    char *enter;
+    char *enter = p;
+    int isEnter = 0;
     while(*pp)
     {
         if(*pp=='\n')
         {
+        	isEnter = 1;
             enter = pp;   //定位换行符位置
             nextPos.row ++;
         }
         pp ++;
     }
-    nextPos.column = strlen(enter) - 1;   //最后一行的列数为换行符后字符串的字数
+    if(isEnter)
+    {
+    	nextPos.column = strlen(enter);   //最后一行的列数为换行符后字符串的字数
+	}else
+	{
+		nextPos.column += strlen(enter);  //列数为原列数加字符串长度 
+	}
+    
     free(p);
     return nextPos;
 }
