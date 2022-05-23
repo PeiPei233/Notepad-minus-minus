@@ -5,6 +5,7 @@
  */ 
 
 #include "unredo.h"
+#include "display.h"
 
 static linkedList *nodeHead = NULL, *nodeTail = NULL;
 static linkedList *curNode = NULL;
@@ -39,7 +40,7 @@ void record(int op, RCNode pos, string str) {
         nodeHead = (linkedList*)malloc(sizeof(linkedList));
         nodeHead->op = op;
         nodeHead->pos = pos;
-        nodeHead->str = (string)malloc(sizeof(str));
+        nodeHead->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
         strcpy(nodeHead->str, str);
         nodeTail = nodeHead;
         curNode = nodeHead;
@@ -51,22 +52,41 @@ void record(int op, RCNode pos, string str) {
             linkedList *temp;
             while(nodeTail != curNode)
             {
-                temp = nodeTail;
                 nodeTail = nodeTail->last;
-                free(temp->str);
-                free(temp);
+                if (nodeTail == NULL) {     //到行头了
+                    free(nodeHead->str);
+                    free(nodeHead);
+                    nodeHead = NULL;
+                } else {
+                    free(nodeTail->next->str);
+                    free(nodeTail->next);
+                    nodeTail->next = NULL;
+                }
             }
         }
-        linkedList *temNode;
-        temNode = (linkedList*)malloc(sizeof(linkedList));  
-        temNode->op = op;
-        temNode->pos = pos;
-        temNode->str = (string)malloc(sizeof(str));
-        strcpy(temNode->str, str);
-        nodeTail->next = temNode;    //链接双向链表
-        temNode->last = nodeTail;
-        nodeTail = nodeTail->next;
-        curNode = nodeTail;    //将指向当前节点的指针移到链表末端
+        if (nodeHead == NULL)   //判断头节点是否为空
+        {
+            nodeHead = (linkedList*)malloc(sizeof(linkedList));
+            nodeHead->op = op;
+            nodeHead->pos = pos;
+            nodeHead->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
+            strcpy(nodeHead->str, str);
+            nodeTail = nodeHead;
+            curNode = nodeHead;
+            nodeHead->last = NULL;
+        }else
+        {
+            linkedList *temNode;
+            temNode = (linkedList*)malloc(sizeof(linkedList));  
+            temNode->op = op;
+            temNode->pos = pos;
+            temNode->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
+            strcpy(temNode->str, str);
+            nodeTail->next = temNode;    //链接双向链表
+            temNode->last = nodeTail;
+            nodeTail = nodeTail->next;
+            curNode = nodeTail;    //将指向当前节点的指针移到链表末端
+        }
     }
 }
 
@@ -87,6 +107,9 @@ void undo() {
 
             //定位光标位置在删除字符的开始位置
             setCursorRC(curNode->pos);
+            setSelectStartRC(curNode->pos);
+            setSelectEndRC(curNode->pos);
+            setCursorInWindow();
 
         }else if(curNode->op == OP_DELETE)   //如果操作为删除字符，则将删除的字符加回去
         {
@@ -95,6 +118,14 @@ void undo() {
             //定位光标位置在增加的字符串后
             RCNode nextPos = endPos(curNode->pos, curNode->str);
             setCursorRC(nextPos);
+            setSelectEndRC(nextPos);
+            if (strlen(curNode->str) == 1 || (strlen(curNode->str) == 2 && curNode->str[0] & 0x80)) {   //如果重做的是单字符或单个汉字则不用重选
+                setSelectStartRC(nextPos);
+            }
+            else {  //如果重做的是字符串，则将选择区域划为重做的字符串
+                setSelectStartRC(curNode->pos);
+            }
+            setCursorInWindow();
         }
         curNode = curNode->last;   //将指向当前操作的指针前移一位
     }
@@ -117,6 +148,9 @@ void redo() {
             //定位光标位置在增加字符串结束处
             RCNode nextPos = endPos(curNode->pos, curNode->str);
             setCursorRC(nextPos);
+            setSelectEndRC(nextPos);
+            setSelectStartRC(nextPos);
+            setCursorInWindow();
 
         }else if(curNode->op == OP_DELETE)   //如果为删除操作则删除字符串
         {
@@ -126,6 +160,9 @@ void redo() {
             
             //定位光标位置在删除字符串的开始位置
             setCursorRC(curNode->pos);
+            setSelectStartRC(curNode->pos);
+            setSelectEndRC(curNode->pos);
+            setCursorInWindow();
         }
     }     
 }
@@ -137,8 +174,7 @@ void redo() {
 RCNode endPos(RCNode startPos, string str)
 {
     RCNode nextPos = startPos;
-    char *p = (char*)malloc(sizeof(str));
-    strcpy(p, str);
+    char *p = str;
     char *pp = p;
     char *enter = p;
     int isEnter = 0;
@@ -160,6 +196,5 @@ RCNode endPos(RCNode startPos, string str)
 		nextPos.column += strlen(enter);  //列数为原列数加字符串长度 
 	}
     
-    free(p);
     return nextPos;
 }
