@@ -140,6 +140,7 @@ void addContentByChar(RCNode pos, char ch, int doRecord) {
         s[0] = ch;
         s[1] = 0;
         record(OP_ADD, pos, s);
+        free(s);
     }
     if (ch == '\n') {   //若是换行符，则新开一行，其他行下移
         sizeR++;
@@ -223,6 +224,7 @@ void addContentByString(RCNode start, string src, int doRecord) {
             addStr[i] = src[i];
         }
         record(OP_ADD, start, addStr);
+        free(addStr);
     }
 
     int row = start.row - 1, col = start.column - 1;
@@ -376,6 +378,7 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
     if (doRecord) {
         string deleteStr = getContent(start, end);
         record(OP_DELETE, start, deleteStr);
+        free(deleteStr);
     }
     if (end.column == sizeL[end.row - 1] && end.row != sizeR) {     //如果需要删除行末的回车，则相当于end的位置在下一行开头
         end.row++;
