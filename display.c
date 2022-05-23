@@ -13,6 +13,7 @@
 #include "init.h"
 #include "callback.h"
 #include "storage.h"
+#include "unredo.h"
 #include <math.h>
 #include <windows.h>
 #include <string.h>
@@ -153,7 +154,9 @@ static void drawMenu() {
         "粘贴                   Ctrl-V",
         "查找                   Ctrl-F",
         "替换                   Ctrl-H",
-        "全选                   Ctrl-A"        
+        "全选                   Ctrl-A",
+        "撤销                   Ctrl-Z",
+        "重做                   Ctrl-Y"        
     };
 
     selection = menuList(GenUIID(0), x + w, y - h, w, wlist, h, menuListEdit, sizeof(menuListEdit) / sizeof(menuListEdit[0]));
@@ -182,6 +185,12 @@ static void drawMenu() {
             setCursorRC((RCNode) {totr, totc});
             break;
         }
+        case 7:
+            undo();
+            break;
+        case 8:
+            redo();
+            break;
     }
 
     char *menuListSetting[] = {"首选项",
@@ -1009,6 +1018,8 @@ static void drawKeyboardPage() {
         "查找", "Ctrl + F",
         "替换", "Ctrl + H",
         "全选", "Ctrl + A",
+        "撤销", "Ctrl + Z",
+        "重做", "Ctrl + Y"
     };
 
     for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
