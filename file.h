@@ -1,9 +1,6 @@
 /*
     主要实现文件交互的相关功能
 */
-/* 
-    请注意，storage的大部分功能已封装在此文件中，display与callback是只需调用该文件函数即可
-*/
 #ifndef __FILE_H__
 #define __FILE_H__
 
@@ -49,15 +46,10 @@ void setSaveState(int newSaveState);
 	返回当前文件名
 */ 
 char *getCurrentFileName();
-/**
- * 获得某一行的字符串（不要修改！不要修改！不要修改！当作字符串常量来使用！）
- * 如果需要可修改的某一行的字符串请使用getContent()函数！！
- */ 
 
 /*
     退出时若未保存则提供选项 选择是否保存更改 
 */
-
 void exitApplication();
 
 #endif

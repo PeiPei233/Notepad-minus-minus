@@ -9,14 +9,13 @@
 #include "strlib.h"
 #include <stdlib.h>
 #include "storage.h"
-#include "graphics.h"
-#define _N 10000
-static char *currentString;
+#include "libgraphics.h"
+
 static FILE *currentFile;  //当前文件 
 OPENFILENAME ofn;
 // a another memory buffer to contain the file name
-static char szFile[100];       //存储文件名 
-static char szFileTitle[20];
+static char szFile[512];       //存储文件名 
+static char szFileTitle[512];
 static int isSaved;    //是否保存         
 static int isCreated;     //是否被创建 
 /*
@@ -25,7 +24,7 @@ static int isCreated;     //是否被创建
 void initFileConfig(){
 	isSaved=1;
 	isCreated=0;
-	initStorage();
+    ZeroMemory(&ofn, sizeof(ofn));
 }
 /*
     打开一个文件
@@ -42,7 +41,7 @@ void openFile() {
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
+    ofn.lpstrFilter = "文本文档(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = szFileTitle;
     ofn.lpstrFileTitle[0] = '\0';
@@ -53,49 +52,40 @@ void openFile() {
 		currentFile=fopen(ofn.lpstrFile,"r+");
     }
 	else{
-	    MessageBox(NULL, "打开失败", NULL, MB_OK);  //打开错误
+	    // MessageBox(NULL, "打开失败", NULL, MB_OK);  //打开错误
         return;
     } 
     int state;
     if(!(getTotalRow()==1&&getRowLength(1)==0)){            //若未被创建且当前显示字符串不为0时需弹出覆盖提示
-        state = MessageBox(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","友情提示",MB_OKCANCEL);
-        if(state==1)    //ok
+        state = MessageBox(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","Notepad--",MB_OKCANCEL | MB_TASKMODAL);
+        if(state==IDOK)    //ok
             ;
-        else if(state==2){ //cancel
+        else if(state==IDCANCEL){ //cancel
         	fclose(currentFile);
             return;
         }
     }
-    initStorage();      //覆盖原先的内容 
-	int i=0;
-    unsigned int degree=1;
-	int j=0;
+    initStorage();      //覆盖原先的内容
+    unsigned int degree=0;
 	char ch;
-	currentString=(char *)malloc(_N);
+	RCNode cursor = {1, 1};
 	while(!feof(currentFile)){
 		ch=fgetc(currentFile);
 		if(ch!=EOF)
-			currentString[i++]=ch;
-		if(i>_N*degree-2){
-			char *temp;
-			degree*=2;             //以指数级增长动态内存 
-			temp=currentString;
-			currentString=(char *)malloc(_N*degree);
-			for(j=0;j<i;j++){
-				currentString[j]=temp[j];
-			}
-			free(temp);
+			addContent(BY_CHAR,cursor,&ch,1);
+		if (ch=='\n'){
+			cursor.row++;
+			cursor.column=1;
+		}
+		else
+			cursor.column++;
+		degree++;
+		if(degree>=1<<31){                     //若大于2G,则无法打开
+			MessageBox(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OK | MB_TASKMODAL);
+			initStorage();
+			return;
 		}
 	}
-    if(degree>=2e9){                     //若大于2G,则无法打开
-        MessageBox(NULL,"文件过大",NULL,MB_OK);
-        free(currentString);
-        return;
-    }
-	currentString[i]='\0';
-	RCNode pos={1,1}; 
-    addContent(BY_STRING,pos,currentString,0);
-    free(currentString);
     fclose(currentFile);
 	isSaved=1;
 	isCreated=1;
@@ -113,7 +103,7 @@ void createFile() {
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
+    ofn.lpstrFilter = "文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = szFileTitle;
     ofn.lpstrFileTitle[0] = '\0';
@@ -125,7 +115,7 @@ void createFile() {
         fclose(currentFile);
     }
 	else{
-	    MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 
+	    // MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 
     }
     isSaved=1;
     isCreated=1;
@@ -144,11 +134,11 @@ void saveFile() {
 	    ofn.lStructSize = sizeof(ofn);
 	    ofn.hwndOwner = NULL;
 	    ofn.lpstrFile = szFile;
-	    ofn.lpstrFile[0] = '\0';
+		strcpy(ofn.lpstrFile, "*.txt");
 	    ofn.nMaxFile = sizeof(szFile);
-	    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
+	    ofn.lpstrFilter = "文本文档(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
 	    ofn.nFilterIndex = 1;
-		 ofn.lpstrFileTitle = szFileTitle;
+		ofn.lpstrFileTitle = szFileTitle;
    		ofn.lpstrFileTitle[0] = '\0';
    	 	ofn.nMaxFileTitle = sizeof(szFileTitle);
 	    ofn.lpstrInitialDir = NULL;
@@ -160,21 +150,21 @@ void saveFile() {
             }
 		}
 		else{
-			MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 	
+			// MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 	
         }
 	}
-      //写入currentFile中 
-		currentFile=fopen(ofn.lpstrFile,"w+");     //此时ofn必有值 
-		int i,row=getTotalRow();
-        for(i=1;i<=row;i++){
-            char *rowcontent=getRowContent(i);
-            int len=getRowLength(i);
-            for(int j=0;j<len;j++){
-            	fputc(rowcontent[j],currentFile);
-			}
-        }
-		isSaved=1;
-		fclose(currentFile);      //要保存 
+	//写入currentFile中 
+	currentFile=fopen(ofn.lpstrFile,"w+");     //此时ofn必有值 
+	int i,row=getTotalRow();
+	for(i=1;i<=row;i++){
+		char *rowcontent=getRowContent(i);
+		int len=getRowLength(i);
+		for(int j=0;j<len;j++){
+			fputc(rowcontent[j],currentFile);
+		}
+	}
+	isSaved=1;
+	fclose(currentFile);
 
 }
 
@@ -205,20 +195,26 @@ char *getCurrentFileName(){
 		return NULL;
 	}
 }
+
+static char s[1010];
+
 /*
     退出时若未保存则提供选项 选择是否保存更改 
 */
-
 void exitApplication(){
 	if(!isSaved){
-		int a=MessageBox(NULL,"是否保存更改？","notepad--",MB_YESNOCANCEL);
-		switch(a){
-			case 6:             //是 
+		if (ofn.lpstrFile == NULL) {
+			sprintf(s, "是否要保存对 无标题 的更改？");
+		} else sprintf(s, "是否要保存对 %s 的更改？", ofn.lpstrFileTitle);
+		int state=MessageBox(NULL,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
+		switch(state){
+			case IDYES:             //是 
 				saveFile();
-			case 7:            //否 
+				ExitGraphics();
+			case IDNO:            //否 
 				ExitGraphics();
 				break;
-			case 2:           //取消 
+			case IDCANCEL:           //取消 
 				break;
 		}
 	}
