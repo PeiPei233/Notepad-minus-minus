@@ -26,10 +26,6 @@ void openFile();
 */
 void createFile();
 
-/*
-    初始化缓存文件
-*/
-void initCache();
 
 /*
     保存当前打开的文件
@@ -58,5 +54,10 @@ char *getCurrentFileName();
  * 如果需要可修改的某一行的字符串请使用getContent()函数！！
  */ 
 
+/*
+    退出时若未保存则提供选项 选择是否保存更改 
+*/
+
+void exitApplication();
 
 #endif

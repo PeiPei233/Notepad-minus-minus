@@ -92,7 +92,7 @@ int findLastText(char *src) {
 */
 int findNextText(char *src) {
 	// printf("FIND:%s\n", src);
-    RCNode startCursor = getCursorRC();  //获取当前光标位置作为查找开始坐标
+    RCNode startCursor = getSelectEndRC();  //从选择范围终点作为查找开始坐标
     int row=startCursor.row, column=startCursor.column;
     RCNode findCursor;
     int length = strlen(src);   //计算查找字符长度
@@ -100,7 +100,7 @@ int findNextText(char *src) {
     char *str;
 	str = getRowContent(row); //获取当前行显示的内容
     int flag;
-    str += column;
+    str += column-1;
     int totalrow=getTotalRow();
     while(row<=totalrow){
         while(*str != 0)
@@ -135,10 +135,11 @@ int findNextText(char *src) {
             }
         }
         row++;
+        column=1;      //换行，需初始化column 
         str = getRowContent(row); //获取当前行显示的内容
     }
     //若未找到则返回开头继续查找
-    row=1;
+    row=1;column=1; 
     str=getRowContent(row);
     while(row<=totalrow){
         while(*str != 0)
@@ -173,6 +174,7 @@ int findNextText(char *src) {
             }
         }
         row++;
+        column=1;
         str = getRowContent(row); //获取当前行显示的内容
     }
     //如果遍历完显示文本仍然没有找到查找内容，设置返回0
@@ -190,7 +192,7 @@ int replaceText(char *src, char *tar) {
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
-
+	int findflag=1;
 	//设定为start在前，end在后 
     if (selectStart.row > selectEnd.row || (selectStart.row == selectEnd.row && selectStart.column > selectEnd.column)) {
         RCNode t = selectStart;
@@ -201,20 +203,31 @@ int replaceText(char *src, char *tar) {
     char *selectStr = getContent(selectStart,selectEnd);
  
     // printf("REPLACE_CMP:%s %s\n", selectStr, src);
-    //判断是否是查找内容，不是则重新选择    
-    if(strcmp(selectStr, src))    
+    //判断是否是查找内容，不是则重新选择 
+	if(!selectStr){
+		if(!findNextText(src)){
+			findflag=0;
+		}
+	}   
+    else if(strcmp(selectStr, src))    
     {
-        findNextText(src);
-        return 0;
+        if(!findNextText(src)){
+        	findflag=0;
+		}
     }
-    
-    printf("REPLACE:FIND!\n");
-    deleteContent(selectStart,selectEnd,1);     //删除源字符串 
-    addContent(BY_STRING,selectStart,tar,1);  //粘贴目的字符串 
-    setSelectStartRC(selectStart);
-    setSelectEndRC(selectStart);              //设置选择范围 
-    setCursorRC(selectStart);
-	free(selectStr);
-    findNextText(src);
+    if(findflag){             //若能找到结果，替换 
+	    printf("REPLACE:FIND!\n");
+	    deleteContent(selectStart,selectEnd,1);     //删除源字符串 
+	    addContent(BY_STRING,selectStart,tar,1);  //粘贴目的字符串 
+	    setSelectStartRC(selectStart);
+	    selectStart.column+=strlen(tar);
+	    setSelectEndRC(selectStart);              //设置选择范围 
+	    setCursorRC(selectStart);
+		free(selectStr);
+	    findNextText(src);
+	}
+	else{				//若不能找到结果，返回0 
+		return 0;
+	}
 
 }

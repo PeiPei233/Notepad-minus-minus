@@ -9,12 +9,14 @@
 #include "strlib.h"
 #include <stdlib.h>
 #include "storage.h"
+#include "graphics.h"
 #define _N 10000
 static char *currentString;
 static FILE *currentFile;  //当前文件 
 OPENFILENAME ofn;
 // a another memory buffer to contain the file name
 static char szFile[100];       //存储文件名 
+static char szFileTitle[20];
 static int isSaved;    //是否保存         
 static int isCreated;     //是否被创建 
 /*
@@ -42,8 +44,9 @@ void openFile() {
     ofn.nMaxFile = sizeof(szFile);
     ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
-    ofn.lpstrFileTitle = NULL;
-    ofn.nMaxFileTitle = 0;
+    ofn.lpstrFileTitle = szFileTitle;
+    ofn.lpstrFileTitle[0] = '\0';
+    ofn.nMaxFileTitle = sizeof(szFileTitle);
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     if (GetOpenFileName(&ofn)){
@@ -112,8 +115,9 @@ void createFile() {
     ofn.nMaxFile = sizeof(szFile);
     ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
     ofn.nFilterIndex = 1;
-    ofn.lpstrFileTitle = NULL;
-    ofn.nMaxFileTitle = 0;
+    ofn.lpstrFileTitle = szFileTitle;
+    ofn.lpstrFileTitle[0] = '\0';
+    ofn.nMaxFileTitle = sizeof(szFileTitle);
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     if (GetSaveFileName(&ofn)){
@@ -144,8 +148,9 @@ void saveFile() {
 	    ofn.nMaxFile = sizeof(szFile);
 	    ofn.lpstrFilter = "文本?件(*.txt)\0*.txt\0所有?件(*.*)\0*.*\0";
 	    ofn.nFilterIndex = 1;
-	    ofn.lpstrFileTitle = NULL;
-	    ofn.nMaxFileTitle = 0;
+		 ofn.lpstrFileTitle = szFileTitle;
+   		ofn.lpstrFileTitle[0] = '\0';
+   	 	ofn.nMaxFileTitle = sizeof(szFileTitle);
 	    ofn.lpstrInitialDir = NULL;
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	    if (GetSaveFileName(&ofn)){
@@ -199,22 +204,26 @@ char *getCurrentFileName(){
 	}
 }
 /*
-    退出时若未保存则提供选项 选择是否要退出 
-    若确定退出则返回1
+    退出时若未保存则提供选项 选择是否保存更改 
 */
-int certainToExit(){
-    if(!isSaved){
-        int a=MessageBox(NULL,"您的工作未保存，是否退出",NULL,MB_OKCANCEL);
-        if(a==1)       //OK
-            return 1;
-        else if(a==2){       //Cancel
-            return 0;
-        }
-    }
-    else
-        return 1;
-}
 
+void exitApplication(){
+	if(!isSaved){
+		int a=MessageBox(NULL,"是否保存更改？","notepad--",MB_YESNOCANCEL);
+		switch(a){
+			case 6:             //是 
+				saveFile();
+			case 7:            //否 
+				ExitGraphics();
+				break;
+			case 2:           //取消 
+				break;
+		}
+	}
+	else{
+		ExitGraphics();
+	}
+}
 
 
 
