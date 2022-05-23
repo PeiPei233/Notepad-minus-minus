@@ -262,8 +262,8 @@ static void drawMenu() {
     }
     
 
-    MovePen(winWidth - TextStringWidth("                ") - TextStringWidth("GBK"), GetFontDescent() + fH * 0.2);
-    DrawTextString("GBK");
+    MovePen(winWidth - TextStringWidth("            ") - TextStringWidth("GB 2312"), GetFontDescent() + fH * 0.2);
+    DrawTextString("GB 2312");
 
     SetPenColor(originColor);
     SetFont(originFont);

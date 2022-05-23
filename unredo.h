@@ -17,7 +17,11 @@ typedef struct node {
     struct node *last;
 } linkedList;
 
-
+/**
+ * 初始化操作记录
+ * 若之前有记录过操作数据，则要全部清除！！
+ */ 
+void initRecord();
 
 /**
  * 记录操作
