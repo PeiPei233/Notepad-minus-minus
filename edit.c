@@ -10,6 +10,7 @@
 #include "strlib.h"
 #include <string.h>
 #include "storage.h"
+#include "display.h"
 /*
     根据传入的起始行列坐标与终止行列坐标进行复制
 */
@@ -83,26 +84,22 @@ void pasteText() {
     {
         printf("不是文本");
         return ;
-    }else
-    {
-        //获取字符串
-       const char* lpStr = GlobalLock(hMem);
-        if(lpStr == NULL)
-        {
-            printf("无法读取文本");
-            return ;
-        }else
-        {   
-            pasteText = (char *) malloc(sizeof(char) * (strlen(lpStr) + 1));
-            strcpy(pasteText, lpStr);   //将剪切板的内容拷贝到字符串当中
-            GlobalUnlock(hMem);   //释放内存锁
-        }
     }
+    //获取字符串
+    const char* lpStr = GlobalLock(hMem);
+    if(lpStr == NULL)
+    {
+        printf("无法读取文本");
+        return ;
+    }
+    pasteText = (char *) malloc(sizeof(char) * (strlen(lpStr) + 1));
+    strcpy(pasteText, lpStr);   //将剪切板的内容拷贝到字符串当中
+    GlobalUnlock(hMem);   //释放内存锁
     //关闭剪切板
     CloseClipboard();
+    
 
     deleteContent(startSelect,endSelect,1);
-    setSelectStartRC(startSelect);
     addContent(BY_STRING,startSelect,pasteText,1);  //粘贴目的字符串 
 
     //获得末端的行列位置
@@ -115,9 +112,12 @@ void pasteText() {
         } else startSelect.column++;
         i++;
     }
-    
+
+    setSelectStartRC(startSelect);
     setSelectEndRC(startSelect);
     setCursorRC(startSelect);
+    
+    setCursorInWindow(); 
 
     free(pasteText);
 }
@@ -142,5 +142,7 @@ void shearText() {
     setSelectStartRC(startSelect);
     setSelectEndRC(startSelect);
     setCursorRC(startSelect);
-    
+
+    setCursorInWindow();    
+
 }
