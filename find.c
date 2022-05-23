@@ -232,27 +232,7 @@ int replaceText(char *src, char *tar) {
 		return 0;
 	}
 }
-/*
-	比较两个节点在字符串流中的位置前后 
-*/
-int RCcompare(RCNode start,RCNode end){
-	if(start.row>end.row){
-		return 1;
-	}
-	else if(start.row==end.row){
-		if(start.column==end.column){
-			return 0;
-		}
-		else if(start.column>end.column)
-			return 1;
-		else{
-			return -1;
-		}
-	}
-	else{
-		return -1;
-	}
-}
+
 /*
 	替换全部 
 */ 

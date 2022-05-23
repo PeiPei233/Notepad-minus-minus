@@ -1,9 +1,9 @@
 #include "global.h"
 #include "libgraphics.h"
 
-static RCNode windowCurrent = (RCNode) {1, 1}; //窗口左上角的行列坐标
-static RCNode cursor = (RCNode) {1, 1};  //光标所在的行列坐标
-static RCNode startSelect = (RCNode) {1, 1}, endSelect = (RCNode) {1, 1};  //选择范围的起点/终点行列位置
+static RCNode windowCurrent= (RCNode) {1, 1}; //窗口左上角的行列坐标
+static RCNode cursor= (RCNode) {1, 1};  //光标所在的行列坐标
+static RCNode startSelect =(RCNode) {1, 1}, endSelect= (RCNode) {1, 1};  //选择范围的起点/终点行列位置
 int bigin, end;
 
 /*
@@ -68,4 +68,25 @@ void setSelectStartRC(RCNode newStartSelect)
 void setSelectEndRC(RCNode newEndSelect)
 {
     endSelect = newEndSelect;
+}
+/*
+	比较两个节点在字符串流中的位置前后 
+*/
+int RCcompare(RCNode start,RCNode end){
+	if(start.row>end.row){
+		return 1;
+	}
+	else if(start.row==end.row){
+		if(start.column==end.column){
+			return 0;
+		}
+		else if(start.column>end.column)
+			return 1;
+		else{
+			return -1;
+		}
+	}
+	else{
+		return -1;
+	}
 }

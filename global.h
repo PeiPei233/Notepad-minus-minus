@@ -49,4 +49,10 @@ void setSelectStartRC(RCNode newStartSelect);
 */
 void setSelectEndRC(RCNode newEndSelect);
 
+/*
+	比较两个节点在字符串流中的位置前后
+	start在end前返回1，相等返回0，否则返回-1 
+*/
+int RCcompare(RCNode start,RCNode end);
+ 
 #endif
