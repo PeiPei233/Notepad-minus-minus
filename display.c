@@ -231,7 +231,7 @@ static void drawMenu() {
     double tw = TextStringWidth(name);
     double tx = max(winWidth / 2 - tw / 2, x + w * 3.5);
     int i = strlen(name) - 1;
-    while (tx + TextStringWidth(name) > winWidth - h * 2 / 3 && i) {    //名字过长则最后显示省略号...
+    while (tx + TextStringWidth(name) > winWidth - h * 2 / 3 && i >= 0) {    //名字过长则最后显示省略号...
         if (name[i] & 0x80) i--;
         i--;
         name[i + 1] = name[i + 2] = name[i + 3] = '.';
