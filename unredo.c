@@ -24,6 +24,7 @@ void initRecord()
         free(nodeHead);
         nodeHead = temp;
     }
+    nodeHead = nodeTail = curNode = NULL;
 }
 
 /**
@@ -48,12 +49,12 @@ void record(int op, RCNode pos, string str) {
         if(curNode != nodeTail)  //如果目前操作不是尾节点，释放后面所有节点
         {
             linkedList *temp;
-            while(curNode != NULL)
+            while(nodeTail != curNode)
             {
-                temp = curNode->next;
-                free(curNode->str);
-                free(curNode);
-                curNode = temp;
+                temp = nodeTail;
+                nodeTail = nodeTail->last;
+                free(temp->str);
+                free(temp);
             }
         }
         linkedList *temNode;

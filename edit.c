@@ -17,7 +17,15 @@ void copyText()
 {   
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();    
-	char *copystr=getContent(startSelect,endSelect); 
+    if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
+        RCNode t = startSelect;
+        startSelect = endSelect;
+        endSelect = t;
+    }else if(startSelect.row == endSelect.row && startSelect.column == endSelect.column)  //如果没有选中内容，不进行复制操作
+    {
+        return ;
+    }
+	char *copystr=getContent(startSelect, endSelect); 
     // printf("COPY:%d %d %s\n", start, end, copystr);
     
     // printf("COPY2:%s\n", cur);
@@ -71,11 +79,19 @@ void pasteText() {
         return ;   
     }
     HGLOBAL hMem = GetClipboardData(CF_TEXT);
-    if(hMem)
+    if(hMem == NULL)
+    {
+        printf("不是文本");
+        return ;
+    }else
     {
         //获取字符串
-        LPSTR lpStr = (LPSTR)GlobalLock(hMem);
-        if(lpStr)
+       const char* lpStr = GlobalLock(hMem);
+        if(lpStr == NULL)
+        {
+            printf("无法读取文本");
+            return ;
+        }else
         {   
             pasteText = (char *) malloc(sizeof(char) * (strlen(lpStr) + 1));
             strcpy(pasteText, lpStr);   //将剪切板的内容拷贝到字符串当中
