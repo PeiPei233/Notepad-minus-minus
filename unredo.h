@@ -17,8 +17,7 @@ typedef struct node {
     struct node *last;
 } linkedList;
 
-extern linkedList *nodeHead = NULL, *nodeTail = NULL;
-extern linkedList *curNode;
+
 
 /**
  * ¼ÇÂ¼²Ù×÷
