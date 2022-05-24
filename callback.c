@@ -212,11 +212,7 @@ static char lastChar = 0;   //上一个读入的字符
 void inputChar(char ch) {
     // printf("INPUT:%d\n", ch);
     if (!isTyping) return;
-    if (ch == 23) {     //Ctrl + W 退出
-        exitApplication();
-        return;
-    }
-    if (ch > 0 && ch < 32 && ch != '\t' && ch != '\r') {
+    if (ch > 0 && ch < 32) {
         return;
     }   //跳过控制字符
     setSaveState(0);    //新操作未保存
@@ -234,16 +230,7 @@ void inputChar(char ch) {
         setCursorRC(startSelect);
     }
     RCNode cursor = getCursorRC();
-    if (ch == '\r') {   //回车的键盘回调字符为'\r'
-        ch = '\n';  //换行用'\n‘来储存
-        addContentByChar(cursor, ch, 1);
-        cursor.row++;
-        cursor.column = 1;
-        setCursorRC(cursor);
-        setSelectStartRC(cursor);
-        setSelectEndRC(cursor);
-        lastChar = 0;
-    } else if (ch & 0x80) {     //中文字符
+    if (ch & 0x80) {     //中文字符
         if (!lastChar) {    //输入的中文字符的第一个ch则保存下来
             lastChar = ch;
         } else {    //输入的是中文字符的第二个ch则添加到数据中
@@ -612,10 +599,60 @@ void inputKeyboard(int key, int event) {
                 setCursorInWindow();
                 break;
             }
-            case VK_CONTROL:
+            case VK_CONTROL:    //Ctrl
                 isCtrl = 1;
                 break;
-
+            case VK_RETURN:     //回车
+                if (isTyping) {
+                    setSaveState(0);    //新操作未保存
+                    RCNode startSelect = getSelectStartRC();
+                    RCNode endSelect = getSelectEndRC();
+                    if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {    //如果有选中范围则先把选中范围的内容删掉
+                        deleteContent(startSelect, endSelect, 1);
+                        if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {   //如果开始在结束之后则交换顺序
+                            RCNode t = startSelect;
+                            startSelect = endSelect;
+                            endSelect = t;
+                        }
+                        setSelectStartRC(startSelect);
+                        setSelectEndRC(startSelect);
+                        setCursorRC(startSelect);
+                    }
+                    RCNode cursor = getCursorRC();
+                    addContentByChar(cursor, '\n', 1);  //换行用'\n‘来储存
+                    cursor.row++;
+                    cursor.column = 1;
+                    setCursorRC(cursor);
+                    setSelectStartRC(cursor);
+                    setSelectEndRC(cursor);
+                    lastChar = 0;
+                }
+                break;
+            case VK_TAB:    //制表符
+                if (isTyping) {
+                    setSaveState(0);    //新操作未保存
+                    RCNode startSelect = getSelectStartRC();
+                    RCNode endSelect = getSelectEndRC();
+                    if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {    //如果有选中范围则先把选中范围的内容删掉
+                        deleteContent(startSelect, endSelect, 1);
+                        if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {   //如果开始在结束之后则交换顺序
+                            RCNode t = startSelect;
+                            startSelect = endSelect;
+                            endSelect = t;
+                        }
+                        setSelectStartRC(startSelect);
+                        setSelectEndRC(startSelect);
+                        setCursorRC(startSelect);
+                    }
+                    RCNode cursor = getCursorRC();
+                    addContentByChar(cursor, '\t', 1);  //换行用'\n‘来储存
+                    cursor.column++;
+                    setCursorRC(cursor);
+                    setSelectStartRC(cursor);
+                    setSelectEndRC(cursor);
+                    lastChar = 0;
+                }
+                break;
         }
     }
     if (event == KEY_UP) {
