@@ -42,7 +42,7 @@ void initStorage() {
  * 获得某一行的字符串（不要修改！不要修改！不要修改！当作字符串常量来使用！）
  * 如果需要可修改的某一行的字符串请使用getContent()函数！！
  */ 
-string getRowContent(int row) {
+const string getRowContent(int row) {
     if (row <= sizeR && row >= 1) return str[row - 1];
     else return NULL;
 }
@@ -140,15 +140,14 @@ void addContentByChar(RCNode pos, char ch, int doRecord) {
         s[0] = ch;
         s[1] = 0;
         record(OP_ADD, pos, s);
-        free(s);
     }
     if (ch == '\n') {   //若是换行符，则新开一行，其他行下移
         sizeR++;
         if (sizeR > capR) { //列方向装不下了，重开
             capR <<= 1;
             char **tmpStr = (char **) malloc(sizeof(char *) * capR);
-            unsigned int *tmpSizeL = (int *) malloc(sizeof(unsigned int) * capR);
-            unsigned int *tmpCapL = (int *) malloc(sizeof(unsigned int) * capR);
+            unsigned int *tmpSizeL = (unsigned int *) malloc(sizeof(unsigned int) * capR);
+            unsigned int *tmpCapL = (unsigned int *) malloc(sizeof(unsigned int) * capR);
             //搬运操作，并留下所需的数据
             for (int i = 0; i <= row; i++) {
                 tmpStr[i] = str[i];
@@ -224,7 +223,6 @@ void addContentByString(RCNode start, string src, int doRecord) {
             addStr[i] = src[i];
         }
         record(OP_ADD, start, addStr);
-        free(addStr);
     }
 
     int row = start.row - 1, col = start.column - 1;
@@ -378,7 +376,6 @@ void deleteContent(RCNode start, RCNode end, int doRecord) {
     if (doRecord) {
         string deleteStr = getContent(start, end);
         record(OP_DELETE, start, deleteStr);
-        free(deleteStr);
     }
     if (end.column == sizeL[end.row - 1] && end.row != sizeR) {     //如果需要删除行末的回车，则相当于end的位置在下一行开头
         end.row++;

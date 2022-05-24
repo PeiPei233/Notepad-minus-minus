@@ -12,7 +12,7 @@
 #include "libgraphics.h"
 
 static FILE *currentFile;  //当前文件 
-OPENFILENAME ofn;
+OPENFILENAMEA ofn;
 // a another memory buffer to contain the file name
 static char szFile[512];       //存储文件名 
 static char szFileTitle[512];
@@ -48,7 +48,7 @@ void openFile() {
     ofn.nMaxFileTitle = sizeof(szFileTitle);
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    if (GetOpenFileName(&ofn)){
+    if (GetOpenFileNameA(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"r+");
     }
 	else{
@@ -57,7 +57,7 @@ void openFile() {
     } 
     int state;
     if(!(getTotalRow()==1&&getRowLength(1)==0)){            //若未被创建且当前显示字符串不为0时需弹出覆盖提示
-        state = MessageBox(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","Notepad--",MB_OKCANCEL | MB_TASKMODAL);
+        state = MessageBoxA(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","Notepad--",MB_OKCANCEL | MB_TASKMODAL);
         if(state==IDOK)    //ok
             ;
         else if(state==IDCANCEL){ //cancel
@@ -72,7 +72,7 @@ void openFile() {
 	while(!feof(currentFile)){
 		ch=fgetc(currentFile);
 		if(ch!=EOF)
-			addContent(BY_CHAR,cursor,&ch,1);
+			addContent(BY_CHAR,cursor,&ch,0);
 		if (ch=='\n'){
 			cursor.row++;
 			cursor.column=1;
@@ -81,7 +81,7 @@ void openFile() {
 			cursor.column++;
 		degree++;
 		if(degree>=1<<31){                     //若大于2G,则无法打开
-			MessageBox(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OK | MB_TASKMODAL);
+			MessageBoxA(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OK | MB_TASKMODAL);
 			initStorage();
 			return;
 		}
@@ -110,7 +110,7 @@ void createFile() {
     ofn.nMaxFileTitle = sizeof(szFileTitle);
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    if (GetSaveFileName(&ofn)){
+    if (GetSaveFileNameA(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"w+");
         fclose(currentFile);
     }
@@ -143,7 +143,7 @@ void saveFile() {
    	 	ofn.nMaxFileTitle = sizeof(szFileTitle);
 	    ofn.lpstrInitialDir = NULL;
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-	    if (GetSaveFileName(&ofn)){
+	    if (GetSaveFileNameA(&ofn)){
 			if(currentFile=fopen(ofn.lpstrFile,"w+")){
 				isCreated = 1;
                 fclose(currentFile);
@@ -206,7 +206,7 @@ void exitApplication(){
 		if (ofn.lpstrFile == NULL) {
 			sprintf(s, "是否要保存对 无标题 的更改？");
 		} else sprintf(s, "是否要保存对 %s 的更改？", ofn.lpstrFileTitle);
-		int state=MessageBox(NULL,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
+		int state=MessageBoxA(NULL,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
 		switch(state){
 			case IDYES:             //是 
 				saveFile();

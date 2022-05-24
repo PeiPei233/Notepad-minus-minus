@@ -32,7 +32,7 @@ void initRecord()
  * 记录操作
  * op 操作类型: OP_ADD 添加字符串 OP_DELETE 删除字符串
  * pos 操作位置
- * str 添加/删除的字符串
+ * str 添加/删除的字符串    若字符串后续有更改，请copy后再传入
  */ 
 void record(int op, RCNode pos, string str) {
     if (nodeHead == NULL)   //判断头节点是否为空
@@ -40,8 +40,7 @@ void record(int op, RCNode pos, string str) {
         nodeHead = (linkedList*)malloc(sizeof(linkedList));
         nodeHead->op = op;
         nodeHead->pos = pos;
-        nodeHead->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
-        strcpy(nodeHead->str, str);
+        nodeHead->str = str;
         nodeTail = nodeHead;
         curNode = nodeHead;
         nodeHead->last = NULL;
@@ -70,8 +69,7 @@ void record(int op, RCNode pos, string str) {
             nodeHead = (linkedList*)malloc(sizeof(linkedList));
             nodeHead->op = op;
             nodeHead->pos = pos;
-            nodeHead->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
-            strcpy(nodeHead->str, str);
+            nodeHead->str = str;
             nodeTail = nodeHead;
             curNode = nodeHead;
             nodeHead->last = NULL;
