@@ -17,7 +17,7 @@ void initStorage();
  * 获得某一行的字符串（不要修改！不要修改！不要修改！当作字符串常量来使用！）
  * 如果需要可修改的某一行的字符串请使用getContent()函数！！
  */ 
-string getRowContent(int row);
+const string getRowContent(int row);
 
 /**
  * 获得总行数
