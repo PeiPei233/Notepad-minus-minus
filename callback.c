@@ -17,6 +17,7 @@
 static int isButtonDown = 0;
 static int isShift = 0;
 static int isTyping = 1;
+static int isCtrl = 0;
 
 /**
  * 获取当前输入状态
@@ -47,6 +48,7 @@ void getMouse(int x, int y, int button, int event) {
 
     UIState gs_UIState = getUIState();
     // printf("CLICKITEM:%d\n", gs_UIState.clickedItem);
+
     if (gs_UIState.clickedItem) {
         isTyping = 0;
         return;
@@ -63,6 +65,8 @@ void getMouse(int x, int y, int button, int event) {
     SetFont(originFont);
     SetPointSize(originPointSize);
 
+    if (button == LEFT_BUTTON && event == BUTTON_DOWN && getContextMenuDisplayState()) setContextMenuDisplayState(0);
+    
     if (ny >= winHeight - fH * 1.5) return;
     if (ny <= fH * 1.4) return;
 
@@ -158,6 +162,13 @@ void getMouse(int x, int y, int button, int event) {
                 setCursorRC(mouse);
                 setSelectEndRC(mouse);
                 setCursorInWindow();
+            } else if (button == RIGHT_BUTTON && getTextDisplayState()) {
+                if (getContextMenuDisplayState()) {
+                    setContextMenuDisplayState(0);
+                } else {
+                    setContextMenuXY(nx, ny);
+                    setContextMenuDisplayState(1);
+                }
             }
             break;
         case ROLL_UP: 
@@ -201,7 +212,7 @@ static char lastChar = 0;   //上一个读入的字符
 void inputChar(char ch) {
     // printf("INPUT:%d\n", ch);
     if (!isTyping) return;
-    if (ch == 23) {
+    if (ch == 23) {     //Ctrl + W 退出
         exitApplication();
         return;
     }
@@ -264,7 +275,7 @@ void inputChar(char ch) {
     Shift+方向键时改变选择范围，并把光标放到选择范围开头
 */
 void inputKeyboard(int key, int event) {
-    printf("KB:%d %d\n", key, event);
+    // printf("KB:%d %d\n", key, event);
     if (event == KEY_DOWN) {
         switch (key) {
             //方向左
@@ -601,12 +612,17 @@ void inputKeyboard(int key, int event) {
                 setCursorInWindow();
                 break;
             }
+            case VK_CONTROL:
+                isCtrl = 1;
+                break;
 
         }
     }
     if (event == KEY_UP) {
         if (key == VK_SHIFT) {
             isShift = 0;
+        } else if (key == VK_CONTROL) {
+            isCtrl = 0;
         }
     }
 }

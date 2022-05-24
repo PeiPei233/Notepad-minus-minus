@@ -18,14 +18,15 @@
 #include <windows.h>
 #include <string.h>
 
-static int isShowFind = 0;
-static int isShowReplace = 0;
-static int isShowSetting = 0;
-static int isShowKeyboard = 0;
-static int isShowAbout = 0;
+static int isShowFind = 0;          //是否显示查找框
+static int isShowReplace = 0;       //是否显示替换框
+static int isShowSetting = 0;       //是否显示设置页面
+static int isShowKeyboard = 0;      //是否显示键盘快捷键页面
+static int isShowAbout = 0;         //是否显示关于页面
+static int isShowContextMenu = 0;   //是否显示右键菜单
 
-static char inputFindText[10010] = "";
-static char inputReplaceText[10010] = "";
+static char inputFindText[100010] = "";
+static char inputReplaceText[100010] = "";
 
 /**
  * 获取查找窗口显示状态
@@ -42,6 +43,13 @@ int getReplaceDisplayState() {
 }
 
 /**
+ * 获取右键菜单显示状态
+ */ 
+int getContextMenuDisplayState() {
+    return isShowContextMenu; 
+}
+
+/**
  * 更改查找窗口显示状态
  */ 
 void setFindDisplayState(int newFindDisplayState) {
@@ -53,6 +61,13 @@ void setFindDisplayState(int newFindDisplayState) {
  */ 
 void setReplaceDisplayState(int newReplaceDisplayState) {
     isShowReplace = newReplaceDisplayState;
+}
+
+/**
+ * 更改右键菜单显示状态
+ */ 
+void setContextMenuDisplayState(int newContextMenuDisplayState) {
+    isShowContextMenu = newContextMenuDisplayState;
 }
 
 /**
@@ -1012,14 +1027,14 @@ static void drawKeyboardPage() {
         "打开文件", "Ctrl + O",
         "保存文件", "Ctrl + S",
         "退出Notepad--", "Ctrl + W",
+        "撤销", "Ctrl + Z",
+        "重做", "Ctrl + Y",
         "剪切", "Ctrl + X",
         "复制", "Ctrl + C",
         "粘贴", "Ctrl + V",
         "查找", "Ctrl + F",
         "替换", "Ctrl + H",
-        "全选", "Ctrl + A",
-        "撤销", "Ctrl + Z",
-        "重做", "Ctrl + Y"
+        "全选", "Ctrl + A"
     };
 
     for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
@@ -1285,6 +1300,83 @@ RCNode XYtoRC(int x, int y) {
     return mouse;
 }
 
+//右键菜单坐标
+static double contextMenuX;
+static double contextMenuY;
+
+/**
+ * 设置右键菜单的左上角位置
+ */ 
+void setContextMenuXY(double x, double y) {
+    contextMenuX = x;
+    contextMenuY = y;
+} 
+
+/**
+ * 绘制右键菜单
+ */ 
+static void drawContextMenu() {
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    static char *contextMenuList[] = {
+        "撤销                           Ctrl+Z",
+        "重做                           Ctrl+Y",
+        "剪切                           Ctrl+X",
+        "复制                           Ctrl+C",
+        "粘贴                           Ctrl+V",
+        "全选                           Ctrl+A"
+    };
+
+    double fH = GetFontHeight();
+    double h = fH * 1.8;
+    double w = TextStringWidth(contextMenuList[0]) * 1.2;
+    double x = min(contextMenuX, winWidth - w);
+    double y = max(contextMenuY, h * (sizeof(contextMenuList) / sizeof(contextMenuList[0])));
+
+    for (int i = 0; i < sizeof(contextMenuList) / sizeof(contextMenuList[0]); i++) {
+        if (button(GenUIID(i), x, y - h * (i + 1), w, h, contextMenuList[i])) {
+            switch (i)
+            {
+            case 0:     //撤销
+                undo();
+                break;
+
+            case 1:     //重做
+                redo();
+                break;
+            
+            case 2:     //剪切
+                shearText();
+                break;
+
+            case 3:     //复制
+                copyText();
+                break;
+
+            case 4:     //粘贴
+                pasteText();
+                break;
+            
+            case 5:{    //全选
+                    int totr = getTotalRow();
+                    int totc = getRowLength(totr) + 1;
+                    setSelectStartRC((RCNode) {1, 1});
+                    setSelectEndRC((RCNode) {totr, totc});
+                    setCursorRC((RCNode) {totr, totc});
+                    break;
+                }
+            }
+            isShowContextMenu = 0;
+        }
+    }
+
+    SetFont(originFont);
+    SetPointSize(originPointSize);
+}
+
 static int lockDisplay = 0;     //用来给display上锁，防止上一个还没结束又开始display
 
 /**
@@ -1318,6 +1410,9 @@ void display() {
             drawReplaceArea();
         }
         drawMenu();
+        if (isShowContextMenu) {
+            drawContextMenu();
+        } 
     }
 
     lockDisplay = 0;    //解锁

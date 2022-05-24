@@ -18,6 +18,11 @@ int getFindDisplayState();
 int getReplaceDisplayState();
 
 /**
+ * 获取右键菜单显示状态
+ */ 
+int getContextMenuDisplayState();
+
+/**
  * 更改查找窗口显示状态
  */ 
 void setFindDisplayState(int newFindDisplayState);
@@ -26,6 +31,11 @@ void setFindDisplayState(int newFindDisplayState);
  * 更改替换窗口显示状态
  */ 
 void setReplaceDisplayState(int newReplaceDisplayState);
+
+/**
+ * 更改右键菜单显示状态
+ */ 
+void setContextMenuDisplayState(int newContextMenuDisplayState);
 
 /**
  * 获取文本区域显示状态
@@ -41,6 +51,11 @@ int getTotalDisplayRow();
  * 更新当前显示的总行数
  */ 
 void updateTotalDisplayRow();
+
+/**
+ * 设置右键菜单的左上角位置
+ */ 
+void setContextMenuXY(double x, double y);
 
 /**
  * 显示窗口内容
