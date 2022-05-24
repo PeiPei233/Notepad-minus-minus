@@ -1285,12 +1285,17 @@ RCNode XYtoRC(int x, int y) {
     return mouse;
 }
 
+static int lockDisplay = 0;     //用来给display上锁，防止上一个还没结束又开始display
+
 /**
  * 显示窗口内容
  */ 
 void display() {
+    if (lockDisplay) {  //如果有display还没结束，则跳过
+        return;
+    }
 
-    // printf("DISPLAY\n");
+    lockDisplay = 1;    //上锁
 
     DisplayClear();
 
@@ -1314,5 +1319,7 @@ void display() {
         }
         drawMenu();
     }
+
+    lockDisplay = 0;    //解锁
 
 }
