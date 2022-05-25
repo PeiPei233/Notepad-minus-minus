@@ -6,26 +6,42 @@
 
 #include "record.h"
 #include "display.h"
+#include "global.h"
 
 static linkedList *nodeHead = NULL, *nodeTail = NULL;
 static linkedList *curNode = NULL;
-
+static int recordID = 0;    //记录的操作ID
 
 /**
  * 初始化操作记录
  * 若之前有记录过操作数据，则要全部清除！！
  */ 
 void initRecord()
-{
-    linkedList *temp;
-    while(nodeHead != NULL)
+{   
+    curNode = NULL;
+    while(nodeTail != curNode)
     {
-        temp = nodeHead->next;
-        free(nodeHead->str);
-        free(nodeHead);
-        nodeHead = temp;
+        nodeTail = nodeTail->last;
+        if (nodeTail == NULL) {     //到行头了
+            free(nodeHead->str);
+            free(nodeHead);
+            nodeHead = NULL;
+        } else {
+            free(nodeTail->next->str);
+            free(nodeTail->next);
+            nodeTail->next = NULL;
+        }
     }
     nodeHead = nodeTail = curNode = NULL;
+}
+
+/**
+ * 获得新的record ID
+ */ 
+int newRecordID() {
+    recordID = (recordID + 1) % (1 << 30);
+    if (recordID == 0) recordID++;
+    return recordID;
 }
 
 /**
@@ -34,13 +50,14 @@ void initRecord()
  * pos 操作位置
  * str 添加/删除的字符串    若字符串后续有更改，请copy后再传入
  */ 
-void record(int op, RCNode pos, string str) {
+void record(int op, RCNode pos, string str, int recordID) {
     if (nodeHead == NULL)   //判断头节点是否为空
     {
         nodeHead = (linkedList*)malloc(sizeof(linkedList));
         nodeHead->op = op;
         nodeHead->pos = pos;
         nodeHead->str = str;
+        nodeHead->id = recordID;
         nodeTail = nodeHead;
         curNode = nodeHead;
         nodeHead->last = NULL;
@@ -70,6 +87,7 @@ void record(int op, RCNode pos, string str) {
             nodeHead->op = op;
             nodeHead->pos = pos;
             nodeHead->str = str;
+            nodeHead->id = recordID;
             nodeTail = nodeHead;
             curNode = nodeHead;
             nodeHead->last = NULL;
@@ -80,6 +98,7 @@ void record(int op, RCNode pos, string str) {
             temNode = (linkedList*)malloc(sizeof(linkedList));  
             temNode->op = op;
             temNode->pos = pos;
+            temNode->id = recordID;
             temNode->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
             temNode->next = NULL;
             strcpy(temNode->str, str);
@@ -128,7 +147,12 @@ void undo() {
             }
             setCursorInWindow();
         }
-        curNode = curNode->last;   //将指向当前操作的指针前移一位
+        if (curNode->last != NULL && curNode->last->id == curNode->id) {    //如果前一个操作和此次操作是同一步操作，则继续undo
+            curNode = curNode->last;   //将指向当前操作的指针前移一位
+            undo();
+        } else {
+            curNode = curNode->last;   //将指向当前操作的指针前移一位
+        }
     }
 }
 
@@ -178,36 +202,7 @@ void redo() {
         setSelectEndRC(curNode->pos);
         setCursorInWindow();
     }
-}
-
-/**
- * 计算传入字符的结束坐标
- * 传入开始的坐标与中间的字符串
- * */
-RCNode endPos(RCNode startPos, string str)
-{
-    RCNode nextPos = startPos;
-    char *p = str;
-    char *pp = p;
-    char *enter = p;
-    int isEnter = 0;
-    while(*pp)
-    {
-        if(*pp=='\n')
-        {
-        	isEnter = 1;
-            enter = pp;   //定位换行符位置
-            nextPos.row ++;
-        }
-        pp ++;
+    if (curNode->next != NULL && curNode->next->id == curNode->id) {    //如果下一个操作和此次操作是同一步操作，则继续redo
+        redo();
     }
-    if(isEnter)
-    {
-    	nextPos.column = strlen(enter);   //最后一行的列数为换行符后字符串的字数
-	}else
-	{
-		nextPos.column += strlen(enter);  //列数为原列数加字符串长度 
-	}
-    
-    return nextPos;
 }

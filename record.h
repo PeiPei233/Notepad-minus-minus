@@ -11,6 +11,7 @@
 
 typedef struct node {
     int op;             //操作
+    int id;             //本次操作对应的 id     如果连续的操作对应同一个 id 则视为同一个操作
     RCNode pos;         //操作位置
     string str;         //变化的字符串
     struct node *next;  //下一个节点
@@ -24,12 +25,17 @@ typedef struct node {
 void initRecord();
 
 /**
+ * 获得新的record ID
+ */ 
+int newRecordID();
+
+/**
  * 记录操作
  * op 操作类型: OP_ADD 添加字符串 OP_DELETE 删除字符串
  * pos 操作位置
  * str 添加/删除的字符串
  */ 
-void record(int op, RCNode pos, string str);
+void record(int op, RCNode pos, string str, int recordID);
 
 /**
  * 实现撤销操作
@@ -40,11 +46,5 @@ void undo();
  * 实现重做操作
  */ 
 void redo();
-
-/**
- * 计算传入字符的结束坐标
- * 传入开始的坐标与中间的字符串
- * */
-RCNode endPos(RCNode startPos, string str);
 
 #endif
