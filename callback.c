@@ -146,6 +146,7 @@ void getMouse(int x, int y, int button, int event) {
                 setSelectStartRC(mouse);
                 setSelectEndRC(mouse);
             }
+            if (getContextMenuDisplayState()) setContextMenuDisplayState(0);
             break;
         case MOUSEMOVE:
             if (isButtonDown) {
@@ -165,9 +166,11 @@ void getMouse(int x, int y, int button, int event) {
             } else if (button == RIGHT_BUTTON && getTextDisplayState()) {
                 if (getContextMenuDisplayState()) {
                     setContextMenuDisplayState(0);
+                    isTyping = 1;
                 } else {
                     setContextMenuXY(nx, ny);
                     setContextMenuDisplayState(1);
+                    isTyping = 0;
                 }
             }
             break;
@@ -215,6 +218,7 @@ void inputChar(char ch) {
     if (ch > 0 && ch < 32) {
         return;
     }   //跳过控制字符
+    setContextMenuDisplayState(0);
     setSaveState(0);    //新操作未保存
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
@@ -654,6 +658,7 @@ void inputKeyboard(int key, int event) {
                 }
                 break;
         }
+        processShortcutKey(key, isShift, isCtrl, isTyping);
     }
     if (event == KEY_UP) {
         if (key == VK_SHIFT) {

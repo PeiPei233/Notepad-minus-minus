@@ -25,6 +25,12 @@ static int isShowKeyboard = 0;      //是否显示键盘快捷键页面
 static int isShowAbout = 0;         //是否显示关于页面
 static int isShowContextMenu = 0;   //是否显示右键菜单
 
+//右键菜单坐标
+static double contextMenuX;
+static double contextMenuY;
+
+static int lockDisplay = 0;     //用来给display上锁，防止上一个还没结束又开始display
+
 static char inputFindText[100010] = "";
 static char inputReplaceText[100010] = "";
 
@@ -128,10 +134,10 @@ static void drawMenu() {
     SetPointSize(13);
 
     char *menuListFile[] = {"文件",
-        "新建                  Ctrl-N",
-        "打开                  Ctrl-O",
-        "保存                  Ctrl-S",
-        "退出                  Ctrl-W"
+        "新建                  Ctrl+N",
+        "打开                  Ctrl+O",
+        "保存                  Ctrl+S",
+        "退出                  Ctrl+W"
     };
 
     double fH = GetFontHeight();
@@ -158,20 +164,20 @@ static void drawMenu() {
         case 3:     //保存
             saveFile();
             break;
-        case 4: //退出，在callback > inputChar()时判断输入控制符，此处不再做判断
-            // exitApplication();
+        case 4:     //退出
+            exitApplication();
             break;
     }
 
     char *menuListEdit[] = {"编辑",
-        "撤销                   Ctrl-Z",
-        "重做                   Ctrl-Y",
-        "剪切                   Ctrl-X",
-        "复制                   Ctrl-C",
-        "粘贴                   Ctrl-V",
-        "查找                   Ctrl-F",
-        "替换                   Ctrl-H",
-        "全选                   Ctrl-A"
+        "撤销                   Ctrl+Z",
+        "重做                   Ctrl+Y",
+        "剪切                   Ctrl+X",
+        "复制                   Ctrl+C",
+        "粘贴                   Ctrl+V",
+        "查找                   Ctrl+F",
+        "替换                   Ctrl+H",
+        "全选                   Ctrl+A"
     };
 
     selection = menuList(GenUIID(0), x + w, y - h, w, wlist, h, menuListEdit, sizeof(menuListEdit) / sizeof(menuListEdit[0]));
@@ -209,10 +215,10 @@ static void drawMenu() {
     }
 
     char *menuListSetting[] = {"首选项",
-        "设置                   Ctrl-E",
-        "键盘快捷方式      Ctrl-K",
+        "设置                   Ctrl+E",
+        "键盘快捷方式      Ctrl+K",
         "关于 Notepad--",
-        "帮助"
+        "帮助                   F1"
     };
 
     selection = menuList(GenUIID(0), x + w * 2, y - h, w, wlist, h, menuListSetting, sizeof(menuListSetting) / sizeof(menuListSetting[0]));
@@ -227,7 +233,6 @@ static void drawMenu() {
             isShowAbout ^= 1;
             break;
         case 4:     //帮助
-            // system("start https://github.com/PeiPei233/UnableToCount");
             WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
             break;
     }
@@ -749,7 +754,7 @@ static void drawReplaceArea() {
 
     //显示替换全部按钮
     if (button(GenUIID(0), buttonReplaceAllX, buttonReplaceAllY, buttonReplaceAllW, buttonReplaceAllH, replaceAllButton)) {
-        while (replaceText(inputFindText, inputReplaceText));
+        replaceAll(inputFindText, inputReplaceText);
     }
 
     SetFont(originFont);
@@ -763,6 +768,7 @@ static char lineSpacing[10010];
 static char backgroundColor[10010];
 static char textColor[10010];
 static int initSetting = 1;     //1: 需要初始化
+static TextStyle tmpStyle;
 
 static void drawSettingPage() {
     char *originFont = GetFont();
@@ -783,15 +789,15 @@ static void drawSettingPage() {
 
     setButtonColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
 
-    TextStyle style = getTextStyle();
+    tmpStyle = getTextStyle();
 
     if (initSetting) {
         initSetting = 0;
-        strcpy(fontFamily, style.fontFamily);
-        strcpy(fontSize, IntegerToString(style.fontSize));
-        strcpy(lineSpacing, RealToString(style.lineSpacing));
-        strcpy(backgroundColor, style.backgroundColor);
-        strcpy(textColor, style.textColor);
+        strcpy(fontFamily, tmpStyle.fontFamily);
+        strcpy(fontSize, IntegerToString(tmpStyle.fontSize));
+        strcpy(lineSpacing, RealToString(tmpStyle.lineSpacing));
+        strcpy(backgroundColor, tmpStyle.backgroundColor);
+        strcpy(textColor, tmpStyle.textColor);
     }
 
     SetPointSize(40);
@@ -816,7 +822,7 @@ static void drawSettingPage() {
     if (textbox(GenUIID(0), x + w, y - fD * 2 - fH * 1.1, tw, th, fontFamily, sizeof(fontFamily) / sizeof(fontFamily[0]))) {
 
     }
-    style.fontFamily = CopyString(fontFamily);
+    tmpStyle.fontFamily = CopyString(fontFamily);
 
     MovePen(x, y - h);
     DrawTextString("字体大小：");
@@ -830,7 +836,7 @@ static void drawSettingPage() {
     int tmpFontSize;
     sscanf(fontSize, "%d", &tmpFontSize);
     if (tmpFontSize > 0) {
-        style.fontSize = tmpFontSize;
+        tmpStyle.fontSize = tmpFontSize;
     } else if (strlen(fontSize)) {
         SetPenColor("Red");
         MovePen(x + w + tw + fH, y - h - fH - fD);
@@ -850,7 +856,7 @@ static void drawSettingPage() {
     double tmpLineSpacing;
     sscanf(lineSpacing, "%lf", &tmpLineSpacing);
     if (tmpLineSpacing > 0) {
-        style.lineSpacing = tmpLineSpacing;
+        tmpStyle.lineSpacing = tmpLineSpacing;
     } else if (strlen(lineSpacing)) {
         SetPenColor("Red");
         MovePen(x + w + tw + fH, y - h * 2 - fH - fD);
@@ -874,16 +880,16 @@ static void drawSettingPage() {
             SetPenColor("Menu Hot Gray");
             drawRectangle(x + w + tw + fH, y - h * 3 - fD * 2 - fH * 1.1, th, th, 0);
             SetPenColor(originColor);
-            style.textColor = CopyString(textColor);
+            tmpStyle.textColor = CopyString(textColor);
         } else {
             SetPenColor("Red");
             MovePen(x + w + tw + fH, y - h * 3 - fH - fD);
             DrawTextString("无效的十六进制颜色码");
             SetPenColor(originColor);
-            defineColorRGB("tmpTextColor", style.textColor);
+            defineColorRGB("tmpTextColor", tmpStyle.textColor);
         }
     } else {
-        defineColorRGB("tmpTextColor", style.textColor);
+        defineColorRGB("tmpTextColor", tmpStyle.textColor);
         SetPenColor("tmpTextColor");
         drawRectangle(x + w + tw + fH, y - h * 3 - fD * 2 - fH * 1.1, th, th, 1);
         SetPenColor("Menu Hot Gray");
@@ -907,16 +913,16 @@ static void drawSettingPage() {
             SetPenColor("Menu Hot Gray");
             drawRectangle(x + w + tw + fH, y - h * 4 - fD * 2 - fH * 1.1, th, th, 0);
             SetPenColor(originColor);
-            style.backgroundColor = CopyString(backgroundColor);
+            tmpStyle.backgroundColor = CopyString(backgroundColor);
         } else {
             SetPenColor("Red");
             MovePen(x + w + tw + fH, y - h * 4 - fH - fD);
             DrawTextString("无效的十六进制颜色码");
             SetPenColor(originColor);
-            defineColorRGB("tmpBackgroundColor", style.backgroundColor);
+            defineColorRGB("tmpBackgroundColor", tmpStyle.backgroundColor);
         }
     } else {
-        defineColorRGB("tmpBackgroundColor", style.backgroundColor);
+        defineColorRGB("tmpBackgroundColor", tmpStyle.backgroundColor);
         SetPenColor("tmpBackgroundColor");
         drawRectangle(x + w + tw + fH, y - h * 4 - fD * 2 - fH * 1.1, th, th, 1);
         SetPenColor("Menu Hot Gray");
@@ -935,10 +941,10 @@ static void drawSettingPage() {
 
     double H = h;
     y = y - h * 5;
-    SetFont(style.fontFamily);
-    SetPointSize(style.fontSize);
+    SetFont(tmpStyle.fontFamily);
+    SetPointSize(tmpStyle.fontSize);
     fH = GetFontHeight();
-    h = fH * style.lineSpacing;
+    h = fH * tmpStyle.lineSpacing;
     H = max(H, h * 5);
     char *text[] = {
         "这是一段实例文本",
@@ -975,7 +981,7 @@ static void drawSettingPage() {
     if (button(GenUIID(0), x + TextStringWidth("  "), y - h, TextStringWidth("←"), h, "←")) {
         isShowSetting ^= 1;
         initSetting ^= 1;
-        setTextStyle(style);
+        setTextStyle(tmpStyle);
         SetFont(originFont);
         SetPointSize(originPointSize);
         SetPenColor(originColor);
@@ -986,7 +992,9 @@ static void drawSettingPage() {
     SetFont(originFont);
     SetPointSize(originPointSize);
 }
-
+/**
+ * 绘制键盘快捷键页面
+ */ 
 static void drawKeyboardPage() {
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
@@ -1028,13 +1036,16 @@ static void drawKeyboardPage() {
         "保存文件", "Ctrl + S",
         "退出Notepad--", "Ctrl + W",
         "撤销", "Ctrl + Z",
-        "重做", "Ctrl + Y",
+        "重做", "Ctrl + Y / Ctrl + Shift + Z",
         "剪切", "Ctrl + X",
         "复制", "Ctrl + C",
         "粘贴", "Ctrl + V",
         "查找", "Ctrl + F",
         "替换", "Ctrl + H",
-        "全选", "Ctrl + A"
+        "全选", "Ctrl + A",
+        "打开/保存并退出设置", "Ctrl + E",
+        "打开/关闭键盘快捷键界面", "Ctrl + K",
+        "帮助", "F1"
     };
 
     for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
@@ -1056,6 +1067,9 @@ static void drawKeyboardPage() {
     SetPointSize(originPointSize);
 }
 
+/**
+ * 绘制关于页面
+ */
 static void drawAboutPage() {
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
@@ -1105,6 +1119,74 @@ static void drawAboutPage() {
     }
 
     SetPenColor(originColor);
+    SetFont(originFont);
+    SetPointSize(originPointSize);
+}
+
+/**
+ * 绘制右键菜单
+ */ 
+static void drawContextMenu() {
+    
+    setButtonColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
+
+    char *originFont = GetFont();
+    int originPointSize = GetPointSize();
+    SetFont("微软雅黑");
+    SetPointSize(13);
+
+    static char *contextMenuList[] = {
+        "撤销                           Ctrl+Z",
+        "重做                           Ctrl+Y",
+        "剪切                           Ctrl+X",
+        "复制                           Ctrl+C",
+        "粘贴                           Ctrl+V",
+        "全选                           Ctrl+A"
+    };
+
+    double fH = GetFontHeight();
+    double h = fH * 1.8;
+    double w = TextStringWidth(contextMenuList[0]) * 1.2;
+    double x = min(contextMenuX, winWidth - w);
+    double y = max(contextMenuY, h * (sizeof(contextMenuList) / sizeof(contextMenuList[0])));
+
+    for (int i = 0; i < sizeof(contextMenuList) / sizeof(contextMenuList[0]); i++) {
+        if (button(GenUIID(i), x, y - h * (i + 1), w, h, contextMenuList[i])) {
+            switch (i)
+            {
+            case 0:     //撤销
+                undo();
+                break;
+
+            case 1:     //重做
+                redo();
+                break;
+            
+            case 2:     //剪切
+                shearText();
+                break;
+
+            case 3:     //复制
+                copyText();
+                break;
+
+            case 4:     //粘贴
+                pasteText();
+                break;
+            
+            case 5:{    //全选
+                    int totr = getTotalRow();
+                    int totc = getRowLength(totr) + 1;
+                    setSelectStartRC((RCNode) {1, 1});
+                    setSelectEndRC((RCNode) {totr, totc});
+                    setCursorRC((RCNode) {totr, totc});
+                    break;
+                }
+            }
+            isShowContextMenu = 0;
+        }
+    }
+
     SetFont(originFont);
     SetPointSize(originPointSize);
 }
@@ -1300,10 +1382,6 @@ RCNode XYtoRC(int x, int y) {
     return mouse;
 }
 
-//右键菜单坐标
-static double contextMenuX;
-static double contextMenuY;
-
 /**
  * 设置右键菜单的左上角位置
  */ 
@@ -1312,72 +1390,113 @@ void setContextMenuXY(double x, double y) {
     contextMenuY = y;
 } 
 
+
 /**
- * 绘制右键菜单
+ * 用于处理键盘按下时的快捷键
+ * key      按下的按键
+ * isShift  是否按下Shift
+ * isCtrl   是否按下Ctrl
+ * isTyping 是否在输入状态
  */ 
-static void drawContextMenu() {
-    char *originFont = GetFont();
-    int originPointSize = GetPointSize();
-    SetFont("微软雅黑");
-    SetPointSize(13);
-
-    static char *contextMenuList[] = {
-        "撤销                           Ctrl+Z",
-        "重做                           Ctrl+Y",
-        "剪切                           Ctrl+X",
-        "复制                           Ctrl+C",
-        "粘贴                           Ctrl+V",
-        "全选                           Ctrl+A"
-    };
-
-    double fH = GetFontHeight();
-    double h = fH * 1.8;
-    double w = TextStringWidth(contextMenuList[0]) * 1.2;
-    double x = min(contextMenuX, winWidth - w);
-    double y = max(contextMenuY, h * (sizeof(contextMenuList) / sizeof(contextMenuList[0])));
-
-    for (int i = 0; i < sizeof(contextMenuList) / sizeof(contextMenuList[0]); i++) {
-        if (button(GenUIID(i), x, y - h * (i + 1), w, h, contextMenuList[i])) {
-            switch (i)
-            {
-            case 0:     //撤销
-                undo();
+void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
+    if (isCtrl && getTextDisplayState()) {  //在文本编辑窗口的快捷键
+        switch (key) {
+            case 'N':   //Ctrl + N  新建
+                createFile();
                 break;
-
-            case 1:     //重做
+            case 'O':   //Ctrl + O  打开
+                openFile();
+                break;
+            case 'S':   //Ctrl + S  保存
+                saveFile();
+                break;
+            case 'W':   //Ctrl + W  退出
+                exitApplication();
+                break;
+            case 'Z':   
+                if (isShift) {
+                    redo(); //Ctrl + Shift + Z  重做
+                } else {
+                    undo(); //Ctrl + Z  撤销
+                }
+                break;
+            case 'Y':   //Ctrl + Y  重做
                 redo();
                 break;
-            
-            case 2:     //剪切
+            case 'X':   //Ctrl + X  剪切
                 shearText();
                 break;
-
-            case 3:     //复制
+            case 'C':   //Ctrl + C  复制
                 copyText();
                 break;
-
-            case 4:     //粘贴
+            case 'V':   //Ctrl + V  粘贴
                 pasteText();
                 break;
-            
-            case 5:{    //全选
-                    int totr = getTotalRow();
-                    int totc = getRowLength(totr) + 1;
-                    setSelectStartRC((RCNode) {1, 1});
-                    setSelectEndRC((RCNode) {totr, totc});
-                    setCursorRC((RCNode) {totr, totc});
-                    break;
-                }
+            case 'F':   //Ctrl + F  查找
+                isShowFind ^= 1;
+                break;
+            case 'H':   //Ctrl + H  替换
+                isShowReplace ^= 1;
+                break;
+            case 'A':   //Ctrl + A  全选
+            {
+                int totr = getTotalRow();
+                int totc = getRowLength(totr) + 1;
+                setSelectStartRC((RCNode) {1, 1});
+                setSelectEndRC((RCNode) {totr, totc});
+                setCursorRC((RCNode) {totr, totc});
+                break;
             }
-            isShowContextMenu = 0;
+            case 'E':   //Ctrl + E  设置界面
+                isShowSetting = 1;
+                break;
+            case 'K':   //Ctrl + K  键盘快捷键界面
+                isShowKeyboard = 1;
+                break;
+        }
+    } else if (isCtrl && isShowSetting) { //设置界面
+        switch (key) {
+            case 'E':   //Ctrl + E  设置界面
+            case 'K':   //Ctrl + K  键盘快捷键界面
+                isShowSetting = 0;
+                initSetting ^= 1;
+                setTextStyle(tmpStyle);
+                if (key == 'K') isShowKeyboard = 1;
+                break;
+            case 'W':   //Ctrl + W  退出
+                exitApplication();
+                break;
+        }
+    } else if (isCtrl && isShowKeyboard) {    //键盘快捷键界面
+        switch (key) {
+            case 'E':   //Ctrl + E  设置界面
+            case 'K':   //Ctrl + K  键盘快捷键界面
+                isShowKeyboard = 0;
+                if (key == 'E') isShowSetting = 1;
+                break;
+            case 'W':   //Ctrl + W  退出
+                exitApplication();
+                break;
+        }
+    } else if (isCtrl && isShowAbout) {   //关于界面
+        switch (key) {
+            case 'E':   //Ctrl + E  设置界面
+                isShowAbout = 0;
+                isShowSetting = 1;
+                break;
+            case 'K':   //Ctrl + K  键盘快捷键界面
+                isShowAbout = 0;
+                isShowSetting = 1;
+                break;
+            case 'W':   //Ctrl + W  退出
+                exitApplication();
+                break;
         }
     }
-
-    SetFont(originFont);
-    SetPointSize(originPointSize);
+    if (key == VK_F1) {     //F1    帮助
+        WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+    }
 }
-
-static int lockDisplay = 0;     //用来给display上锁，防止上一个还没结束又开始display
 
 /**
  * 显示窗口内容

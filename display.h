@@ -68,6 +68,15 @@ void display();
 RCNode XYtoRC(int x, int y);
 
 /**
+ * 用于处理键盘按下时的快捷键
+ * key      按下的按键
+ * isShift  是否按下Shift
+ * isCtrl   是否按下Ctrl
+ * isTyping 是否在输入状态
+ */ 
+void processShortcutKey(int key, int isShift, int isCtrl, int isTyping);
+
+/**
  * 若光标不在窗口中，则移动窗口使光标在窗口中
  */ 
 void setCursorInWindow();
