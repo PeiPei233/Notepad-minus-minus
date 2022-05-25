@@ -874,7 +874,7 @@ static void InitDisplay(void)
     wndcls.lpfnWndProc = GraphicsEventProc;
     wndcls.lpszClassName = "Graphics Window";
     wndcls.lpszMenuName = NULL;
-    wndcls.style = CS_HREDRAW | CS_VREDRAW;
+    wndcls.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;    //修复了不能收到鼠标双击回调消息的bug
     
     RegisterClass(&wndcls);
     

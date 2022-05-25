@@ -10,11 +10,11 @@
 #define OP_DELETE 0x20
 
 typedef struct node {
-    int op;
-    RCNode pos;
-    string str;
-    struct node *next;
-    struct node *last;
+    int op;             //操作
+    RCNode pos;         //操作位置
+    string str;         //变化的字符串
+    struct node *next;  //下一个节点
+    struct node *last;  //上一个节点
 } linkedList;
 
 /**

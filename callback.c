@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "storage.h"
 #include "callback.h"
+#include "ctype.h"
 
 static int isButtonDown = 0;
 static int isShift = 0;
@@ -145,11 +146,12 @@ void getMouse(int x, int y, int button, int event) {
                 setCursorRC(mouse);
                 setSelectStartRC(mouse);
                 setSelectEndRC(mouse);
+                setCursorInWindow();
             }
-            if (getContextMenuDisplayState()) setContextMenuDisplayState(0);
+            if (getContextMenuDisplayState()) setContextMenuDisplayState(0);    //不显示右键菜单
             break;
         case MOUSEMOVE:
-            if (isButtonDown) {
+            if (isButtonDown) {     //鼠标拖动选择
                 RCNode mouse = XYtoRC(x, y);
                 setCursorRC(mouse);
                 setSelectEndRC(mouse);
@@ -158,11 +160,11 @@ void getMouse(int x, int y, int button, int event) {
             break;
         case BUTTON_UP:
             if (button == LEFT_BUTTON) {
-                RCNode mouse = XYtoRC(x, y);
+                // RCNode mouse = XYtoRC(x, y);
                 isButtonDown = 0;
-                setCursorRC(mouse);
-                setSelectEndRC(mouse);
-                setCursorInWindow();
+                // setCursorRC(mouse);
+                // setSelectEndRC(mouse);
+                // setCursorInWindow();
             } else if (button == RIGHT_BUTTON && getTextDisplayState()) {
                 if (getContextMenuDisplayState()) {
                     setContextMenuDisplayState(0);
@@ -196,12 +198,88 @@ void getMouse(int x, int y, int button, int event) {
                 setWindowCurrentRC((RCNode) {winCurrent.row, winCurrent.column + (ceil(winHeight / 12 / TextStringWidth(" ")))});
             }
             break;
-        case BUTTON_DOUBLECLICK:
+        case BUTTON_DOUBLECLICK:    //鼠标双击
+            if (button == LEFT_BUTTON) {   
+                RCNode mouse = XYtoRC(x, y);
+                RCNode start = mouse, end = mouse;
+                const string s = getRowContent(mouse.row);
+                char ch = s[mouse.column - 1];
+                int len = getRowLength(mouse.row);
+                if (isalnum(ch)) {  //如果是数字/字母，则选中相连的所有数字/字母（包括下划线）
+                    while (start.column >= 1 && (isalnum(s[start.column - 1]) || s[start.column - 1] == '_')) {
+                        start.column--;
+                    }
+                    start.column++;
+                    while (end.column <= len && (isalnum(s[end.column - 1]) || s[end.column - 1] == '_')) {
+                        end.column++;
+                    }
+                    setSelectStartRC(start);
+                    setSelectEndRC(end);
+                    setCursorRC(end);
+                    setCursorInWindow();
+                } else if (ch & 0x80) { //如果是中文，则选中相连的所有中文
+                    while (start.column >= 1 && (s[start.column - 1] & 0x80)) {
+                        start.column--;
+                    }
+                    start.column++;
+                    while (end.column <= len && (s[end.column - 1] & 0x80)) {
+                        end.column++;
+                    }
+                    setSelectStartRC(start);
+                    setSelectEndRC(end);
+                    setCursorRC(end);
+                    setCursorInWindow();
+                } else if (isspace(ch)) {     //如果是空格/制表符，则选中相连的所有空格/制表符
+                    while (start.column >= 1 && isspace(s[start.column - 1])) {
+                        start.column--;
+                    }
+                    start.column++;
+                    while (end.column <= len && isspace(s[end.column - 1])) {
+                        end.column++;
+                    }
+                    setSelectStartRC(start);
+                    setSelectEndRC(end);
+                    setCursorRC(end);
+                    setCursorInWindow();
+                } else if (ch == '_') {     //如果是下划线，如果旁边有数字/字母，则和数字/字母连起来，否则则当作普通标点符号
+                    while (start.column >= 1 && (isalnum(s[start.column - 1]) || s[start.column - 1] == '_')) {
+                        start.column--;
+                    }
+                    start.column++;
+                    while (end.column <= len && (isalnum(s[end.column - 1]) || s[end.column - 1] == '_')) {
+                        end.column++;
+                    }
+                    if (start.column == mouse.column && end.column == mouse.column + 1) {   //旁边没有数字/字母
+                        while (start.column >= 1 && ispunct(s[start.column - 1])) {
+                            start.column--;
+                        }
+                        start.column++;
+                        while (end.column <= len && ispunct(s[end.column - 1])) {
+                            end.column++;
+                        }
+                    }
+                    setSelectStartRC(start);
+                    setSelectEndRC(end);
+                    setCursorRC(end);
+                    setCursorInWindow();
+                } else if (ispunct(ch)) {   //如果是标点符号，则选中所有连续的标点符号
+                    while (start.column >= 1 && ispunct(s[start.column - 1])) {
+                        start.column--;
+                    }
+                    start.column++;
+                    while (end.column <= len && ispunct(s[end.column - 1])) {
+                        end.column++;
+                    }
+                    setSelectStartRC(start);
+                    setSelectEndRC(end);
+                    setCursorRC(end);
+                    setCursorInWindow();
+                }
+            }
             break;
 
     }
 
-    
     SetFont(originFont);
     SetPointSize(originPointSize);
 }
@@ -519,14 +597,6 @@ void inputKeyboard(int key, int event) {
                     setCursorInWindow();
                 }
                 break;
-            //TAB
-            // case VK_TAB:
-            //     puts("TAB");
-            //     break;
-            //ENTER
-            // case VK_RETURN:
-            //     puts("ENTER");
-            //     break;
             case VK_ESCAPE:     //退出查找/替换的窗口
                 if (getFindDisplayState()) setFindDisplayState(0);
                 if (getReplaceDisplayState()) setReplaceDisplayState(0);
