@@ -1128,7 +1128,7 @@ static void drawAboutPage() {
  */ 
 static void drawContextMenu() {
     
-    setButtonColors("Menu Gray", "Black", "Menu Hot Gray", "Black", 1);
+    setButtonColors("Button Gray", "Black", "Light Gray", "Black", 1);
 
     char *originFont = GetFont();
     int originPointSize = GetPointSize();
