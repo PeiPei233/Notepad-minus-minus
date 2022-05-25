@@ -9,9 +9,27 @@
 #include "display.h"
 #include "file.h" 
 #include "storage.h"
-//在这里添加所需要的自定义的头文件
 
 double winWidth, winHeight;
+
+/**
+ * 初始化应用程序
+ */ 
+void initApplication() {
+	winHeight = GetWindowHeight();
+	winWidth = GetWindowWidth();
+	
+	initStorage();
+	initFileConfig();
+	InitGUI();
+	initDisplay();
+
+	setCursorRC((RCNode) {1, 1});
+	setSelectStartRC((RCNode) {1, 1});
+	setSelectEndRC((RCNode) {1, 1});
+	setCursorInWindow();
+
+}
 
 void MouseEventProcess(int x, int y, int button, int event) {
 	uiGetMouse(x, y, button, event);
@@ -57,14 +75,8 @@ void Main() {
 	SetWindowTitle("Notepad--");
 	InitGraphics();
 	// InitConsole();
-	
-	winHeight = GetWindowHeight();
-	winWidth = GetWindowWidth();
-	
-	initStorage();
-	initFileConfig();
-	InitGUI();
-	initDisplay();
+
+	initApplication();
 
 	registerCharEvent(CharEventProcess);
 	registerKeyboardEvent(KeyboardEventProcess);
