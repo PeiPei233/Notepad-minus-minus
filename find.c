@@ -10,12 +10,16 @@
 #include "libgraphics.h"
 #include "storage.h"
 #include "display.h"
-static int restart=0; 
+#include "record.h"
+
+static int restart=0; //记录是否重新扫描 
+static int recordAll=0; //判断操作是否为replaceAll 
+static int recordID;
 /**
  * 根据传入的字符串从光标位置（选择范围前）查找上一个匹配的字符串
  * 查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
  */ 
-int findLastText(char *src) {
+int findLastText(const char *src) {
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
     RCNode cursor = getCursorRC();
@@ -90,7 +94,7 @@ int findLastText(char *src) {
     根据传入的字符串查找从当前光标位置开始的下一个匹配的字符串
     查找成功后更新选择范围为下一个匹配的字符串，并更新光标位置为选择范围末端，如果光标不在窗口内则更新窗口位置
 */
-int findNextText(char *src) {
+int findNextText(const char *src) {
 	// printf("FIND:%s\n", src);
     RCNode startCursor = getSelectEndRC();  //从选择范围终点作为查找开始坐标
     int row=startCursor.row, column=startCursor.column;
@@ -189,7 +193,7 @@ int findNextText(char *src) {
     如果当前选中的字符串不是src，则先查找光标后的下一个符合的src并选中，即先执行findText(src)
     否则如果当前选中的字符串就是src，则替换为tar并将选择范围改为替换后的字符串并更新光标位置为选择位置末端吗
 */
-int replaceText(char *src, char *tar) {
+int replaceText(const char *src, const char *tar) {
     RCNode selectStart, selectEnd;
     selectStart = getSelectStartRC();
     selectEnd = getSelectEndRC();
@@ -220,12 +224,20 @@ int replaceText(char *src, char *tar) {
 	    printf("REPLACE:FIND!\n");
 	    deleteContent(selectStart,selectEnd,1);     //删除源字符串 
 	    addContent(BY_STRING,selectStart,tar,1);  //粘贴目的字符串 
-	    setSelectStartRC(selectStart);
+	    
+	    if(!recordAll){                               //记录操作，并为一步 若为replaceAll,则全部为一步 
+	    	recordID=newRecordID();
+		}
+	    record(OP_DELETE,selectStart,src,recordID);
+	    record(OP_ADD,selectStart,tar,recordID);
+	    
+	    setSelectStartRC(selectStart);    
 	    selectStart.column+=strlen(tar);
 	    setSelectEndRC(selectStart);              //设置选择范围 
 	    setCursorRC(selectStart);
-		free(selectStr);
 	    findNextText(src);
+		free(selectStr);
+		
 	    return 1; 
 	}
 	else{				//若不能找到结果，返回0 
@@ -236,15 +248,21 @@ int replaceText(char *src, char *tar) {
 /*
 	替换全部 
 */ 
-void replaceAll(char *src,char *tar){
+void replaceAll(const char *src,const char *tar){
 	restart=0;
+	recordAll=1;
+	recordID=newRecordID();
 	RCNode start=getSelectStartRC();
 	RCNode now=getSelectStartRC();
-	while((restart==0&&RCcompare(now,start)>=0)||(restart==1&&RCcompare(start,now)>0)){
-		if(!replaceText(src,tar)){
-			break;
+	while(1){
+        now=getSelectStartRC();
+        if(!((restart==0&&RCcompare(now,start)>=0)||(restart==1&&RCcompare(start,now)>0))){
+            break;
+        }
+        if(!replaceText(src,tar)){
+        	break;
 		}
-		now=getSelectStartRC();
 	}
 	restart=0;
+	recordAll=0;      //恢复一般状态 
 }

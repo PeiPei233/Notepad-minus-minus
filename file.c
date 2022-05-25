@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include "storage.h"
 #include "libgraphics.h"
+#include "record.h"
 
 static FILE *currentFile;  //当前文件 
 OPENFILENAMEA ofn;
@@ -66,6 +67,7 @@ void openFile() {
         }
     }
     initStorage();      //覆盖原先的内容
+    initRecord(); 
     unsigned int degree=0;
 	char ch;
 	RCNode cursor = {1, 1};
@@ -166,6 +168,50 @@ void saveFile() {
 	isSaved=1;
 	fclose(currentFile);
 
+}
+
+/*
+	另存为 
+	如果此时文件不是临时写的，则同时保存当时文件 
+*/
+void saveAnother(){
+	OPENFILENAMEA ofn2;
+	char szFile2[512];
+	FILE *anotherFile;
+	int flag=0;
+    ZeroMemory(&ofn, sizeof(ofn2));        //类似的操作 
+    ofn2.lStructSize = sizeof(ofn2);
+    ofn2.hwndOwner = NULL;
+    ofn2.lpstrFile = szFile2;
+    ofn2.lpstrFile[0] = '\0';
+    ofn2.nMaxFile = sizeof(szFile2);
+    ofn2.lpstrFilter = "文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
+    ofn2.nFilterIndex = 1;
+    ofn2.lpstrInitialDir = NULL;
+    ofn2.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    if (GetSaveFileNameA(&ofn2)){
+		anotherFile=fopen(ofn2.lpstrFile,"w+");
+		if(isCreated){                   //如果此时文件不是临时写的，则同时保存当时文件 
+			currentFile=fopen(ofn.lpstrFile,"w+");     //此时ofn必有值 
+			flag=1;
+			isSaved=1; 
+		}
+        int i,row=getTotalRow();
+	   	for(i=1;i<=row;i++){
+			char *rowcontent=getRowContent(i);
+			int len=getRowLength(i);
+			for(int j=0;j<len;j++){
+				fputc(rowcontent[j],anotherFile);
+				if(flag==1){
+					fputc(rowcontent[j],currentFile);  //另存为后当前文件也保存
+				}
+			}
+		}
+		fclose(anotherFile);            
+    }
+	else{
+	     //MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 
+    }
 }
 
 /*

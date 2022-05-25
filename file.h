@@ -38,6 +38,12 @@ void saveFile();
 int getSaveState();
 
 /*
+	另存为 
+	如果此时文件不是临时写的，则同时保存当时文件 
+*/
+void saveAnother();
+ 
+/*
     设置保存状态
 */
 void setSaveState(int newSaveState);
