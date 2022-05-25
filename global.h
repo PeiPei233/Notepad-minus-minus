@@ -54,5 +54,11 @@ void setSelectEndRC(RCNode newEndSelect);
 	start在end前返回1，相等返回0，否则返回-1 
 */
 int RCcompare(RCNode start,RCNode end);
- 
+
+/**
+ * 计算传入字符的结束坐标
+ * 传入开始的坐标与中间的字符串
+ * */
+RCNode endPos(RCNode startPos, char *str);
+
 #endif

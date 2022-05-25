@@ -90,3 +90,35 @@ int RCcompare(RCNode start,RCNode end){
 		return -1;
 	}
 }
+
+/**
+ * 计算传入字符的结束坐标
+ * 传入开始的坐标与中间的字符串
+ * */
+RCNode endPos(RCNode startPos, char *str)
+{
+    RCNode nextPos = startPos;
+    char *p = str;
+    char *pp = p;
+    char *enter = p;
+    int isEnter = 0;
+    while(*pp)
+    {
+        if(*pp=='\n')
+        {
+        	isEnter = 1;
+            enter = pp;   //定位换行符位置
+            nextPos.row ++;
+        }
+        pp ++;
+    }
+    if(isEnter)
+    {
+    	nextPos.column = strlen(enter);   //最后一行的列数为换行符后字符串的字数
+	}else
+	{
+		nextPos.column += strlen(enter);  //列数为原列数加字符串长度 
+	}
+    
+    return nextPos;
+}
