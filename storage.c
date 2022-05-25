@@ -131,15 +131,15 @@ unsigned int getRowLength(int row) {
  * 添加字符
  * pos:添加的位置
  * ch:添加的字符
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContentByChar(RCNode pos, char ch, int doRecord) {
+void addContentByChar(RCNode pos, char ch, int recordID) {
     int row = pos.row - 1, col = pos.column - 1;    //在数组中下标从零开始
-    if (doRecord) {
+    if (recordID) {
         string s = (char *) malloc(sizeof(char) * 2);
         s[0] = ch;
         s[1] = 0;
-        record(OP_ADD, pos, s);
+        record(OP_ADD, pos, s, recordID);
     }
     if (ch == '\n') {   //若是换行符，则新开一行，其他行下移
         sizeR++;
@@ -212,17 +212,17 @@ void addContentByChar(RCNode pos, char ch, int doRecord) {
  * 添加字符串
  * start:起始位置
  * src:添加的字符串
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContentByString(RCNode start, string src, int doRecord) {
+void addContentByString(RCNode start, string src, int recordID) {
     unsigned int lens = strlen(src);
     if (!lens || !src) return;
-    if (doRecord) {
+    if (recordID) {
         string addStr = (char *) malloc(sizeof(char) * (lens + 1));
         for (int i = 0; i <= lens; i++) {
             addStr[i] = src[i];
         }
-        record(OP_ADD, start, addStr);
+        record(OP_ADD, start, addStr, recordID);
     }
 
     int row = start.row - 1, col = start.column - 1;
@@ -349,13 +349,13 @@ void addContentByString(RCNode start, string src, int doRecord) {
  * 添加内容（略麻烦）
  * by:添加方式 BY_CHAR 通过字符形式添加 BY_STRING 通过字符串形式添加
  * pos:添加位置（起始位置）
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContent(int by, RCNode pos, char *src, int doRecord) {
+void addContent(int by, RCNode pos, char *src, int recordID) {
     if (by == BY_CHAR) {
-        addContentByChar(pos, *src, doRecord);
+        addContentByChar(pos, *src, recordID);
     } else if (by == BY_STRING) {
-        addContentByString(pos, src, doRecord);
+        addContentByString(pos, src, recordID);
     }
 }
 
@@ -363,19 +363,19 @@ void addContent(int by, RCNode pos, char *src, int doRecord) {
  * 删除内容
  * start:起始位置
  * end:终止位置
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  * 注意删除的范围是[start, end)左闭右开区间
  */ 
-void deleteContent(RCNode start, RCNode end, int doRecord) {
+void deleteContent(RCNode start, RCNode end, int recordID) {
     if (start.row > end.row || (start.row == end.row && start.column > end.column)) {
         RCNode t = start;
         start = end;
         end = t;
     }
     if (start.row == end.row && start.column == end.column) return;
-    if (doRecord) {
+    if (recordID) {
         string deleteStr = getContent(start, end);
-        record(OP_DELETE, start, deleteStr);
+        record(OP_DELETE, start, deleteStr, recordID);
     }
     if (end.column == sizeL[end.row - 1] && end.row != sizeR) {     //如果需要删除行末的回车，则相当于end的位置在下一行开头
         end.row++;

@@ -14,6 +14,7 @@
 #include "storage.h"
 #include "callback.h"
 #include "ctype.h"
+#include "record.h"
 
 static int isButtonDown = 0;
 static int isShift = 0;
@@ -300,8 +301,9 @@ void inputChar(char ch) {
     setSaveState(0);    //新操作未保存
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
+    int recordID = newRecordID();
     if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {    //如果有选中范围则先把选中范围的内容删掉
-        deleteContent(startSelect, endSelect, 1);
+        deleteContent(startSelect, endSelect, recordID);
         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {   //如果开始在结束之后则交换顺序
             RCNode t = startSelect;
             startSelect = endSelect;
@@ -320,7 +322,7 @@ void inputChar(char ch) {
             chinese[1] = ch;
             chinese[2] = 0;
             lastChar = 0;
-            addContentByString(cursor, chinese, 1);
+            addContentByString(cursor, chinese, recordID);
             cursor.column += 2;
             setCursorRC(cursor);
             setSelectStartRC(cursor);
@@ -328,7 +330,7 @@ void inputChar(char ch) {
             lastChar = 0;
         }
     } else {    //一般字符
-        addContentByChar(cursor, ch, 1);
+        addContentByChar(cursor, ch, recordID);
         cursor.column++;
         setCursorRC(cursor);
         setSelectStartRC(cursor);
@@ -529,7 +531,7 @@ void inputKeyboard(int key, int event) {
                     RCNode endSelect = getSelectEndRC();
                     if (!(startSelect.column == endSelect.column && startSelect.row == endSelect.row)) {    //如果有选中就删除选中内容，不再操作
                         setSaveState(0);    //新操作未保存
-                        deleteContent(startSelect, endSelect, 1);
+                        deleteContent(startSelect, endSelect, newRecordID());
                         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
                             RCNode t = startSelect;
                             startSelect = endSelect;
@@ -545,16 +547,16 @@ void inputKeyboard(int key, int event) {
                     if (cursor.column == 1) {   //如果光标在行头，则删除换行符，两行合并成一行
                         cursor.row--;
                         cursor.column = getRowLength(cursor.row);
-                        deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 1}, 1);
+                        deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 1}, newRecordID());
                         setCursorRC(cursor);
                         setSelectStartRC(cursor);
                         setSelectEndRC(cursor);
                     } else {
                         if (cursor.column >= 3 && s[cursor.column - 2] & 0x80) {    //如果要删除的是中文
-                            deleteContent((RCNode) {cursor.row, cursor.column - 2}, cursor, 1);
+                            deleteContent((RCNode) {cursor.row, cursor.column - 2}, cursor, newRecordID());
                             cursor.column -= 2;
                         } else {
-                            deleteContent((RCNode) {cursor.row, cursor.column - 1}, cursor, 1);
+                            deleteContent((RCNode) {cursor.row, cursor.column - 1}, cursor, newRecordID());
                             cursor.column -= 1;
                         }
                         setCursorRC(cursor);
@@ -572,7 +574,7 @@ void inputKeyboard(int key, int event) {
                     RCNode endSelect = getSelectEndRC();
                     if (!(startSelect.column == endSelect.column && startSelect.row == endSelect.row)) {    //如果有选中就删除选中内容，不再操作
                         setSaveState(0);    //新操作未保存
-                        deleteContent(startSelect, endSelect, 1);
+                        deleteContent(startSelect, endSelect, newRecordID());
                         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
                             RCNode t = startSelect;
                             startSelect = endSelect;
@@ -586,9 +588,9 @@ void inputKeyboard(int key, int event) {
                     setSaveState(0);    //新操作未保存
                     string s = getRowContent(cursor.row);
                     if (s[cursor.column - 1] & 0x80) {      //如果是中文则要删两个字符
-                        deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 2}, 1);
+                        deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 2}, newRecordID());
                     } else {
-                        deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 1}, 1);
+                        deleteContent(cursor, (RCNode) {cursor.row, cursor.column + 1}, newRecordID());
                     }
 
                     setCursorRC(cursor);
@@ -681,8 +683,9 @@ void inputKeyboard(int key, int event) {
                     setSaveState(0);    //新操作未保存
                     RCNode startSelect = getSelectStartRC();
                     RCNode endSelect = getSelectEndRC();
+                    int recordID = newRecordID();
                     if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {    //如果有选中范围则先把选中范围的内容删掉
-                        deleteContent(startSelect, endSelect, 1);
+                        deleteContent(startSelect, endSelect, recordID);
                         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {   //如果开始在结束之后则交换顺序
                             RCNode t = startSelect;
                             startSelect = endSelect;
@@ -693,7 +696,7 @@ void inputKeyboard(int key, int event) {
                         setCursorRC(startSelect);
                     }
                     RCNode cursor = getCursorRC();
-                    addContentByChar(cursor, '\n', 1);  //换行用'\n‘来储存
+                    addContentByChar(cursor, '\n', recordID);  //换行用'\n‘来储存
                     cursor.row++;
                     cursor.column = 1;
                     setCursorRC(cursor);
@@ -707,8 +710,9 @@ void inputKeyboard(int key, int event) {
                     setSaveState(0);    //新操作未保存
                     RCNode startSelect = getSelectStartRC();
                     RCNode endSelect = getSelectEndRC();
+                    int recordID =  newRecordID();
                     if (!(startSelect.row == endSelect.row && startSelect.column == endSelect.column)) {    //如果有选中范围则先把选中范围的内容删掉
-                        deleteContent(startSelect, endSelect, 1);
+                        deleteContent(startSelect, endSelect, recordID);
                         if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {   //如果开始在结束之后则交换顺序
                             RCNode t = startSelect;
                             startSelect = endSelect;
@@ -719,7 +723,7 @@ void inputKeyboard(int key, int event) {
                         setCursorRC(startSelect);
                     }
                     RCNode cursor = getCursorRC();
-                    addContentByChar(cursor, '\t', 1);  //换行用'\n‘来储存
+                    addContentByChar(cursor, '\t', recordID);  //换行用'\n‘来储存
                     cursor.column++;
                     setCursorRC(cursor);
                     setSelectStartRC(cursor);

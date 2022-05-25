@@ -50,33 +50,33 @@ unsigned int getRowLength(int row);
  * 添加字符
  * pos:添加的位置
  * ch:添加的字符
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContentByChar(RCNode pos, char ch, int doRecord);
+void addContentByChar(RCNode pos, char ch, int recordID);
 
 /**
  * 添加字符串
  * start:起始位置
  * src:添加的字符串
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContentByString(RCNode start, string src, int doRecord);
+void addContentByString(RCNode start, string src, int recordID);
 
 /**
  * 添加内容（略麻烦）
  * by:添加方式 BY_CHAR 通过字符形式添加 BY_STRING 通过字符串形式添加
  * pos:添加位置（起始位置）
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContent(int by, RCNode pos, char *src, int doRecord);
+void addContent(int by, RCNode pos, char *src, int recordID);
 
 /**
  * 删除内容
  * start:起始位置
  * end:终止位置
- * doRecord:是否需要记录操作  0-不需要  1-需要
+ * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  * 注意删除的范围是[start, end)左闭右开区间
  */ 
-void deleteContent(RCNode start, RCNode end, int doRecord);
+void deleteContent(RCNode start, RCNode end, int recordID);
 
 #endif

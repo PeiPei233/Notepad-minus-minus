@@ -11,6 +11,7 @@
 #include <string.h>
 #include "storage.h"
 #include "display.h"
+#include "record.h"
 /*
     根据传入的起始行列坐标与终止行列坐标进行复制
 */
@@ -27,9 +28,7 @@ void copyText()
         return ;
     }
 	char *copystr=getContent(startSelect, endSelect); 
-    // printf("COPY:%d %d %s\n", start, end, copystr);
     
-    // printf("COPY2:%s\n", cur);
     //与系统剪切板进行交互
     if (!OpenClipboard(NULL)|| !EmptyClipboard())
     {   
@@ -55,14 +54,6 @@ void copyText()
 void pasteText() {
     RCNode startSelect = getSelectStartRC();
     RCNode endSelect = getSelectEndRC();
-    // int start, end, length;
-    // start = numofFormerWords(startSelect);
-    // end = numofFormerWords(endSelect);
-    // if (start > end) {
-    //     int t = start;
-    //     start = end;
-    //     end = t;
-    // }
 
     if (startSelect.row > endSelect.row || (startSelect.row == endSelect.row && startSelect.column > endSelect.column)) {
         RCNode t = startSelect;
@@ -98,9 +89,9 @@ void pasteText() {
     //关闭剪切板
     CloseClipboard();
     
-
-    deleteContent(startSelect,endSelect,1);
-    addContent(BY_STRING,startSelect,pasteText,1);  //粘贴目的字符串 
+    int recordID = newRecordID();
+    deleteContent(startSelect,endSelect,recordID);
+    addContent(BY_STRING,startSelect,pasteText,recordID);  //粘贴目的字符串 
 
     //获得末端的行列位置
     int lens = strlen(pasteText);
@@ -137,7 +128,7 @@ void shearText() {
         endSelect = t;
     }
     //将修改后的文本输入
-	deleteContent(startSelect,endSelect,1);
+	deleteContent(startSelect,endSelect,newRecordID());
      //设置选择范围 
     setSelectStartRC(startSelect);
     setSelectEndRC(startSelect);
