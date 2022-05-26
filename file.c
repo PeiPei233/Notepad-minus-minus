@@ -144,7 +144,7 @@ void saveFile() {
    		ofn.lpstrFileTitle[0] = '\0';
    	 	ofn.nMaxFileTitle = sizeof(szFileTitle);
 	    ofn.lpstrInitialDir = NULL;
-	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT;
 	    if (GetSaveFileNameA(&ofn)){
 			if(currentFile=fopen(ofn.lpstrFile,"w+")){
 				isCreated = 1;
@@ -174,12 +174,16 @@ void saveFile() {
 	另存为 
 	如果此时文件不是临时写的，则同时保存当时文件 
 */
-void saveAnother(){
+void saveAsFile(){
+	if (!isCreated) {
+		saveFile();
+		return;
+	}
 	OPENFILENAMEA ofn2;
 	char szFile2[512];
 	FILE *anotherFile;
 	int flag=0;
-    ZeroMemory(&ofn, sizeof(ofn2));        //类似的操作 
+    ZeroMemory(&ofn2, sizeof(ofn2));        //类似的操作 
     ofn2.lStructSize = sizeof(ofn2);
     ofn2.hwndOwner = NULL;
     ofn2.lpstrFile = szFile2;
@@ -188,7 +192,7 @@ void saveAnother(){
     ofn2.lpstrFilter = "文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
     ofn2.nFilterIndex = 1;
     ofn2.lpstrInitialDir = NULL;
-    ofn2.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    ofn2.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT;
     if (GetSaveFileNameA(&ofn2)){
 		anotherFile=fopen(ofn2.lpstrFile,"w+");
 		if(isCreated){                   //如果此时文件不是临时写的，则同时保存当时文件 

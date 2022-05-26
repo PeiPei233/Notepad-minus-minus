@@ -41,7 +41,7 @@ int getSaveState();
 	另存为 
 	如果此时文件不是临时写的，则同时保存当时文件 
 */
-void saveAnother();
+void saveAsFile();
  
 /*
     设置保存状态
