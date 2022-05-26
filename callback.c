@@ -702,6 +702,7 @@ void inputKeyboard(int key, int event) {
                     setCursorRC(cursor);
                     setSelectStartRC(cursor);
                     setSelectEndRC(cursor);
+                    setCursorInWindow();
                     lastChar = 0;
                 }
                 break;
@@ -728,6 +729,7 @@ void inputKeyboard(int key, int event) {
                     setCursorRC(cursor);
                     setSelectStartRC(cursor);
                     setSelectEndRC(cursor);
+                    setCursorInWindow();
                     lastChar = 0;
                 }
                 break;

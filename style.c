@@ -85,6 +85,8 @@ int defineColorRGB(char *des, char *rgb) {
     // printf("%s:%d %d %d\n", s, r, g, b);
 
     DefineColor(des, r * 1./255, g * 1./255, b * 1./255);
+    
+    free(s);
 
     return 1;
 } 
