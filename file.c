@@ -20,6 +20,7 @@ static char szFile[512];       //存储文件名
 static char szFileTitle[512];
 static int isSaved;    //是否保存         
 static int isCreated;     //是否被创建 
+static char s[1010];	//临时用
 /*
 	初始化文件配置 , 一显示图形界面就要调用 
 */
@@ -36,6 +37,23 @@ void initFileConfig(){
 */
 void openFile() {
 
+    int state;
+    if (!isSaved) {	//未保存
+		if (!isCreated) {
+			sprintf(s, "是否要保存对 无标题 的更改？");
+		} else sprintf(s, "是否要保存对 %s 的更改？", ofn.lpstrFileTitle);
+		int state=MessageBoxA(NULL,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
+		switch(state){
+			case IDYES:             //是 
+				saveFile();
+			case IDNO:            //否 
+				break;
+			case IDCANCEL:           //取消 
+				return;
+		}
+	}
+	initApplication();	//覆盖原先的内容
+	
 	    // open a file name
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -52,48 +70,38 @@ void openFile() {
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     if (GetOpenFileNameA(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"r+");
+		if (!currentFile) {
+			MessageBoxA(NULL,"打开失败","Notepad--",MB_OK | MB_TASKMODAL);
+			return;
+		}
     }
 	else{
 	    // MessageBox(NULL, "打开失败", NULL, MB_OK);  //打开错误
         return;
     } 
-    int state;
-    if(!(getTotalRow()==1&&getRowLength(1)==0)){            //若未被创建且当前显示字符串不为0时需弹出覆盖提示
-        state = MessageBoxA(NULL,"打开后您当前的内容将被覆盖，确定打开吗？","Notepad--",MB_OKCANCEL | MB_TASKMODAL);
-        if(state==IDOK)    //ok
-            ;
-        else if(state==IDCANCEL){ //cancel
-        	fclose(currentFile);
-            return;
-        }
-    }
-	initApplication();	//覆盖原先的内容
-    unsigned int degree=0;
-	char ch;
-	RCNode cursor = {1, 1};
-	while(!feof(currentFile)){
-		ch=fgetc(currentFile);
-		if(ch!=EOF)
-			addContent(BY_CHAR,cursor,&ch,0);
-		if (ch=='\n'){
-			cursor.row++;
-			cursor.column=1;
-		}
-		else
-			cursor.column++;
-		degree++;
-		if(degree>=1<<31){                     //若大于2G,则无法打开
-			MessageBoxA(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OKCANCEL | MB_TASKMODAL);
-			initStorage();
-			return;
-		}
+
+	fseeko64(currentFile, 0, SEEK_END);
+    _off64_t degree = ftello64(currentFile);printf("%d\n", degree);
+	if(degree>=1ll<<31){                     //若大于2G,则无法打开
+		MessageBoxA(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OKCANCEL | MB_TASKMODAL);
+		initApplication();
+		return;
 	}
+	fseeko64(currentFile, 0, SEEK_SET);
+
+	char *fileText = (char *) mallocDIY(sizeof(char) * (degree + 10));
+	unsigned long long n=0;
+	while(!feof(currentFile)){
+		fileText[n++] = fgetc(currentFile);
+	}
+	s[n] = 0;
+	addContent(BY_STRING, (RCNode) {1, 1}, fileText, 0);
     fclose(currentFile);
+	free(fileText);
 	isSaved=1;
 	isCreated=1;
 }
 
-static char s[1010];	//临时用
 
 /*
     新建一个文件
