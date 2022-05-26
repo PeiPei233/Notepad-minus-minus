@@ -130,7 +130,9 @@ int findNextText(const char *src) {
                 findCursor.column += length;
                 setSelectEndRC(findCursor);   //设置选择结束坐标
                 setCursorRC(findCursor);    //设置光标坐标
-                setCursorInWindow();
+                if(!recordAll){
+                    setCursorInWindow();
+                }
                 return 1;          
             }else  //不是查找内容则移动指针
             {
@@ -170,7 +172,9 @@ int findNextText(const char *src) {
                 findCursor.column += length;
                 setSelectEndRC(findCursor);   //设置选择结束坐标
                 setCursorRC(findCursor);    //设置光标坐标
-                setCursorInWindow();
+                if(!recordAll){
+                    setCursorInWindow();
+                }
                 return 1;          
             }else  //不是查找内容则移动指针
             {
@@ -254,10 +258,10 @@ void replaceAll(const char *src,const char *tar){
 	restart=0;
 	recordAll=1;
 	recordID=newRecordID();
-	RCNode start=getSelectStartRC();
+	RCNode start=getCursorRC();
 	RCNode now; 
 	while(1){
-        now=getSelectStartRC();
+        now=getCursorRC();
         if(!((restart==0&&RCcompare(now,start)>=0)||(restart==1&&RCcompare(start,now)>0))){
             break;
         }
@@ -268,7 +272,9 @@ void replaceAll(const char *src,const char *tar){
 			start.column=start.column+strlen(tar)-strlen(src);
 		}
 	}
-	setSelectStartRC(getSelectEndRC()); 
+	setSelectStartRC(start); 
+    setSelectEndRC(start);
+    setCursorRC(start);
 	restart=0;
 	recordAll=0;      //恢复一般状态 
 }
