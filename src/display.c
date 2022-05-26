@@ -1098,10 +1098,9 @@ static void drawKeyboardPage() {
 
     static char *tableContent[][2] = {
         "命令", "键绑定",
-        "打开文件", "Ctrl + O",
-        "保存文件", "Ctrl + S",
-        "另存为", "Ctrl + Shift + S",
-        "退出Notepad--", "Ctrl + W",
+        "文件：打开文件", "Ctrl + O",
+        "文件：保存文件", "Ctrl + S",
+        "文件：另存为", "Ctrl + Shift + S",
         "编辑：撤销", "Ctrl + Z",
         "编辑：重做", "Ctrl + Y / Ctrl + Shift + Z",
         "编辑：剪切", "Ctrl + X",
@@ -1110,9 +1109,10 @@ static void drawKeyboardPage() {
         "编辑：查找", "Ctrl + F",
         "编辑：替换", "Ctrl + H",
         "编辑：全选", "Ctrl + A",
-        "打开/保存并退出设置", "Ctrl + E",
-        "打开/关闭键盘快捷键界面", "Ctrl + K",
-        "帮助", "F1"
+        "编辑器：打开/保存并退出设置", "Ctrl + E",
+        "编辑器：打开/关闭键盘快捷键界面", "Ctrl + K",
+        "编辑器：帮助", "F1",
+        "编辑器：退出Notepad--", "Ctrl + W"
     };
 
     for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
