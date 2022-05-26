@@ -53,7 +53,7 @@ int newRecordID() {
 void record(int op, RCNode pos, string str, int recordID) {
     if (nodeHead == NULL)   //判断头节点是否为空
     {
-        nodeHead = (linkedList*)malloc(sizeof(linkedList));
+        nodeHead = (linkedList*)mallocDIY(sizeof(linkedList));
         nodeHead->op = op;
         nodeHead->pos = pos;
         nodeHead->str = str;
@@ -83,7 +83,7 @@ void record(int op, RCNode pos, string str, int recordID) {
         }
         if (nodeHead == NULL)   //判断头节点是否为空
         {
-            nodeHead = (linkedList*)malloc(sizeof(linkedList));
+            nodeHead = (linkedList*)mallocDIY(sizeof(linkedList));
             nodeHead->op = op;
             nodeHead->pos = pos;
             nodeHead->str = str;
@@ -95,11 +95,11 @@ void record(int op, RCNode pos, string str, int recordID) {
         }else
         {
             linkedList *temNode;
-            temNode = (linkedList*)malloc(sizeof(linkedList));  
+            temNode = (linkedList*)mallocDIY(sizeof(linkedList));  
             temNode->op = op;
             temNode->pos = pos;
             temNode->id = recordID;
-            temNode->str = (string)malloc(sizeof(char) * (strlen(str) + 1));
+            temNode->str = (string)mallocDIY(sizeof(char) * (strlen(str) + 1));
             temNode->next = NULL;
             strcpy(temNode->str, str);
             nodeTail->next = temNode;    //链接双向链表

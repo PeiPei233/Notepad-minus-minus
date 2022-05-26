@@ -1,6 +1,8 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
+#include <stddef.h>
+
 //行列坐标表示
 typedef struct {
     int row;  //行位置
@@ -60,5 +62,10 @@ int RCcompare(RCNode start,RCNode end);
  * 传入开始的坐标与中间的字符串
  * */
 RCNode endPos(RCNode startPos, char *str);
+
+/**
+ * 带警告的malloc
+ */ 
+void *mallocDIY(size_t size);
 
 #endif

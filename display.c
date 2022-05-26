@@ -166,7 +166,7 @@ static void drawMenu() {
             saveFile();
             break;
         case 4:     //保存
-            saveAnother();
+            saveAsFile();
             break;
         case 5:     //退出
             exitApplication();
@@ -376,8 +376,8 @@ static void drawTextArea() {
             while (capT < lens + cntT * 4 + 5) {
                 capT <<= 1;
             }
-            t = (char *) malloc(sizeof(char) * capT);
-            textWidth = (double *) malloc(sizeof(double) * capT);
+            t = (char *) mallocDIY(sizeof(char) * capT);
+            textWidth = (double *) mallocDIY(sizeof(double) * capT);
         } 
         else if (capT < lens + cntT * 4 + 5) {  //装不下了，重新初始化
             while (capT < lens + cntT * 4 + 5) {
@@ -385,8 +385,8 @@ static void drawTextArea() {
             }
             free(t);
             free(textWidth);
-            t = (char *) malloc(sizeof(char) * capT);
-            textWidth = (double *) malloc(sizeof(double) * capT);
+            t = (char *) mallocDIY(sizeof(char) * capT);
+            textWidth = (double *) mallocDIY(sizeof(double) * capT);
         }
         t[0] = t[1] = 0;
         textWidth[0] = 0;
@@ -1310,7 +1310,7 @@ void setCursorInWindow() {
         }
         tx += TextStringWidth(t + lastj);
         lastj = j;
-        if (cursor.column == i || ox - dx + tx > winWidth - ox) {
+        if (cursor.column == i) {
             break;
         }
     }
@@ -1458,7 +1458,7 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
                 break;
             case 'S':   
                 if (isShift) {
-                    saveAnother();  //Ctrl + Shift + S  另存为
+                    saveAsFile();  //Ctrl + Shift + S  另存为
                 } else {
                     saveFile(); //Ctrl + S  保存
                 }
