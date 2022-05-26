@@ -1175,7 +1175,7 @@ static void drawAboutPage() {
     MovePen(x, y);
     DrawTextString("Notepad-- 由三位同学共同开发。");
     MovePen(x, y - h);
-    DrawTextString("此应用使用第三方图形库 libgraphics 以及浙江大学C程课程组开发的 simpleGUI 图形库。");
+    DrawTextString("此应用使用第三方图形库 libgraphics 以及浙江大学 C 程课程组开发的 simpleGUI 图形库。");
     MovePen(x, y - h * 2);
     DrawTextString("我们对所用的第三方图形库进行了些许修改，并且也用到了 Windows GDI。");
     MovePen(x, y - h * 3);
