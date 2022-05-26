@@ -18,4 +18,5 @@ $(TARGET): $(OBJECT)
 clean:
 	-del /s *.o
 	-del /s *.d
+	-del *.properties
 	-del $(TARGET)

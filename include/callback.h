@@ -5,6 +5,16 @@
 #ifndef __CALLBACK_H__
 #define __CALLBACK_H__
 
+/**
+ * 获取当前输入状态
+ */
+int getTypingState();
+
+/**
+ * 设置当前输入状态
+ */ 
+void setTypingState(int newTypingState);
+
 /*
     自定义传入参数（如当前坐标，文字绘制范围，行高等） 实现根据当前的(x, y)坐标返回在文件中的行列坐标(r, c)
     r: row 行
@@ -24,6 +34,6 @@ void inputChar(char ch);
     根据传入的键盘输入，判断是否需要换行、退格等操作
     上下左右键时移动光标位置（即改变行列数）
 */
-void inputKeyboard(int event, int key);
+void inputKeyboard(int key, int event);
 
 #endif

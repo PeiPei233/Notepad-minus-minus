@@ -1,6 +1,8 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
+#include <stddef.h>
+
 //行列坐标表示
 typedef struct {
     int row;  //行位置
@@ -50,14 +52,20 @@ void setSelectStartRC(RCNode newStartSelect);
 void setSelectEndRC(RCNode newEndSelect);
 
 /*
-    判断光标位置是否在窗口内
+	比较两个节点在字符串流中的位置前后
+	start在end前返回1，相等返回0，否则返回-1 
 */
-int cursorInWindow();
+int RCcompare(RCNode start,RCNode end);
 
-/*
-    更改光标位置使其能够展示在窗口内
-    如果光标已经在窗口内则不调整
-*/
-void setCursorInWindow();
+/**
+ * 计算传入字符的结束坐标
+ * 传入开始的坐标与中间的字符串
+ * */
+RCNode endPos(RCNode startPos, char *str);
+
+/**
+ * 带警告的malloc
+ */ 
+void *mallocDIY(size_t size);
 
 #endif

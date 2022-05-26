@@ -35,7 +35,7 @@ int newRecordID();
  * pos 操作位置
  * str 添加/删除的字符串
  */ 
-void record(int op, RCNode pos, string str, int recordID);
+void record(int op, RCNode pos, const string str, int recordID);
 
 /**
  * 实现撤销操作

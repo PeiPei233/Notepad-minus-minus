@@ -45,6 +45,25 @@
 //
 //===========================================================================
 
+/* 鼠标和空间状态 */
+typedef struct {
+	double mousex;
+	double mousey;
+	int    mousedown;
+	int    clickedItem;// item that was clicked
+	int    actingMenu; // acting menu list 
+	int    kbdItem;    // item that takes keyboard
+	int    lastItem;   // item that had focus just before
+	int    keyPress;   // input key
+	int    charInput;  // input char
+	int    keyModifiers;  //  key modifier (shift, ctrl)
+} UIState;
+
+/**
+ * 获得gs_UIState
+ */ 
+UIState getUIState();
+
 /* 函数名：	InitGUI
  *
  * 功能：初始化工作

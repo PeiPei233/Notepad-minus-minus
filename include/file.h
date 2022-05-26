@@ -6,6 +6,10 @@
 
 #include "global.h"
 /*
+	初始化文件配置 , 一显示图形界面就要调用 
+*/
+void initFileConfig();
+/*
     打开一个文件
     这个应该要和Windows交互
     打开后更新窗口左上角坐标
@@ -19,10 +23,6 @@ void openFile();
 */
 void createFile();
 
-/*
-    初始化缓存文件
-*/
-void initCache();
 
 /*
     保存当前打开的文件
@@ -38,37 +38,24 @@ void saveFile();
 int getSaveState();
 
 /*
-    获取当前的显示的字符串
+	另存为 
+	如果此时文件不是临时写的，则同时保存当时文件 
 */
-char *getCurrentString();
+void saveAsFile();
+ 
+/*
+    设置保存状态
+*/
+void setSaveState(int newSaveState);
 
 /*
-    自定义传入的参数 如窗口左上角的行列数等 根据传入参数从缓存文件中更新currentString
-*/
-void updateCurrentString();
+	返回当前文件名
+*/ 
+char *getCurrentFileName();
 
 /*
-    根据传入的字符更新currentString与缓存文件
-    并更新光标位置（如有必要也更新窗口左上角位置）
+    退出时若未保存则提供选项 选择是否保存更改 
 */
-void addChar(char ch);
-
-/*
-    根据传入的字符串更新currentString与缓存文件
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void addString(char *src);
-
-/*
-    根据当前光标位置，删除光标前的一个字符（在currentString与缓存文件中）
-    并更新光标位置（如有必要也更新窗口左上角位置）
-*/
-void deleteChar();
-
-/*
-    根据当前选中的范围，删除选中的字符串（在currentString与cacheFile中）
-    并更新光标以及选中范围的行列坐标（如有必要也更新窗口左上角位置）
-*/
-void deleteSelectString();
+void exitApplication();
 
 #endif

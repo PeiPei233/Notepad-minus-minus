@@ -281,7 +281,7 @@ static int FindExistingFont(string name, int size, int style);
 static void SetLineBB(RECT *rp, double x, double y, double dx, double dy);
 static void SetArcBB(RECT *rp, double xc, double yc,
                      double rx, double ry, double start, double sweep);
-static void SetTextBB(RECT *rp, double x, double y, string text);
+static void SetTextBB(RECT *rp, double x, double y, const char *text);
 static void StartPolygon(void);
 static void AddSegment(int x0, int y0, int x1, int y1);
 static void DisplayPolygon(void);
@@ -358,12 +358,20 @@ void DrawArc(double r, double start, double sweep)
 double GetWindowWidth(void)
 {
     InitCheck();
+    RECT bounds;
+    GetClientRect(graphicsWindow, &bounds);
+    pixelWidth = RectWidth(&bounds);
+    windowWidth = pixelWidth * 1. / xResolution;
     return (windowWidth);
 }
 
 double GetWindowHeight(void)
 {
     InitCheck();
+    RECT bounds;
+    GetClientRect(graphicsWindow, &bounds);
+    pixelHeight = RectHeight(&bounds);
+    windowHeight = pixelHeight * 1. / yResolution;
     return (windowHeight);
 }
 
@@ -442,7 +450,7 @@ void DrawTextString(string text)
     cx += TextStringWidth(text);
 }
 
-double TextStringWidth(string text)
+double TextStringWidth(const char *text)
 {
     RECT r;
 
@@ -866,7 +874,7 @@ static void InitDisplay(void)
     wndcls.lpfnWndProc = GraphicsEventProc;
     wndcls.lpszClassName = "Graphics Window";
     wndcls.lpszMenuName = NULL;
-    wndcls.style = CS_HREDRAW | CS_VREDRAW;
+    wndcls.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;    //修复了不能收到鼠标双击回调消息的bug
     
     RegisterClass(&wndcls);
     
@@ -902,12 +910,17 @@ static void InitDisplay(void)
     
     UpdateWindow(graphicsWindow);
     
+    HWND desktop = GetDesktopWindow();
+    // gdc = GetDC(desktop);
     osdc = CreateCompatibleDC(gdc);
     
     if (osdc == NULL) {
         Error("Internal error: Can't create offscreen device");
     }
-    osBits = CreateCompatibleBitmap(gdc, pixelWidth, pixelHeight);
+
+    GetWindowRect(desktop, &bounds);
+    osBits = CreateCompatibleBitmap(gdc, RectWidth(&bounds), RectHeight(&bounds));
+    // osBits = CreateCompatibleBitmap(gdc, pixelWidth, pixelHeight);
     if (osBits == NULL) {
         Error("Internal error: Can't create offscreen bitmap");
     }
@@ -1163,6 +1176,11 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;   
+        case WM_GETMINMAXINFO: {    //设置窗口最小尺寸
+            LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+            lpMMI->ptMinTrackSize.x = 750;
+            lpMMI->ptMinTrackSize.y = 250;
+        }
 
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -1220,6 +1238,10 @@ static void CheckEvents(void)
 static void DoUpdate(void)
 {
     HDC dc;
+    RECT bounds;
+    GetClientRect(graphicsWindow, &bounds);
+    pixelWidth = RectWidth(&bounds);
+    pixelHeight = RectHeight(&bounds);
     dc = BeginPaint(graphicsWindow, &ps);
     BitBlt(dc, 0, 0, pixelWidth, pixelHeight, osdc, 0, 0, SRCCOPY);
     EndPaint(graphicsWindow, &ps);
@@ -1591,7 +1613,7 @@ static void SetArcBB(RECT *rp, double xc, double yc,
  * box of the text string using the current font and size.
  */
 
-static void SetTextBB(RECT *rp, double x, double y, string text)
+static void SetTextBB(RECT *rp, double x, double y, const char *text)
 {
     SIZE textSize;
     int ix, iy;

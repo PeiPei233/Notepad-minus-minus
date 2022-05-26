@@ -1,0 +1,79 @@
+# Project: Notepad--
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = ../libgraphics/exceptio.o ../libgraphics/genlib.o ../libgraphics/graphics.o ../libgraphics/linkedlist.o ../libgraphics/random.o ../libgraphics/simpio.o ../libgraphics/strlib.o ../simpleGUI/imgui.o ../src/callback.o ../src/display.o ../src/edit.o ../src/file.o ../src/find.o ../src/global.o ../src/init.o ../src/record.o ../src/storage.o ../src/style.o
+LINKOBJ  = ../libgraphics/exceptio.o ../libgraphics/genlib.o ../libgraphics/graphics.o ../libgraphics/linkedlist.o ../libgraphics/random.o ../libgraphics/simpio.o ../libgraphics/strlib.o ../simpleGUI/imgui.o ../src/callback.o ../src/display.o ../src/edit.o ../src/file.o ../src/find.o ../src/global.o ../src/init.o ../src/record.o ../src/storage.o ../src/style.o
+LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc -L"D:/code/GitHub/UnableToCount/include" -L"D:/code/GitHub/UnableToCount/libgraphics" -L"D:/code/GitHub/UnableToCount/simpleGUI" -mwindows
+INCS     = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"D:/code/GitHub/UnableToCount/libgraphics" -I"D:/code/GitHub/UnableToCount/simpleGUI" -I"D:/code/GitHub/UnableToCount/include"
+CXXINCS  = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++" -I"D:/code/GitHub/UnableToCount/libgraphics" -I"D:/code/GitHub/UnableToCount/simpleGUI" -I"D:/code/GitHub/UnableToCount/include"
+BIN      = Notepad--.exe
+CXXFLAGS = $(CXXINCS) 
+CFLAGS   = $(INCS) -std=c11
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+../libgraphics/exceptio.o: ../libgraphics/exceptio.c
+	$(CC) -c ../libgraphics/exceptio.c -o ../libgraphics/exceptio.o $(CFLAGS)
+
+../libgraphics/genlib.o: ../libgraphics/genlib.c
+	$(CC) -c ../libgraphics/genlib.c -o ../libgraphics/genlib.o $(CFLAGS)
+
+../libgraphics/graphics.o: ../libgraphics/graphics.c
+	$(CC) -c ../libgraphics/graphics.c -o ../libgraphics/graphics.o $(CFLAGS)
+
+../libgraphics/linkedlist.o: ../libgraphics/linkedlist.c
+	$(CC) -c ../libgraphics/linkedlist.c -o ../libgraphics/linkedlist.o $(CFLAGS)
+
+../libgraphics/random.o: ../libgraphics/random.c
+	$(CC) -c ../libgraphics/random.c -o ../libgraphics/random.o $(CFLAGS)
+
+../libgraphics/simpio.o: ../libgraphics/simpio.c
+	$(CC) -c ../libgraphics/simpio.c -o ../libgraphics/simpio.o $(CFLAGS)
+
+../libgraphics/strlib.o: ../libgraphics/strlib.c
+	$(CC) -c ../libgraphics/strlib.c -o ../libgraphics/strlib.o $(CFLAGS)
+
+../simpleGUI/imgui.o: ../simpleGUI/imgui.c
+	$(CC) -c ../simpleGUI/imgui.c -o ../simpleGUI/imgui.o $(CFLAGS)
+
+../src/callback.o: ../src/callback.c
+	$(CC) -c ../src/callback.c -o ../src/callback.o $(CFLAGS)
+
+../src/display.o: ../src/display.c
+	$(CC) -c ../src/display.c -o ../src/display.o $(CFLAGS)
+
+../src/edit.o: ../src/edit.c
+	$(CC) -c ../src/edit.c -o ../src/edit.o $(CFLAGS)
+
+../src/file.o: ../src/file.c
+	$(CC) -c ../src/file.c -o ../src/file.o $(CFLAGS)
+
+../src/find.o: ../src/find.c
+	$(CC) -c ../src/find.c -o ../src/find.o $(CFLAGS)
+
+../src/global.o: ../src/global.c
+	$(CC) -c ../src/global.c -o ../src/global.o $(CFLAGS)
+
+../src/init.o: ../src/init.c
+	$(CC) -c ../src/init.c -o ../src/init.o $(CFLAGS)
+
+../src/record.o: ../src/record.c
+	$(CC) -c ../src/record.c -o ../src/record.o $(CFLAGS)
+
+../src/storage.o: ../src/storage.c
+	$(CC) -c ../src/storage.c -o ../src/storage.o $(CFLAGS)
+
+../src/style.o: ../src/style.c
+	$(CC) -c ../src/style.c -o ../src/style.o $(CFLAGS)

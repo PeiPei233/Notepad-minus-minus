@@ -86,7 +86,7 @@ void DrawTextString(string text);
  * at the current font and size.
  */
 
-double TextStringWidth(string text);
+double TextStringWidth(const char *text);
 
 /*
  * Function: SetFont

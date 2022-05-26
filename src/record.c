@@ -50,7 +50,7 @@ int newRecordID() {
  * pos 操作位置
  * str 添加/删除的字符串    若字符串后续有更改，请copy后再传入
  */ 
-void record(int op, RCNode pos, string str, int recordID) {
+void record(int op, RCNode pos, const string str, int recordID) {
     if (nodeHead == NULL)   //判断头节点是否为空
     {
         nodeHead = (linkedList*)mallocDIY(sizeof(linkedList));

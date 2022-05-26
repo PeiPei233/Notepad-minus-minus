@@ -195,15 +195,15 @@ extern exception ANY;
 extern context_block *exceptionStack;
 
 /*
- * Function: RaiseException
- * Usage: RaiseException(&e, name, value);
+ * Function: RaiseExceptionG
+ * Usage: RaiseExceptionG(&e, name, value);
  * ---------------------------------------
  * This function is called by the raise macro and does the
  * work necessary to raise the exception.  See the exception.c file
  * for details.  Clients do not ordinarily call this directly.
  */
 
-void RaiseException(exception *e, string name, void *value);
+void RaiseExceptionG(exception *e, string name, void *value);
 
 /*
  * Function: HandlerExists
@@ -218,7 +218,7 @@ bool HandlerExists(exception *e);
 
 /* Define the pseudo-functions for raise and try */
 
-#define raise(e) RaiseException(&e, #e, NULL)
+#define raise(e) RaiseExceptionG(&e, #e, NULL)
 
 #define try \
       { \

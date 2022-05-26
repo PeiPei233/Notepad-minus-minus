@@ -60,7 +60,7 @@ void addContentByChar(RCNode pos, char ch, int recordID);
  * src:添加的字符串
  * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContentByString(RCNode start, string src, int recordID);
+void addContentByString(RCNode start, const char *src, int recordID);
 
 /**
  * 添加内容（略麻烦）
@@ -68,7 +68,7 @@ void addContentByString(RCNode start, string src, int recordID);
  * pos:添加位置（起始位置）
  * recordID:操作的对应 ID   特别地，如果传入的 recordID 为 0 则不记录操作
  */ 
-void addContent(int by, RCNode pos, char *src, int recordID);
+void addContent(int by, RCNode pos, const char *src, int recordID);
 
 /**
  * 删除内容
