@@ -83,7 +83,7 @@ void pasteText() {
         printf("无法读取文本");
         return ;
     }
-    pasteText = (char *) malloc(sizeof(char) * (strlen(lpStr) + 1));
+    pasteText = (char *) mallocDIY(sizeof(char) * (strlen(lpStr) + 1));
     strcpy(pasteText, lpStr);   //将剪切板的内容拷贝到字符串当中
     GlobalUnlock(hMem);   //释放内存锁
     //关闭剪切板

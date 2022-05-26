@@ -134,10 +134,11 @@ static void drawMenu() {
     SetPointSize(13);
 
     char *menuListFile[] = {"文件",
-        "新建                  Ctrl+N",
-        "打开                  Ctrl+O",
-        "保存                  Ctrl+S",
-        "退出                  Ctrl+W"
+        "新建                       Ctrl + N",
+        "打开                       Ctrl + O",
+        "保存                       Ctrl + S",
+        "另存为         Ctrl + Shift + S",
+        "退出                       Ctrl + W"
     };
 
     double fH = GetFontHeight();
@@ -145,7 +146,7 @@ static void drawMenu() {
     double y = winHeight;
     double h = fH * 1.5;
     double w = TextStringWidth(menuListFile[0]) * 2;
-    double wlist = TextStringWidth(menuListFile[3]) * 1.2;
+    double wlist = TextStringWidth(menuListFile[1]) * 1.13;
 
     char *originColor = GetPenColor();
     SetPenColor("Menu Gray");
@@ -164,20 +165,23 @@ static void drawMenu() {
         case 3:     //保存
             saveFile();
             break;
-        case 4:     //退出
+        case 4:     //保存
+            saveAsFile();
+            break;
+        case 5:     //退出
             exitApplication();
             break;
     }
 
     char *menuListEdit[] = {"编辑",
-        "撤销                   Ctrl+Z",
-        "重做                   Ctrl+Y",
-        "剪切                   Ctrl+X",
-        "复制                   Ctrl+C",
-        "粘贴                   Ctrl+V",
-        "查找                   Ctrl+F",
-        "替换                   Ctrl+H",
-        "全选                   Ctrl+A"
+        "撤销                       Ctrl + Z",
+        "重做                       Ctrl + Y",
+        "剪切                       Ctrl + X",
+        "复制                       Ctrl + C",
+        "粘贴                       Ctrl + V",
+        "查找                       Ctrl + F",
+        "替换                       Ctrl + H",
+        "全选                       Ctrl + A"
     };
 
     selection = menuList(GenUIID(0), x + w, y - h, w, wlist, h, menuListEdit, sizeof(menuListEdit) / sizeof(menuListEdit[0]));
@@ -215,10 +219,10 @@ static void drawMenu() {
     }
 
     char *menuListSetting[] = {"首选项",
-        "设置                   Ctrl+E",
-        "键盘快捷方式      Ctrl+K",
+        "设置                       Ctrl + E",
+        "键盘快捷方式          Ctrl + K",
         "关于 Notepad--",
-        "帮助                   F1"
+        "帮助                               F1"
     };
 
     selection = menuList(GenUIID(0), x + w * 2, y - h, w, wlist, h, menuListSetting, sizeof(menuListSetting) / sizeof(menuListSetting[0]));
@@ -292,7 +296,7 @@ static void drawMenu() {
 
 static unsigned int capT = 0;
 static char *t;     //某一行的字符
-static int *cid;    //cid[i] = j:某一行的字符在str[row][i]对应在t中的下标j，用于处理'\t'
+static double *textWidth;   //textWidth[i]: [0, i)区间的字符串长度
 
 /*
     绘制文本区域
@@ -356,7 +360,8 @@ static void drawTextArea() {
     for (int row = winCurrent.row - 1; row < winCurrent.row + totl; row++) {    //row:当前显示的行
         string s = getRowContent(row);
         if (s == NULL) continue;
-        int i = 0, j = 0, lens = getRowLength(row);
+        int i = 0, j = 0, lastj = 0, lens = getRowLength(row);  //i:原数组s的下标，j:处理制表符后新数组的下标
+        int starti = -1, endi = -1;   //可显示部分的开始/结束的s的下标i
         if (lens && s[lens - 1] == '\n') lens--;
         unsigned int cntT = 0;   //该行内'\t'的数量
         while (i < lens) {
@@ -371,23 +376,22 @@ static void drawTextArea() {
             while (capT < lens + cntT * 4 + 5) {
                 capT <<= 1;
             }
-            t = (char *) malloc(sizeof(char) * capT);
-            cid = (int *) malloc(sizeof(int) * capT);
+            t = (char *) mallocDIY(sizeof(char) * capT);
+            textWidth = (double *) mallocDIY(sizeof(double) * capT);
         } 
         else if (capT < lens + cntT * 4 + 5) {  //装不下了，重新初始化
             while (capT < lens + cntT * 4 + 5) {
                 capT <<= 1;
             }
             free(t);
-            free(cid);
-            t = (char *) malloc(sizeof(char) * capT);
-            cid = (int *) malloc(sizeof(int) * capT);
+            free(textWidth);
+            t = (char *) mallocDIY(sizeof(char) * capT);
+            textWidth = (double *) mallocDIY(sizeof(double) * capT);
         }
         t[0] = t[1] = 0;
-        cid[0] = cid[1] = 0;
+        textWidth[0] = 0;
         while (i < lens) {      //i:在s中的下标 j:在t中的下标位置
             if (s[i] == '\t') {     //处理制表符
-                cid[i] = j;
                 i++;
                 if (j % 4 == 0) {
                     for (int _i = 1; _i <= 4; _i++) {
@@ -402,66 +406,109 @@ static void drawTextArea() {
                     }
                     t[j] = t[j + 1] = 0;
                 }
-            } else {
+                textWidth[i] = textWidth[i - 1] + TextStringWidth(t + lastj);
+                textWidth[i + 1] = 0;
+                lastj = j;
+                if (x - dx + textWidth[i] > 0 && starti == -1) {
+                    starti = i - 1;
+                }
+                if (x - dx + textWidth[i] > winWidth && endi == -1) {
+                    endi = i;
+                }
+            } else if (s[i] & 0x80) {
                 t[j] = s[i];
-                cid[i] = j;
                 i++;
                 j++;
                 t[j] = t[j + 1] = 0;
+                
+                t[j] = s[i];
+                i++;
+                j++;
+                t[j] = t[j + 1] = 0;
+                
+                textWidth[i - 1] = textWidth[i - 2];
+                textWidth[i] = textWidth[i - 1] + TextStringWidth(t + lastj);
+                textWidth[i + 1] = 0;
+                lastj = j;
+                if (x - dx + textWidth[i] > 0 && starti == -1) {
+                    starti = i - 2;
+                }
+                if (x - dx + textWidth[i] > winWidth && endi == -1) {
+                    endi = i;
+                }
+
+            } else {
+                t[j] = s[i];
+                i++;
+                j++;
+                t[j] = t[j + 1] = 0;
+                textWidth[i] = textWidth[i - 1] + TextStringWidth(t + lastj);
+                textWidth[i + 1] = 0;
+                lastj = j;
+                if (x - dx + textWidth[i] > 0 && starti == -1) {
+                    starti = i - 1;
+                }
+                if (x - dx + textWidth[i] > winWidth && endi == -1) {
+                    endi = i;
+                    while (i <= lens) {
+                        textWidth[i] = textWidth[endi];
+                        i++;
+                    }
+                    i--;
+                    break;
+                }
             }
         }
-        cid[i] = j;
-
+        if (lens == 0) starti = endi = 0;
         //draw select area
         if (s[i] == '\n') {     //如果选择部分有'\n'，则以空格表示出来
             if (row != endSelect.row) {
-                t[j] = ' ';
-                i++;
-                j++;
-                t[j] = t[j + 1] = 0;
+                lens++;
+                textWidth[lens] = textWidth[lens - 1] + TextStringWidth(" ");
             }
         }
 
         SetPenColor("Select Blue");
         if (row > startSelect.row && row < endSelect.row) {     //该行在选择的行中间
-            double w = TextStringWidth(t);
-            if (w != 0) drawRectangle(x - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
+            double w = textWidth[lens];
+            double sx = max(0, x - dx);
+            double ex = min(winWidth, x - dx + w);
+            if (ex - sx != 0) drawRectangle(sx, y - th * (row - winCurrent.row) - GetFontDescent(), ex - sx, th, 1);
         } else if (row == startSelect.row && startSelect.row != endSelect.row) {    //该行在选择的第一行
-            // printf("SELECT:%d %d %s\n", startSelect.row, startSelect.column, t + startSelect.column - 1);
-            double w = TextStringWidth(t + cid[startSelect.column - 1]);
-            char ch = t[cid[startSelect.column - 1]];
-            t[cid[startSelect.column - 1]] = 0;
-            if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
-            t[cid[startSelect.column - 1]] = ch;
+            // printf("SELECT:(%d, %d) TO(%d, %d)\n", startSelect.row, startSelect.column, endSelect.row, endSelect.column);
+            double w = textWidth[lens] - textWidth[startSelect.column - 1];
+            double sx = max(0, x - dx + textWidth[startSelect.column - 1]);
+            double ex = min(winWidth, x - dx + textWidth[startSelect.column - 1] + w);
+            if (w != 0) drawRectangle(sx, y - th * (row - winCurrent.row) - GetFontDescent(), ex - sx, th, 1);
         } else if (row == endSelect.row && startSelect.row != endSelect.row) {      //该行在选择的最后一行
-            char ch = t[cid[endSelect.column - 1]];
-            t[cid[endSelect.column - 1]] = 0;
-            double w = TextStringWidth(t);
-            if (w != 0) drawRectangle(x - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
-            t[cid[endSelect.column - 1]] = ch;
+            double w = textWidth[endSelect.column - 1];
+            double sx = max(0, x - dx);
+            double ex = min(winWidth, x - dx + w);
+            if (w != 0) drawRectangle(sx, y - th * (row - winCurrent.row) - GetFontDescent(), ex - sx, th, 1);
         } else if (row == startSelect.row && startSelect.row == endSelect.row) {    //选择部分在同一行
-            char ch1 = t[cid[endSelect.column - 1]], ch2 = t[cid[startSelect.column - 1]];
-            t[cid[endSelect.column - 1]] = 0;
-            double w = TextStringWidth(t + cid[startSelect.column - 1]);
-            t[cid[startSelect.column - 1]] = 0;
-            if (w != 0) drawRectangle(x + TextStringWidth(t) - dx, y - th * (row - winCurrent.row) - GetFontDescent(), w, th, 1);
-            t[cid[endSelect.column - 1]] = ch1;
-            t[cid[startSelect.column - 1]] = ch2;
+            double w = textWidth[endSelect.column - 1] - textWidth[startSelect.column - 1];
+            double sx = max(0, x - dx + textWidth[startSelect.column - 1]);
+            double ex = min(winWidth, x - dx + textWidth[startSelect.column - 1] + w);
+            if (w != 0) drawRectangle(sx, y - th * (row - winCurrent.row) - GetFontDescent(), ex - sx, th, 1);
         }
 
         //draw text
         SetPenColor("Text Color");
-        MovePen(x - dx, y - th * (row - winCurrent.row));
-        DrawTextString(t);
+        MovePen(x - dx + textWidth[starti], y - th * (row - winCurrent.row));
+        if (endi != -1) t[endi] = 0;
+        printf("I:%d %d\n", starti, endi);
+        DrawTextString(t + starti);
 
         //draw cursor
         if (clock() % 1000 < 500 && getTypingState()) {     //500ms的间隔闪烁，不在输入状态时不显示光标
             int originPenSize = GetPenSize();
             SetPenSize(2);
             if (row == cursor.row) {
-                t[cid[cursor.column - 1]] = 0;
-                MovePen(x + TextStringWidth(t) - dx, y - th * (row - winCurrent.row) - GetFontDescent());
-                DrawLine(0, th);
+                double sx = x - dx + textWidth[cursor.column - 1];
+                if (sx >= 0 && sx <= winWidth) {
+                    MovePen(sx, y - th * (row - winCurrent.row) - GetFontDescent());
+                    DrawLine(0, th);
+                }
             }
             SetPenSize(originPenSize);
         }
@@ -1025,7 +1072,7 @@ static void drawKeyboardPage() {
 
     x = winWidth / 5;
     y = winHeight * 3 / 4;
-    SetPointSize(20);
+    SetPointSize(19);
     fH = GetFontHeight();
     double fD = GetFontDescent();
     h = GetFontHeight() * 1.2;
@@ -1034,15 +1081,16 @@ static void drawKeyboardPage() {
         "命令", "键绑定",
         "打开文件", "Ctrl + O",
         "保存文件", "Ctrl + S",
+        "另存为", "Ctrl + Shift + S",
         "退出Notepad--", "Ctrl + W",
-        "撤销", "Ctrl + Z",
-        "重做", "Ctrl + Y / Ctrl + Shift + Z",
-        "剪切", "Ctrl + X",
-        "复制", "Ctrl + C",
-        "粘贴", "Ctrl + V",
-        "查找", "Ctrl + F",
-        "替换", "Ctrl + H",
-        "全选", "Ctrl + A",
+        "编辑：撤销", "Ctrl + Z",
+        "编辑：重做", "Ctrl + Y / Ctrl + Shift + Z",
+        "编辑：剪切", "Ctrl + X",
+        "编辑：复制", "Ctrl + C",
+        "编辑：粘贴", "Ctrl + V",
+        "编辑：查找", "Ctrl + F",
+        "编辑：替换", "Ctrl + H",
+        "编辑：全选", "Ctrl + A",
         "打开/保存并退出设置", "Ctrl + E",
         "打开/关闭键盘快捷键界面", "Ctrl + K",
         "帮助", "F1"
@@ -1231,7 +1279,7 @@ void setCursorInWindow() {
     int lens = getRowLength(cursor.row);
     if (lens && s[lens - 1] == '\n') lens--;
     double tx = 0;
-    int i = 0, j = 0;
+    int i = 0, j = 0, lastj = 0;
     while (i < lens) {
         if (s[i] == '\t') {     //处理制表符
             i++;
@@ -1260,13 +1308,11 @@ void setCursorInWindow() {
             j++;
             t[j] = t[j + 1] = 0;
         }
+        tx += TextStringWidth(t + lastj);
+        lastj = j;
         if (cursor.column == i) {
-            tx = TextStringWidth(t);
             break;
         }
-    }
-    if (cursor.column == lens + 1 || tx == 0) {
-        tx = TextStringWidth(t);
     }
     if (ox - dx + tx < ox) {    //光标在窗口左方
         winCurrent.column = max(winCurrent.column - ceil((dx - tx) / TextStringWidth(" ")), 1);
@@ -1326,7 +1372,8 @@ RCNode XYtoRC(int x, int y) {
         } else continue;
         string s = getRowContent(row);
         if (s == NULL) continue;
-        int i = 0, j = 0, lens = getRowLength(row);
+        int i = 0, j = 0, lastj = 0, lens = getRowLength(row);
+        double w = 0;
         if (s[lens - 1] == '\n') lens--;
         while (i < lens) {      //i:在s中的下标 j:在t中的下标位置
             if (s[i] == '\t') {     //处理制表符
@@ -1356,8 +1403,10 @@ RCNode XYtoRC(int x, int y) {
                 j++;
                 t[j] = t[j + 1] = 0;
             }
+            w += TextStringWidth(t + lastj);
+            lastj = j;
             if (mouse.row) {
-                if (nx <= ox - dx + TextStringWidth(t)) {
+                if (nx <= ox - dx + w) {
                     if (i >= 1 && s[i - 1] & 0x80) mouse.column = i - 1;      //处理汉字
                     else mouse.column = i;
                     break;
@@ -1407,8 +1456,12 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
             case 'O':   //Ctrl + O  打开
                 openFile();
                 break;
-            case 'S':   //Ctrl + S  保存
-                saveFile();
+            case 'S':   
+                if (isShift) {
+                    saveAsFile();  //Ctrl + Shift + S  另存为
+                } else {
+                    saveFile(); //Ctrl + S  保存
+                }
                 break;
             case 'W':   //Ctrl + W  退出
                 exitApplication();

@@ -7,6 +7,7 @@
 #include "storage.h"
 #include "record.h"
 #include "string.h"
+#include "global.h"
 
 static unsigned int sizeR = 0;      //列方向所用总数
 static unsigned int capR = 0;       //列方向可承载总数
@@ -29,12 +30,12 @@ void initStorage() {
     }
     sizeR = 1;
     capR = 1;
-    sizeL = (unsigned int *) malloc(sizeof(unsigned int));
-    capL = (unsigned int *) malloc(sizeof(unsigned int));
-    str = (char **) malloc(sizeof(char *));
+    sizeL = (unsigned int *) mallocDIY(sizeof(unsigned int));
+    capL = (unsigned int *) mallocDIY(sizeof(unsigned int));
+    str = (char **) mallocDIY(sizeof(char *));
     sizeL[0] = 1;
     capL[0] = 1;
-    str[0] = (char *) malloc(sizeof(char));
+    str[0] = (char *) mallocDIY(sizeof(char));
     str[0][0] = 0;
 }
 
@@ -93,7 +94,7 @@ string getContent(RCNode start, RCNode end) {
     }
     unsigned int len = getContentLength(start, end);
     if (!len) return NULL;
-    char *res = (char *) malloc(sizeof(char) * (len + 1));
+    char *res = (char *) mallocDIY(sizeof(char) * (len + 1));
     if (start.row == end.row) {
         for (int i = 0; i < len; i++) {
             res[i] = str[start.row - 1][start.column - 1 + i];
@@ -136,7 +137,7 @@ unsigned int getRowLength(int row) {
 void addContentByChar(RCNode pos, char ch, int recordID) {
     int row = pos.row - 1, col = pos.column - 1;    //在数组中下标从零开始
     if (recordID) {
-        string s = (char *) malloc(sizeof(char) * 2);
+        string s = (char *) mallocDIY(sizeof(char) * 2);
         s[0] = ch;
         s[1] = 0;
         record(OP_ADD, pos, s, recordID);
@@ -145,9 +146,9 @@ void addContentByChar(RCNode pos, char ch, int recordID) {
         sizeR++;
         if (sizeR > capR) { //列方向装不下了，重开
             capR <<= 1;
-            char **tmpStr = (char **) malloc(sizeof(char *) * capR);
-            unsigned int *tmpSizeL = (unsigned int *) malloc(sizeof(unsigned int) * capR);
-            unsigned int *tmpCapL = (unsigned int *) malloc(sizeof(unsigned int) * capR);
+            char **tmpStr = (char **) mallocDIY(sizeof(char *) * capR);
+            unsigned int *tmpSizeL = (unsigned int *) mallocDIY(sizeof(unsigned int) * capR);
+            unsigned int *tmpCapL = (unsigned int *) mallocDIY(sizeof(unsigned int) * capR);
             //搬运操作，并留下所需的数据
             for (int i = 0; i <= row; i++) {
                 tmpStr[i] = str[i];
@@ -177,7 +178,7 @@ void addContentByChar(RCNode pos, char ch, int recordID) {
         while (capL[row + 1] < sizeL[row + 1]) {
             capL[row + 1] <<= 1;
         }
-        str[row + 1] = (char *) malloc(sizeof(char) * capL[row + 1]);
+        str[row + 1] = (char *) mallocDIY(sizeof(char) * capL[row + 1]);
         for (int i = 0; i < sizeL[row + 1]; i++) {
             str[row + 1][i] = str[row][col + i];
         }
@@ -188,7 +189,7 @@ void addContentByChar(RCNode pos, char ch, int recordID) {
         sizeL[row]++;
         if (sizeL[row] > capL[row]) {   //装不下了，重开
             capL[row] <<= 1;
-            char *t = (char *) malloc(sizeof(char) * capL[row]);
+            char *t = (char *) mallocDIY(sizeof(char) * capL[row]);
             //搬运数据
             for (int i = 0; i < col; i++) {
                 t[i] = str[row][i];
@@ -218,7 +219,7 @@ void addContentByString(RCNode start, string src, int recordID) {
     unsigned int lens = strlen(src);
     if (!lens || !src) return;
     if (recordID) {
-        string addStr = (char *) malloc(sizeof(char) * (lens + 1));
+        string addStr = (char *) mallocDIY(sizeof(char) * (lens + 1));
         for (int i = 0; i <= lens; i++) {
             addStr[i] = src[i];
         }
@@ -238,9 +239,9 @@ void addContentByString(RCNode start, string src, int recordID) {
             while (sizeR > capR) {
                 capR <<= 1;
             }
-            char **tmpStr = (char **) malloc(sizeof(char *) * capR);
-            unsigned int *tmpSizeL = (int *) malloc(sizeof(unsigned int) * capR);
-            unsigned int *tmpCapL = (int *) malloc(sizeof(unsigned int) * capR);
+            char **tmpStr = (char **) mallocDIY(sizeof(char *) * capR);
+            unsigned int *tmpSizeL = (int *) mallocDIY(sizeof(unsigned int) * capR);
+            unsigned int *tmpCapL = (int *) mallocDIY(sizeof(unsigned int) * capR);
             for (int i = 0; i <= row; i++) {
                 tmpStr[i] = str[i];
                 tmpSizeL[i] = sizeL[i];
@@ -272,7 +273,7 @@ void addContentByString(RCNode start, string src, int recordID) {
         while (capL[row + cntl] < sizeL[row + cntl]) {
             capL[row + cntl] <<= 1;
         }
-        str[row + cntl] = (char *) malloc(sizeof(char) * capL[row + cntl]);
+        str[row + cntl] = (char *) mallocDIY(sizeof(char) * capL[row + cntl]);
         for (int i = 0; i < len; i++) {
             str[row + cntl][i] = src[lens - len + i];
         }
@@ -287,7 +288,7 @@ void addContentByString(RCNode start, string src, int recordID) {
             while (sizeL[row] > capL[row]) {
                 capL[row] <<= 1;
             }
-            char *t = (char *) malloc(sizeof(char) * capL[row]);
+            char *t = (char *) mallocDIY(sizeof(char) * capL[row]);
             for (int i = 0; i < col; i++) {
                 t[i] = str[row][i];
             }
@@ -308,7 +309,7 @@ void addContentByString(RCNode start, string src, int recordID) {
             while (capL[i] < sizeL[i]) {
                 capL[i] <<= 1;
             }
-            str[i] = (char *) malloc(sizeof(char) * capL[i]);
+            str[i] = (char *) mallocDIY(sizeof(char) * capL[i]);
             for (int j = 0; j < len; j++) {
                 str[i][j] = src[k + j];
             }
@@ -322,7 +323,7 @@ void addContentByString(RCNode start, string src, int recordID) {
             while (sizeL[row] > capL[row]) {
                 capL[row] <<= 1;
             }
-            char *t = (char *) malloc(sizeof(char) * capL[row]);
+            char *t = (char *) mallocDIY(sizeof(char) * capL[row]);
             for (int i = 0; i < col; i++) {
                 t[i] = str[row][i];
             }
@@ -395,7 +396,7 @@ void deleteContent(RCNode start, RCNode end, int recordID) {
             while (sizeL[start.row] > capL[start.row]) {
                 capL[start.row] <<= 1;
             }
-            char *t = (char *) malloc(sizeof(char) * capL[start.row]);
+            char *t = (char *) mallocDIY(sizeof(char) * capL[start.row]);
             for (int i = 0; i < start.column; i++) {
                 t[i] = str[start.row][i];
             }

@@ -1,5 +1,6 @@
 #include "global.h"
 #include "libgraphics.h"
+#include "file.h"
 
 static RCNode windowCurrent= (RCNode) {1, 1}; //窗口左上角的行列坐标
 static RCNode cursor= (RCNode) {1, 1};  //光标所在的行列坐标
@@ -121,4 +122,18 @@ RCNode endPos(RCNode startPos, char *str)
 	}
     
     return nextPos;
+}
+
+/**
+ * 带警告的malloc
+ */ 
+void *mallocDIY(size_t size) {
+    void *t = malloc(size);
+    if (t == NULL) {
+        MessageBoxA(NULL,"内存不足，程序即将关闭","Notepad--",MB_OK | MB_ICONWARNING | MB_TASKMODAL);
+        exitApplication();
+        return;
+    } else {
+        return t;
+    }
 }
