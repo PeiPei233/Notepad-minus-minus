@@ -60,6 +60,7 @@ int defineColorRGB(char *des, char *rgb) {
             s[i] = s[i] - 'a' + 'A';
         }
         if ((s[i] < '0' || s[i] > '9') && (s[i] < 'A' || s[i] > 'F')) {
+            free(s);
             return 0;
         }
     }
