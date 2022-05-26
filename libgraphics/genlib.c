@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdarg.h>
+#include <windows.h>
 
 #include "genlib.h"
 #include "gcalloc.h"
@@ -117,6 +118,8 @@ void Error(string msg, ...)
     string errmsg;
     int errlen;
 
+    MessageBoxA(NULL, msg, NULL, MB_OK | MB_ICONWARNING | MB_TASKMODAL);
+
     va_start(args, msg);
     vsprintf(errbuf, msg, args);
     va_end(args);
@@ -136,7 +139,7 @@ void Error(string msg, ...)
         strcpy(errmsg, errbuf);
     }
     if (HandlerExists(&ErrorException)) {
-        RaiseException(&ErrorException, "ErrorException", errmsg);
+        RaiseExceptionG(&ErrorException, "ErrorException", errmsg);
     } else {
         fprintf(stderr, "Error: %s\n", errmsg);
         exit(ErrorExitStatus);

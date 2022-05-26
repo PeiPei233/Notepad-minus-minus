@@ -47,7 +47,7 @@ static context_block *FindHandler(exception *e);
 /* Public entries */
 
 /*
- * Function: RaiseException
+ * Function: RaiseExceptionG
  * ------------------------
  * This function operates by finding an appropriate handler
  * and then using longjmp to return to the context stored
@@ -57,7 +57,7 @@ static context_block *FindHandler(exception *e);
  * within the exception handler may fail.
  */
 
-void RaiseException(exception *e, string name, void *value)
+void RaiseExceptionG(exception *e, string name, void *value)
 {
     context_block *cb;
     char errbuf[MaxUnhandledMessage + 1];
