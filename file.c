@@ -11,6 +11,7 @@
 #include "storage.h"
 #include "libgraphics.h"
 #include "record.h"
+#include "init.h"
 
 static FILE *currentFile;  //当前文件 
 OPENFILENAMEA ofn;
@@ -66,8 +67,7 @@ void openFile() {
             return;
         }
     }
-    initStorage();      //覆盖原先的内容
-    initRecord(); 
+	initApplication();	//覆盖原先的内容
     unsigned int degree=0;
 	char ch;
 	RCNode cursor = {1, 1};
@@ -93,46 +93,30 @@ void openFile() {
 	isCreated=1;
 }
 
+static char s[1010];	//临时用
+
 /*
     新建一个文件
     对于新建的文件，在保存时要选择存放位置
 */
 void createFile() {
-	if(getTotalRow()==1&&*getRowContent(1)==0){      //如果不是完全空白 ,则需弹出弹窗 
-		;
-	}
-	else{
-		int state  =MessageBoxA(NULL,"确定要覆盖当前文件吗","Notepad--",MB_OKCANCEL | MB_TASKMODAL);
-		if(state==IDOK){
-			;             //进入下一步 
+	if (!isSaved) {	//未保存
+		if (!isCreated) {
+			sprintf(s, "是否要保存对 无标题 的更改？");
+		} else sprintf(s, "是否要保存对 %s 的更改？", ofn.lpstrFileTitle);
+		int state=MessageBoxA(NULL,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
+		switch(state){
+			case IDYES:             //是 
+				saveFile();
+			case IDNO:            //否 
+				initApplication();
+				break;
+			case IDCANCEL:           //取消 
+				break;
 		}
-		else if(state==IDCANCEL){
-			return;
-		}
+	} else {
+		initApplication();
 	}
-	// create a file name
-    ZeroMemory(&ofn, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = NULL;
-    ofn.lpstrFile = szFile;
-    ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
-    ofn.nFilterIndex = 1;
-    ofn.lpstrFileTitle = szFileTitle;
-    ofn.lpstrFileTitle[0] = '\0';
-    ofn.nMaxFileTitle = sizeof(szFileTitle);
-    ofn.lpstrInitialDir = NULL;
-    ofn.Flags = OFN_PATHMUSTEXIST;
-    if (GetSaveFileNameA(&ofn)){
-		currentFile=fopen(ofn.lpstrFile,"w+");
-        fclose(currentFile);
-    }
-	else{
-	    // MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 
-    }
-    isSaved=1;
-    isCreated=1;
 }
 
 /*
@@ -141,9 +125,8 @@ void createFile() {
     否则就存在之前的位置
 */
 void saveFile() {
-	if(isCreated)
-		;
-	else{
+	if(!isCreated)
+	{
 		ZeroMemory(&ofn, sizeof(ofn));
 	    ofn.lStructSize = sizeof(ofn);
 	    ofn.hwndOwner = NULL;
@@ -158,6 +141,11 @@ void saveFile() {
 	    ofn.lpstrInitialDir = NULL;
 	    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT;
 	    if (GetSaveFileNameA(&ofn)){
+			//如果输入的文件名最后没有.txt则补上
+			if (strlen(ofn.lpstrFileTitle) < 4 || strcmp(ofn.lpstrFileTitle + strlen(ofn.lpstrFileTitle) - 4, ".txt") != 0) {
+				strcat(ofn.lpstrFileTitle, ".txt");
+				strcat(ofn.lpstrFile, ".txt");
+			}
 			if(currentFile=fopen(ofn.lpstrFile,"w+")){
 				isCreated = 1;
                 fclose(currentFile);
@@ -206,6 +194,11 @@ void saveAsFile(){
     ofn2.lpstrInitialDir = NULL;
     ofn2.Flags = OFN_PATHMUSTEXIST  | OFN_OVERWRITEPROMPT;
     if (GetSaveFileNameA(&ofn2)){
+		//如果输入的文件名最后没有.txt则补上
+		if (strlen(ofn2.lpstrFileTitle) < 4 || strcmp(ofn2.lpstrFileTitle + strlen(ofn2.lpstrFileTitle) - 4, ".txt") != 0) {
+			strcat(ofn2.lpstrFileTitle, ".txt");
+			strcat(ofn2.lpstrFile, ".txt");
+		}
 		anotherFile=fopen(ofn2.lpstrFile,"w+");
 		if(isCreated){                   //如果此时文件不是临时写的，则同时保存当时文件 
 			currentFile=fopen(ofn.lpstrFile,"w+");     //此时ofn必有值 
@@ -258,14 +251,12 @@ char *getCurrentFileName(){
 	}
 }
 
-static char s[1010];
-
 /*
     退出时若未保存则提供选项 选择是否保存更改 
 */
 void exitApplication(){
 	if(!isSaved){
-		if (ofn.lpstrFile == NULL) {
+		if (!isCreated) {
 			sprintf(s, "是否要保存对 无标题 的更改？");
 		} else sprintf(s, "是否要保存对 %s 的更改？", ofn.lpstrFileTitle);
 		int state=MessageBoxA(NULL,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
