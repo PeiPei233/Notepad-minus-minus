@@ -74,7 +74,7 @@ void Main() {
 
 	SetWindowTitle("Notepad--");
 	InitGraphics();
-	InitConsole();
+	// InitConsole();
 
 	initApplication();
 

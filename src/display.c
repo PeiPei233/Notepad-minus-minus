@@ -237,7 +237,7 @@ static void drawMenu() {
             isShowAbout ^= 1;
             break;
         case 4:     //帮助
-            WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+            WinExec("cmd.exe /k start https://stackoverflow.com/", SW_HIDE);
             break;
     }
 
@@ -1173,16 +1173,18 @@ static void drawAboutPage() {
     y = winHeight * 6 / 7 - h * 2;
 
     MovePen(x, y);
-    DrawTextString("Notepad-- 由杨沛山、詹含蓓、周健共同开发。");
+    DrawTextString("Notepad-- 由三位同学共同开发。");
     MovePen(x, y - h);
     DrawTextString("此应用使用第三方图形库 libgraphics 以及浙江大学C程课程组开发的 simpleGUI 图形库。");
     MovePen(x, y - h * 2);
     DrawTextString("我们对所用的第三方图形库进行了些许修改，并且也用到了 Windows GDI。");
     MovePen(x, y - h * 3);
-    DrawTextString("该应用已在 Github 上开源。");
+    DrawTextString("帮助乌干达的可怜儿童！");
+    MovePen(x, y - h * 4);
+    DrawTextString("Help poor children in Uganda!");
     setButtonColors("White", "Link Blue", "Button Gray", "Link Hot Blue", 1);
-    if (button(GenUIID(0), x, y - h * 4 - fD, TextStringWidth("了解更多") * 1.3, fH * 1.2, "了解更多")) {
-        WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+    if (button(GenUIID(0), x, y - h * 5 - fD, TextStringWidth("了解更多") * 1.3, fH * 1.2, "了解更多")) {
+        WinExec("cmd.exe /k start https://iccf.nl/", SW_HIDE);
     }
 
     SetPenColor(originColor);
@@ -1571,7 +1573,7 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
         }
     }
     if (key == VK_F1) {     //F1    帮助
-        WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+        WinExec("cmd.exe /k start https://stackoverflow.com/", SW_HIDE);
     }
 }
 
