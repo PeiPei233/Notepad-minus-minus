@@ -504,7 +504,7 @@ static void drawTextArea() {
         if (endj != -1) t[endj] = 0;
         // printf("I:%d %d\n", startj, endj);
         char text[5];
-        for (int k = startj; k < (endj == -1 ? lens : endj); k++) {
+        for (int k = startj; k < (endj == -1 ? j : endj); k++) {
             if (t[k] &  0x80) {
                 text[0] = t[k];
                 text[1] = t[k + 1];
