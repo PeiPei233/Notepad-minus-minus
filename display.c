@@ -362,6 +362,7 @@ static void drawTextArea() {
         if (s == NULL) continue;
         int i = 0, j = 0, lastj = 0, lens = getRowLength(row);  //i:原数组s的下标，j:处理制表符后新数组的下标
         int starti = -1, endi = -1;   //可显示部分的开始/结束的s的下标i
+        int startj = -1, endj = -1;   //可显示部分的开始/结束的t的下标j
         if (lens && s[lens - 1] == '\n') lens--;
         unsigned int cntT = 0;   //该行内'\t'的数量
         while (i < lens) {
@@ -408,13 +409,15 @@ static void drawTextArea() {
                 }
                 textWidth[i] = textWidth[i - 1] + TextStringWidth(t + lastj);
                 textWidth[i + 1] = 0;
-                lastj = j;
-                if (x - dx + textWidth[i] > 0 && starti == -1) {
+                if (x - dx + textWidth[i] > 0 && startj == -1) {
+                    startj = lastj;
                     starti = i - 1;
                 }
-                if (x - dx + textWidth[i] > winWidth && endi == -1) {
+                if (x - dx + textWidth[i] > winWidth && endj == -1) {
+                    endj = j;
                     endi = i;
                 }
+                lastj = j;
             } else if (s[i] & 0x80) {
                 t[j] = s[i];
                 i++;
@@ -429,14 +432,15 @@ static void drawTextArea() {
                 textWidth[i - 1] = textWidth[i - 2];
                 textWidth[i] = textWidth[i - 1] + TextStringWidth(t + lastj);
                 textWidth[i + 1] = 0;
-                lastj = j;
-                if (x - dx + textWidth[i] > 0 && starti == -1) {
+                if (x - dx + textWidth[i] > 0 && startj == -1) {
+                    startj = lastj;
                     starti = i - 2;
                 }
-                if (x - dx + textWidth[i] > winWidth && endi == -1) {
+                if (x - dx + textWidth[i] > winWidth && endj == -1) {
+                    endj = j;
                     endi = i;
                 }
-
+                lastj = j;
             } else {
                 t[j] = s[i];
                 i++;
@@ -444,22 +448,24 @@ static void drawTextArea() {
                 t[j] = t[j + 1] = 0;
                 textWidth[i] = textWidth[i - 1] + TextStringWidth(t + lastj);
                 textWidth[i + 1] = 0;
-                lastj = j;
-                if (x - dx + textWidth[i] > 0 && starti == -1) {
+                if (x - dx + textWidth[i] > 0 && startj == -1) {
+                    startj = lastj;
                     starti = i - 1;
                 }
-                if (x - dx + textWidth[i] > winWidth && endi == -1) {
+                if (x - dx + textWidth[i] > winWidth && endj == -1) {
+                    endj = j;
                     endi = i;
                     while (i <= lens) {
-                        textWidth[i] = textWidth[endi];
+                        textWidth[i] = textWidth[endj];
                         i++;
                     }
                     i--;
                     break;
                 }
+                lastj = j;
             }
         }
-        if (lens == 0) starti = endi = 0;
+        if (lens == 0) startj = endj = starti = endi = 0;
         //draw select area
         if (s[i] == '\n') {     //如果选择部分有'\n'，则以空格表示出来
             if (row != endSelect.row) {
@@ -495,9 +501,22 @@ static void drawTextArea() {
         //draw text
         SetPenColor("Text Color");
         MovePen(x - dx + textWidth[starti], y - th * (row - winCurrent.row));
-        if (endi != -1) t[endi] = 0;
-        printf("I:%d %d\n", starti, endi);
-        DrawTextString(t + starti);
+        if (endj != -1) t[endj] = 0;
+        // printf("I:%d %d\n", startj, endj);
+        char text[5];
+        for (int k = startj; k < (endj == -1 ? lens : endj); k++) {
+            if (t[k] &  0x80) {
+                text[0] = t[k];
+                text[1] = t[k + 1];
+                text[2] = 0;
+                k++;
+                DrawTextString(text);
+            } else {
+                text[0] = t[k];
+                text[1] = 0;
+                DrawTextString(text);
+            }
+        }
 
         //draw cursor
         if (clock() % 1000 < 500 && getTypingState()) {     //500ms的间隔闪烁，不在输入状态时不显示光标
