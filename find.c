@@ -224,8 +224,9 @@ int replaceText(const char *src, const char *tar) {
 	    printf("REPLACE:FIND!\n");
 	    if(!recordAll){                           //记录操作，并为一步 若为replaceAll,则全部为一步 
 	    	recordID=newRecordID();
-		}
-		
+		} 
+		selectStart = getSelectStartRC();
+    	selectEnd = getSelectEndRC();
 	    deleteContent(selectStart,selectEnd,recordID);     //删除源字符串 
 	    addContent(BY_STRING,selectStart,tar,recordID);  //粘贴目的字符串 
 	    
@@ -251,7 +252,7 @@ void replaceAll(const char *src,const char *tar){
 	recordAll=1;
 	recordID=newRecordID();
 	RCNode start=getSelectStartRC();
-	RCNode now=getSelectStartRC();
+	RCNode now; 
 	while(1){
         now=getSelectStartRC();
         if(!((restart==0&&RCcompare(now,start)>=0)||(restart==1&&RCcompare(start,now)>0))){
