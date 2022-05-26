@@ -1,6 +1,7 @@
 #include "global.h"
 #include "libgraphics.h"
 #include "file.h"
+#include <winuser.h>
 
 static RCNode windowCurrent= (RCNode) {1, 1}; //窗口左上角的行列坐标
 static RCNode cursor= (RCNode) {1, 1};  //光标所在的行列坐标
