@@ -262,6 +262,7 @@ void replaceAll(const char *src,const char *tar){
         	break;
 		}
 	}
+	setSelectStartRC(getSelectEndRC()); 
 	restart=0;
 	recordAll=0;      //»Ö¸´Ò»°ã×´Ì¬ 
 }
