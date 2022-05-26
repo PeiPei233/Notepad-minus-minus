@@ -1262,6 +1262,11 @@ static void drawContextMenu() {
  * 若光标不在窗口中，则移动窗口使光标在窗口中
  */ 
 void setCursorInWindow() {
+
+    if (!capT) {    //空文档
+        return;
+    }
+
     RCNode cursor = getCursorRC();
     RCNode winCurrent = getWindowCurrentRC();
 
@@ -1352,7 +1357,7 @@ void setCursorInWindow() {
  */ 
 RCNode XYtoRC(int x, int y) {
     
-    if (getTotalRow() == 1 && getRowLength(1) == 0) {
+    if (getTotalRow() == 1 && getRowLength(1) == 0 || !capT) {  //空文档
         return (RCNode) {1, 1};
     }
 

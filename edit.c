@@ -32,7 +32,7 @@ void copyText()
     //与系统剪切板进行交互
     if (!OpenClipboard(NULL)|| !EmptyClipboard())
     {   
-        printf("打开或清空剪切板出错！\n");
+        MessageBoxA(NULL,"打开或清空剪切板出错！","Notepad--",MB_OK | MB_ICONWARNING | MB_TASKMODAL);
         return ;   
     }
     HGLOBAL hMen;
@@ -67,20 +67,20 @@ void pasteText() {
     char *pasteText;
     if(!OpenClipboard(NULL))
     {
-        printf("打开剪切板出错！\n");
+        MessageBoxA(NULL,"打开剪切板出错！","Notepad--",MB_OK | MB_ICONWARNING | MB_TASKMODAL);
         return ;   
     }
     HGLOBAL hMem = GetClipboardData(CF_TEXT);
     if(hMem == NULL)
     {
-        printf("不是文本");
+        // printf("不是文本");
         return ;
     }
     //获取字符串
     const char* lpStr = GlobalLock(hMem);
     if(lpStr == NULL)
     {
-        printf("无法读取文本");
+        MessageBoxA(NULL,"无法读取剪切板文本","Notepad--",MB_OK | MB_ICONWARNING | MB_TASKMODAL);
         return ;
     }
     pasteText = (char *) mallocDIY(sizeof(char) * (strlen(lpStr) + 1));
