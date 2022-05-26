@@ -222,14 +222,12 @@ int replaceText(const char *src, const char *tar) {
     }
     if(findflag){             //若能找到结果，替换 
 	    printf("REPLACE:FIND!\n");
-	    deleteContent(selectStart,selectEnd,1);     //删除源字符串 
-	    addContent(BY_STRING,selectStart,tar,1);  //粘贴目的字符串 
-	    
-	    if(!recordAll){                               //记录操作，并为一步 若为replaceAll,则全部为一步 
+	    if(!recordAll){                           //记录操作，并为一步 若为replaceAll,则全部为一步 
 	    	recordID=newRecordID();
 		}
-	    record(OP_DELETE,selectStart,src,recordID);
-	    record(OP_ADD,selectStart,tar,recordID);
+		
+	    deleteContent(selectStart,selectEnd,recordID);     //删除源字符串 
+	    addContent(BY_STRING,selectStart,tar,recordID);  //粘贴目的字符串 
 	    
 	    setSelectStartRC(selectStart);    
 	    selectStart.column+=strlen(tar);
