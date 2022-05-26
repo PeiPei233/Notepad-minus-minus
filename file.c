@@ -83,7 +83,7 @@ void openFile() {
 			cursor.column++;
 		degree++;
 		if(degree>=1<<31){                     //若大于2G,则无法打开
-			MessageBoxA(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OK | MB_TASKMODAL);
+			MessageBoxA(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OKCANCEL | MB_TASKMODAL);
 			initStorage();
 			return;
 		}
@@ -98,6 +98,18 @@ void openFile() {
     对于新建的文件，在保存时要选择存放位置
 */
 void createFile() {
+	if(getTotalRow()==1&&*getRowContent(1)==0){      //如果不是完全空白 ,则需弹出弹窗 
+		;
+	}
+	else{
+		int state  =MessageBoxA(NULL,"确定要覆盖当前文件吗","Notepad--",MB_OKCANCEL | MB_TASKMODAL);
+		if(state==IDOK){
+			;             //进入下一步 
+		}
+		else if(state==IDCANCEL){
+			return;
+		}
+	}
 	// create a file name
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -111,7 +123,7 @@ void createFile() {
     ofn.lpstrFileTitle[0] = '\0';
     ofn.nMaxFileTitle = sizeof(szFileTitle);
     ofn.lpstrInitialDir = NULL;
-    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    ofn.Flags = OFN_PATHMUSTEXIST;
     if (GetSaveFileNameA(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"w+");
         fclose(currentFile);
@@ -192,7 +204,7 @@ void saveAsFile(){
     ofn2.lpstrFilter = "文本文件(*.txt)\0*.txt\0所有文件(*.*)\0*.*\0";
     ofn2.nFilterIndex = 1;
     ofn2.lpstrInitialDir = NULL;
-    ofn2.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT;
+    ofn2.Flags = OFN_PATHMUSTEXIST  | OFN_OVERWRITEPROMPT;
     if (GetSaveFileNameA(&ofn2)){
 		anotherFile=fopen(ofn2.lpstrFile,"w+");
 		if(isCreated){                   //如果此时文件不是临时写的，则同时保存当时文件 

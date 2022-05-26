@@ -236,10 +236,13 @@ int replaceText(const char *src, const char *tar) {
 	    setCursorRC(selectStart);
 	    findNextText(src);
 		free(selectStr);
+		if(!recordAll){
+			setCursorInWindow();
+		}
 		
 	    return 1; 
 	}
-	else{				//若不能找到结果，返回0 
+	else{	//若不能找到结果，返回0  
 		return 0;
 	}
 }
@@ -260,6 +263,9 @@ void replaceAll(const char *src,const char *tar){
         }
         if(!replaceText(src,tar)){
         	break;
+		}
+		if(start.row==now.row&&restart==1){     //若在同一行前边替换，需移动start位置 
+			start.column=start.column+strlen(tar)-strlen(src);
 		}
 	}
 	setSelectStartRC(getSelectEndRC()); 
