@@ -5,6 +5,12 @@
 #define __FILE_H__
 
 #include "global.h"
+
+/**
+ * 获取程序处理文件的状态
+ */ 
+int getProcessFileState();
+
 /*
 	初始化文件配置 , 一显示图形界面就要调用 
 */

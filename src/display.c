@@ -133,7 +133,7 @@ static void drawMenu() {
     SetFont("微软雅黑");
     SetPointSize(13);
 
-    char *menuListFile[] = {"文件",
+    static const char *menuListFile[] = {"文件",
         "新建                       Ctrl + N",
         "打开                       Ctrl + O",
         "保存                       Ctrl + S",
@@ -173,7 +173,7 @@ static void drawMenu() {
             break;
     }
 
-    char *menuListEdit[] = {"编辑",
+    static const char *menuListEdit[] = {"编辑",
         "撤销                       Ctrl + Z",
         "重做                       Ctrl + Y",
         "剪切                       Ctrl + X",
@@ -218,7 +218,7 @@ static void drawMenu() {
             break;
     }
 
-    char *menuListSetting[] = {"首选项",
+    static const char *menuListSetting[] = {"首选项",
         "设置                       Ctrl + E",
         "键盘快捷方式          Ctrl + K",
         "关于 Notepad--",
@@ -1012,9 +1012,9 @@ static void drawSettingPage() {
     fH = GetFontHeight();
     h = fH * tmpStyle.lineSpacing;
     H = max(H, h * 5);
-    char *text[] = {
-        "这是一段实例文本",
-        "This is a demo text style",
+    const char *text[] = {
+        "这是一段实例文本。",
+        "This is a demo text style.",
         "Oo0Oo0Oo0Oo0Oo0",
         "Il1Il1Il1Il1Il1"
     };
@@ -1096,7 +1096,7 @@ static void drawKeyboardPage() {
     double fD = GetFontDescent();
     h = GetFontHeight() * 1.2;
 
-    static char *tableContent[][2] = {
+    static const char *tableContent[][2] = {
         "命令", "键绑定",
         "文件：打开文件", "Ctrl + O",
         "文件：保存文件", "Ctrl + S",
@@ -1204,7 +1204,7 @@ static void drawContextMenu() {
     SetFont("微软雅黑");
     SetPointSize(13);
 
-    static char *contextMenuList[] = {
+    static const char *contextMenuList[] = {
         "撤销                           Ctrl+Z",
         "重做                           Ctrl+Y",
         "剪切                           Ctrl+X",
@@ -1581,6 +1581,9 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
  * 显示窗口内容
  */ 
 void display() {
+    if (getProcessFileState()) {    //如果程序还在处理文件，则不更新显示。
+        return;
+    }
     if (lockDisplay) {  //如果有display还没结束，则跳过
         return;
     }
