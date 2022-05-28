@@ -23,6 +23,9 @@
 #include "strlib.h"
 #include "extgraph.h"
 
+#include "file.h"
+#include "display.h"
+
 /*
  * Parameters
  * ----------
@@ -1092,8 +1095,8 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
 			return 0; 
 
         case WM_PAINT:
-             DoUpdate();
-             return 0;
+            DoUpdate();
+            return 0;
 
         case WM_CHAR:
     		if (g_char != NULL)
@@ -1180,7 +1183,31 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
             LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
             lpMMI->ptMinTrackSize.x = 750;
             lpMMI->ptMinTrackSize.y = 250;
+            return 0;
         }
+        case WM_CLOSE:
+            if (!getSaveState()) {
+                string fileName = getCurrentFileName();
+                static char s[512];
+                if (fileName == NULL) {
+			        sprintf(s, "是否要保存对 无标题 的更改？");
+                } else {
+                    sprintf(s, "是否要保存对 %s 的更改？", fileName);
+                }
+                int state = MessageBoxA(graphicsWindow,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
+                switch (state) {
+                    case IDYES:
+                        saveFile();
+                    case IDNO:
+                        DestroyWindow(graphicsWindow);
+                        break;
+                    case IDCANCEL:
+                        return 0;
+                }
+
+            }
+            DestroyWindow(graphicsWindow);
+            break;
 
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
