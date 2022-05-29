@@ -7,6 +7,7 @@
 #include "record.h"
 #include "display.h"
 #include "global.h"
+#include "file.h"
 
 static linkedList *nodeHead = NULL, *nodeTail = NULL;
 static linkedList *curNode = NULL;
@@ -51,6 +52,7 @@ int newRecordID() {
  * str 添加/删除的字符串    若字符串后续有更改，请copy后再传入
  */ 
 void record(int op, RCNode pos, const string str, int recordID) {
+    if (recordID == 0) return;
     if (nodeHead == NULL)   //判断头节点是否为空
     {
         nodeHead = (linkedList*)mallocDIY(sizeof(linkedList));
@@ -62,6 +64,7 @@ void record(int op, RCNode pos, const string str, int recordID) {
         curNode = nodeHead;
         nodeHead->last = NULL;
         nodeHead->next = NULL;
+        setSaveState(0);
     }else
     {
         if(curNode != nodeTail)  //如果目前操作不是尾节点，释放后面所有节点
@@ -92,6 +95,7 @@ void record(int op, RCNode pos, const string str, int recordID) {
             curNode = nodeHead;
             nodeHead->last = NULL;
             nodeHead->next = NULL;
+            setSaveState(0);
         }else
         {
             linkedList *temNode;
@@ -106,6 +110,7 @@ void record(int op, RCNode pos, const string str, int recordID) {
             temNode->last = nodeTail;
             nodeTail = nodeTail->next;
             curNode = nodeTail;    //将指向当前节点的指针移到链表末端
+            setSaveState(0);
         }
     }
 }
@@ -124,6 +129,7 @@ void undo() {
             //定位字符串结束位置
             RCNode nextPos = endPos(curNode->pos, curNode->str);
             deleteContent(curNode->pos, nextPos, 0);
+            setSaveState(0);
 
             //定位光标位置在删除字符的开始位置
             setCursorRC(curNode->pos);
@@ -134,6 +140,7 @@ void undo() {
         }else if(curNode->op == OP_DELETE)   //如果操作为删除字符，则将删除的字符加回去
         {
             addContentByString(curNode->pos, curNode->str, 0);
+            setSaveState(0);
             
             //定位光标位置在增加的字符串后
             RCNode nextPos = endPos(curNode->pos, curNode->str);
@@ -182,6 +189,7 @@ void redo() {
     if(curNode->op == OP_ADD)    //如果为增加操作则重新将字符串加回去
     {
         addContentByString(curNode->pos, curNode->str, 0);
+        setSaveState(0);
 
         //定位光标位置在增加字符串结束处
         RCNode nextPos = endPos(curNode->pos, curNode->str);
@@ -195,6 +203,7 @@ void redo() {
         //找到删除的字符串的结束位置
         RCNode nextPos = endPos(curNode->pos, curNode->str);
         deleteContent(curNode->pos, nextPos, 0);
+        setSaveState(0);
         
         //定位光标位置在删除字符串的开始位置
         setCursorRC(curNode->pos);
