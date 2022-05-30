@@ -1,5 +1,5 @@
 del /s *.o
 del /s *.d
-del *.properties
+del /s *.properties
 del Notepad--.exe
 pause
