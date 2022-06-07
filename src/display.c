@@ -1475,6 +1475,38 @@ void setContextMenuXY(double x, double y) {
  */ 
 void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
     if (isCtrl && getTextDisplayState()) {  //在文本编辑窗口的快捷键
+        if (isTyping) {     //如果在输入状态
+            switch (key) {
+                case 'Z':   
+                    if (isShift) {
+                        redo(); //Ctrl + Shift + Z  重做
+                    } else {
+                        undo(); //Ctrl + Z  撤销
+                    }
+                    break;
+                case 'Y':   //Ctrl + Y  重做
+                    redo();
+                    break;
+                case 'X':   //Ctrl + X  剪切
+                    shearText();
+                    break;
+                case 'C':   //Ctrl + C  复制
+                    copyText();
+                    break;
+                case 'V':   //Ctrl + V  粘贴
+                    pasteText();
+                    break;
+                case 'A':   //Ctrl + A  全选
+                {
+                    int totr = getTotalRow();
+                    int totc = getRowLength(totr) + 1;
+                    setSelectStartRC((RCNode) {1, 1});
+                    setSelectEndRC((RCNode) {totr, totc});
+                    setCursorRC((RCNode) {totr, totc});
+                    break;
+                }
+            }
+        }
         switch (key) {
             case 'N':   //Ctrl + N  新建
                 createFile();
@@ -1492,40 +1524,12 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
             case 'W':   //Ctrl + W  退出
                 exitApplication();
                 break;
-            case 'Z':   
-                if (isShift) {
-                    redo(); //Ctrl + Shift + Z  重做
-                } else {
-                    undo(); //Ctrl + Z  撤销
-                }
-                break;
-            case 'Y':   //Ctrl + Y  重做
-                redo();
-                break;
-            case 'X':   //Ctrl + X  剪切
-                shearText();
-                break;
-            case 'C':   //Ctrl + C  复制
-                copyText();
-                break;
-            case 'V':   //Ctrl + V  粘贴
-                pasteText();
-                break;
             case 'F':   //Ctrl + F  查找
                 isShowFind ^= 1;
                 break;
             case 'H':   //Ctrl + H  替换
                 isShowReplace ^= 1;
                 break;
-            case 'A':   //Ctrl + A  全选
-            {
-                int totr = getTotalRow();
-                int totc = getRowLength(totr) + 1;
-                setSelectStartRC((RCNode) {1, 1});
-                setSelectEndRC((RCNode) {totr, totc});
-                setCursorRC((RCNode) {totr, totc});
-                break;
-            }
             case 'E':   //Ctrl + E  设置界面
                 isShowSetting = 1;
                 break;
