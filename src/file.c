@@ -206,6 +206,8 @@ void saveFile() {
 		}
 		else{
 			// MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 	
+			isProcessFile = 0;
+			return;
         }
 	}
 	//写入currentFile中 
@@ -221,7 +223,6 @@ void saveFile() {
 	isSaved=1;
 	fclose(currentFile);
 	isProcessFile = 0;
-
 }
 
 /*
@@ -332,11 +333,3 @@ void exitApplication(){
 		ExitGraphics();
 	}
 }
-
-
-
-
-
-
-
-
