@@ -71,6 +71,7 @@ void setSelectEndRC(RCNode newEndSelect)
 {
     endSelect = newEndSelect;
 }
+
 /*
 	比较两个节点在字符串流中的位置前后 
 */
