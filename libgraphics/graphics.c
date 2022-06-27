@@ -862,8 +862,9 @@ static void InitDisplay(void)
     yResolution *= scaleFactor;
     SetRectFromSize(&graphicsRect, LeftMargin, TopMargin,
                     PixelsX(windowWidth), PixelsY(windowHeight));
-    style = WS_OVERLAPPEDWINDOW & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-    
+    // style = WS_OVERLAPPEDWINDOW & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+    style = WS_OVERLAPPEDWINDOW;
+
     g_keyboard = NULL;
 	g_mouse = NULL;
 	g_timer = NULL;
@@ -893,7 +894,7 @@ static void InitDisplay(void)
       (HMENU) NULL, 
       (HINSTANCE) NULL,
       (LPSTR) NULL);
-      
+
     if (graphicsWindow == NULL) {
         printf("InitGraphics: CreateGraphicsWindow failed.\n");
     }
@@ -1207,7 +1208,7 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
 
             }
             DestroyWindow(graphicsWindow);
-            break;
+            return 0;
 
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
