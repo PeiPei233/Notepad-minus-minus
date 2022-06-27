@@ -233,6 +233,7 @@ int replaceText(const char *src, const char *tar) {
     	selectEnd = getSelectEndRC();
 	    deleteContent(selectStart,selectEnd,recordID);     //É¾³ýÔ´×Ö·û´® 
 	    addContent(BY_STRING,selectStart,tar,recordID);  //Õ³ÌùÄ¿µÄ×Ö·û´® 
+        setSaveState(0);
 	    
 	    setSelectStartRC(selectStart);    
 	    selectStart.column+=strlen(tar);

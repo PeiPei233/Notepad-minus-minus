@@ -1,5 +1,5 @@
 COMPILER   = gcc
-OPTION	   = -g -std=c11 -mwindows -lwinmm -lgdi32 -I ./libgraphics -I ./simpleGUI
+OPTION	   = -g -std=c11 -mwindows -lwinmm -lgdi32 -I ./libgraphics -I ./simpleGUI -I ./include
 TARGET     = Notepad--.exe
 SOURCE     = $(wildcard *.c)
 SOURCE    += $(wildcard */*.c)

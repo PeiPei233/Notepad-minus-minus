@@ -133,7 +133,7 @@ static void drawMenu() {
     SetFont("微软雅黑");
     SetPointSize(13);
 
-    char *menuListFile[] = {"文件",
+    static const char *menuListFile[] = {"文件",
         "新建                       Ctrl + N",
         "打开                       Ctrl + O",
         "保存                       Ctrl + S",
@@ -173,7 +173,7 @@ static void drawMenu() {
             break;
     }
 
-    char *menuListEdit[] = {"编辑",
+    static const char *menuListEdit[] = {"编辑",
         "撤销                       Ctrl + Z",
         "重做                       Ctrl + Y",
         "剪切                       Ctrl + X",
@@ -218,7 +218,7 @@ static void drawMenu() {
             break;
     }
 
-    char *menuListSetting[] = {"首选项",
+    static const char *menuListSetting[] = {"首选项",
         "设置                       Ctrl + E",
         "键盘快捷方式          Ctrl + K",
         "关于 Notepad--",
@@ -237,7 +237,7 @@ static void drawMenu() {
             isShowAbout ^= 1;
             break;
         case 4:     //帮助
-            WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+            WinExec("cmd.exe /k start https://stackoverflow.com/", SW_HIDE);
             break;
     }
 
@@ -252,6 +252,7 @@ static void drawMenu() {
         if (getSaveState()) sprintf(name, "%s - Notepad--", fileName);
         else sprintf(name, "%s* - Notepad--", fileName);
     }
+    SetWindowTitle(name);
     double tw = TextStringWidth(name);
     double tx = max(winWidth / 2 - tw / 2, x + w * 3.5);
     int i = strlen(name) - 1;
@@ -465,6 +466,7 @@ static void drawTextArea() {
                 lastj = j;
             }
         }
+        t[j] = t[j + 1] = 0;
         if (lens == 0) startj = endj = starti = endi = 0;
         //draw select area
         if (s[i] == '\n') {     //如果选择部分有'\n'，则以空格表示出来
@@ -501,7 +503,6 @@ static void drawTextArea() {
         //draw text
         SetPenColor("Text Color");
         MovePen(x - dx + textWidth[starti], y - th * (row - winCurrent.row));
-        if (endj != -1) t[endj] = 0;
         // printf("I:%d %d\n", startj, endj);
         char text[5];
         for (int k = startj; k < (endj == -1 ? j : endj); k++) {
@@ -1012,9 +1013,9 @@ static void drawSettingPage() {
     fH = GetFontHeight();
     h = fH * tmpStyle.lineSpacing;
     H = max(H, h * 5);
-    char *text[] = {
-        "这是一段实例文本",
-        "This is a demo text style",
+    const char *text[] = {
+        "这是一段实例文本。",
+        "This is a demo text style.",
         "Oo0Oo0Oo0Oo0Oo0",
         "Il1Il1Il1Il1Il1"
     };
@@ -1096,12 +1097,11 @@ static void drawKeyboardPage() {
     double fD = GetFontDescent();
     h = GetFontHeight() * 1.2;
 
-    static char *tableContent[][2] = {
+    static const char *tableContent[][2] = {
         "命令", "键绑定",
-        "打开文件", "Ctrl + O",
-        "保存文件", "Ctrl + S",
-        "另存为", "Ctrl + Shift + S",
-        "退出Notepad--", "Ctrl + W",
+        "文件：打开文件", "Ctrl + O",
+        "文件：保存文件", "Ctrl + S",
+        "文件：另存为", "Ctrl + Shift + S",
         "编辑：撤销", "Ctrl + Z",
         "编辑：重做", "Ctrl + Y / Ctrl + Shift + Z",
         "编辑：剪切", "Ctrl + X",
@@ -1110,9 +1110,10 @@ static void drawKeyboardPage() {
         "编辑：查找", "Ctrl + F",
         "编辑：替换", "Ctrl + H",
         "编辑：全选", "Ctrl + A",
-        "打开/保存并退出设置", "Ctrl + E",
-        "打开/关闭键盘快捷键界面", "Ctrl + K",
-        "帮助", "F1"
+        "编辑器：打开/保存并退出设置", "Ctrl + E",
+        "编辑器：打开/关闭键盘快捷键界面", "Ctrl + K",
+        "编辑器：帮助", "F1",
+        "编辑器：退出Notepad--", "Ctrl + W"
     };
 
     for (int i = 0; i < sizeof(tableContent) / sizeof(tableContent[0]); i++) {
@@ -1173,16 +1174,18 @@ static void drawAboutPage() {
     y = winHeight * 6 / 7 - h * 2;
 
     MovePen(x, y);
-    DrawTextString("Notepad-- 由杨沛山、詹含蓓、周健共同开发。");
+    DrawTextString("Notepad-- 由三位同学共同开发。");
     MovePen(x, y - h);
-    DrawTextString("此应用使用第三方图形库 libgraphics 以及浙江大学C程课程组开发的 simpleGUI 图形库。");
+    DrawTextString("此应用使用第三方图形库 libgraphics 以及浙江大学 C 程课程组开发的 simpleGUI 图形库。");
     MovePen(x, y - h * 2);
     DrawTextString("我们对所用的第三方图形库进行了些许修改，并且也用到了 Windows GDI。");
     MovePen(x, y - h * 3);
-    DrawTextString("该应用已在 Github 上开源。");
+    DrawTextString("帮助乌干达的可怜儿童！");
+    MovePen(x, y - h * 4);
+    DrawTextString("Help poor children in Uganda!");
     setButtonColors("White", "Link Blue", "Button Gray", "Link Hot Blue", 1);
-    if (button(GenUIID(0), x, y - h * 4 - fD, TextStringWidth("了解更多") * 1.3, fH * 1.2, "了解更多")) {
-        WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+    if (button(GenUIID(0), x, y - h * 5 - fD, TextStringWidth("了解更多") * 1.3, fH * 1.2, "了解更多")) {
+        WinExec("cmd.exe /k start https://iccf.nl/", SW_HIDE);
     }
 
     SetPenColor(originColor);
@@ -1202,7 +1205,7 @@ static void drawContextMenu() {
     SetFont("微软雅黑");
     SetPointSize(13);
 
-    static char *contextMenuList[] = {
+    static const char *contextMenuList[] = {
         "撤销                           Ctrl+Z",
         "重做                           Ctrl+Y",
         "剪切                           Ctrl+X",
@@ -1473,6 +1476,38 @@ void setContextMenuXY(double x, double y) {
  */ 
 void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
     if (isCtrl && getTextDisplayState()) {  //在文本编辑窗口的快捷键
+        if (isTyping) {     //如果在输入状态
+            switch (key) {
+                case 'Z':   
+                    if (isShift) {
+                        redo(); //Ctrl + Shift + Z  重做
+                    } else {
+                        undo(); //Ctrl + Z  撤销
+                    }
+                    break;
+                case 'Y':   //Ctrl + Y  重做
+                    redo();
+                    break;
+                case 'X':   //Ctrl + X  剪切
+                    shearText();
+                    break;
+                case 'C':   //Ctrl + C  复制
+                    copyText();
+                    break;
+                case 'V':   //Ctrl + V  粘贴
+                    pasteText();
+                    break;
+                case 'A':   //Ctrl + A  全选
+                {
+                    int totr = getTotalRow();
+                    int totc = getRowLength(totr) + 1;
+                    setSelectStartRC((RCNode) {1, 1});
+                    setSelectEndRC((RCNode) {totr, totc});
+                    setCursorRC((RCNode) {totr, totc});
+                    break;
+                }
+            }
+        }
         switch (key) {
             case 'N':   //Ctrl + N  新建
                 createFile();
@@ -1490,40 +1525,12 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
             case 'W':   //Ctrl + W  退出
                 exitApplication();
                 break;
-            case 'Z':   
-                if (isShift) {
-                    redo(); //Ctrl + Shift + Z  重做
-                } else {
-                    undo(); //Ctrl + Z  撤销
-                }
-                break;
-            case 'Y':   //Ctrl + Y  重做
-                redo();
-                break;
-            case 'X':   //Ctrl + X  剪切
-                shearText();
-                break;
-            case 'C':   //Ctrl + C  复制
-                copyText();
-                break;
-            case 'V':   //Ctrl + V  粘贴
-                pasteText();
-                break;
             case 'F':   //Ctrl + F  查找
                 isShowFind ^= 1;
                 break;
             case 'H':   //Ctrl + H  替换
                 isShowReplace ^= 1;
                 break;
-            case 'A':   //Ctrl + A  全选
-            {
-                int totr = getTotalRow();
-                int totc = getRowLength(totr) + 1;
-                setSelectStartRC((RCNode) {1, 1});
-                setSelectEndRC((RCNode) {totr, totc});
-                setCursorRC((RCNode) {totr, totc});
-                break;
-            }
             case 'E':   //Ctrl + E  设置界面
                 isShowSetting = 1;
                 break;
@@ -1571,7 +1578,7 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
         }
     }
     if (key == VK_F1) {     //F1    帮助
-        WinExec("cmd.exe /k start https://github.com/PeiPei233/UnableToCount", SW_HIDE);
+        WinExec("cmd.exe /k start https://stackoverflow.com/", SW_HIDE);
     }
 }
 
@@ -1579,6 +1586,9 @@ void processShortcutKey(int key, int isShift, int isCtrl, int isTyping) {
  * 显示窗口内容
  */ 
 void display() {
+    if (getProcessFileState()) {    //如果程序还在处理文件，则不更新显示。
+        return;
+    }
     if (lockDisplay) {  //如果有display还没结束，则跳过
         return;
     }

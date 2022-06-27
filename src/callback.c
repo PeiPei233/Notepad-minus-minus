@@ -538,6 +538,7 @@ void inputKeyboard(int key, int event) {
                             endSelect = t;
                         }
                         setCursorRC(startSelect);
+                        setSelectStartRC(startSelect);
                         setSelectEndRC(startSelect);
                         return;
                     }

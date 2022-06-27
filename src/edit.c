@@ -92,6 +92,7 @@ void pasteText() {
     int recordID = newRecordID();
     deleteContent(startSelect,endSelect,recordID);
     addContent(BY_STRING,startSelect,pasteText,recordID);  //粘贴目的字符串 
+    setSaveState(0);
 
     //获得末端的行列位置
     int lens = strlen(pasteText);
@@ -129,6 +130,7 @@ void shearText() {
     }
     //将修改后的文本输入
 	deleteContent(startSelect,endSelect,newRecordID());
+    setSaveState(0);
      //设置选择范围 
     setSelectStartRC(startSelect);
     setSelectEndRC(startSelect);

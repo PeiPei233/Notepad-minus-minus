@@ -3,9 +3,9 @@
 #include "file.h"
 #include <winuser.h>
 
-static RCNode windowCurrent= (RCNode) {1, 1}; //窗口左上角的行列坐标
-static RCNode cursor= (RCNode) {1, 1};  //光标所在的行列坐标
-static RCNode startSelect =(RCNode) {1, 1}, endSelect= (RCNode) {1, 1};  //选择范围的起点/终点行列位置
+static RCNode windowCurrent; //窗口左上角的行列坐标
+static RCNode cursor;  //光标所在的行列坐标
+static RCNode startSelect, endSelect;  //选择范围的起点/终点行列位置
 int bigin, end;
 
 /*
@@ -133,7 +133,7 @@ void *mallocDIY(size_t size) {
     if (t == NULL) {
         MessageBoxA(NULL,"内存不足，程序即将关闭","Notepad--",MB_OK | MB_ICONWARNING | MB_TASKMODAL);
         exitApplication();
-        return;
+        return NULL;
     } else {
         return t;
     }

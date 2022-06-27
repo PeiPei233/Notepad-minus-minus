@@ -12,6 +12,7 @@
 #include "libgraphics.h"
 #include "record.h"
 #include "init.h"
+#include "imgui.h"
 
 static FILE *currentFile;  //当前文件 
 OPENFILENAMEA ofn;
@@ -21,6 +22,15 @@ static char szFileTitle[512];
 static int isSaved;    //是否保存         
 static int isCreated;     //是否被创建 
 static char s[1010];	//临时用
+static int isProcessFile = 0;	//程序是否在读取/输出数据
+
+/**
+ * 获取程序处理文件的状态
+ */ 
+int getProcessFileState() {
+	return isProcessFile;
+}
+
 /*
 	初始化文件配置 , 一显示图形界面就要调用 
 */
@@ -36,6 +46,8 @@ void initFileConfig(){
     更新currentString字符串
 */
 void openFile() {
+	if (isProcessFile) return;
+	isProcessFile = 1;
 
     int state;
     if (!isSaved) {	//未保存
@@ -46,14 +58,21 @@ void openFile() {
 		switch(state){
 			case IDYES:             //是 
 				saveFile();
+				break;
 			case IDNO:            //否 
 				break;
 			case IDCANCEL:           //取消 
+				isProcessFile = 0;
 				return;
 		}
 	}
-	initApplication();	//覆盖原先的内容
 	
+	char szFile2[512];
+	char szFileTitle2[512];
+	
+	strcpy(szFile2, szFile);
+	strcpy(szFileTitle2, szFileTitle);
+
 	    // open a file name
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -68,38 +87,62 @@ void openFile() {
     ofn.nMaxFileTitle = sizeof(szFileTitle);
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
     if (GetOpenFileNameA(&ofn)){
 		currentFile=fopen(ofn.lpstrFile,"r+");
 		if (!currentFile) {
 			MessageBoxA(NULL,"打开失败","Notepad--",MB_OK | MB_TASKMODAL);
+			strcpy(szFile, szFile2);
+			strcpy(szFileTitle, szFileTitle2);
+			isProcessFile = 0;
 			return;
 		}
     }
 	else{
 	    // MessageBox(NULL, "打开失败", NULL, MB_OK);  //打开错误
+		strcpy(szFile, szFile2);
+		strcpy(szFileTitle, szFileTitle2);
+		isProcessFile = 0;
         return;
     } 
 
 	fseeko64(currentFile, 0, SEEK_END);
-    _off64_t degree = ftello64(currentFile);printf("%d\n", degree);
-	if(degree>=1ll<<31){                     //若大于2G,则无法打开
-		MessageBoxA(NULL,"文件过大，请尝试用 VSCode 等应用打开 :)",NULL,MB_OKCANCEL | MB_TASKMODAL);
-		initApplication();
-		return;
+    _off64_t degree = ftello64(currentFile);
+	if(degree>=1ll<<31){                     //若大于2G,则警告用户
+		int state = MessageBoxA(NULL,
+		"文件过大！\n继续用 Notepad-- 打开可能会因为软件崩溃闪退而导致您的辛苦白费\n为了您的数据安全，建议使用 VSCode 等编辑器打开:)\n您确认要继续用 Notepad-- 打开吗？",
+		NULL,
+		MB_OKCANCEL | MB_TASKMODAL | MB_ICONWARNING);
+		if (state==IDCANCEL) {
+			strcpy(szFile, szFile2);
+			strcpy(szFileTitle, szFileTitle2);
+			isProcessFile = 0;	
+			return;
+		}
 	}
 	fseeko64(currentFile, 0, SEEK_SET);
 
+	initStorage();
+	InitGUI();
+
+	setCursorRC((RCNode) {1, 1});
+	setSelectStartRC((RCNode) {1, 1});
+	setSelectEndRC((RCNode) {1, 1});
+	setWindowCurrentRC((RCNode) {1, 1});
+
 	char *fileText = (char *) mallocDIY(sizeof(char) * (degree + 10));
 	unsigned long long n=0;
-	while(!feof(currentFile)){
-		fileText[n++] = fgetc(currentFile);
+	char ch;
+	while(ch = fgetc(currentFile), ch != EOF){
+		fileText[n++] = ch;
 	}
-	s[n] = 0;
+	fileText[n] = 0;
 	addContent(BY_STRING, (RCNode) {1, 1}, fileText, 0);
     fclose(currentFile);
 	free(fileText);
 	isSaved=1;
 	isCreated=1;
+	isProcessFile = 0;
 }
 
 
@@ -108,6 +151,7 @@ void openFile() {
     对于新建的文件，在保存时要选择存放位置
 */
 void createFile() {
+	if (isProcessFile) return;
 	if (!isSaved) {	//未保存
 		if (!isCreated) {
 			sprintf(s, "是否要保存对 无标题 的更改？");
@@ -133,6 +177,7 @@ void createFile() {
     否则就存在之前的位置
 */
 void saveFile() {
+	isProcessFile = 1;
 	if(!isCreated)
 	{
 		ZeroMemory(&ofn, sizeof(ofn));
@@ -161,6 +206,8 @@ void saveFile() {
 		}
 		else{
 			// MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 	
+			isProcessFile = 0;
+			return;
         }
 	}
 	//写入currentFile中 
@@ -175,7 +222,7 @@ void saveFile() {
 	}
 	isSaved=1;
 	fclose(currentFile);
-
+	isProcessFile = 0;
 }
 
 /*
@@ -183,8 +230,10 @@ void saveFile() {
 	如果此时文件不是临时写的，则同时保存当时文件 
 */
 void saveAsFile(){
+	isProcessFile = 1;
 	if (!isCreated) {
 		saveFile();
+		isProcessFile = 0;
 		return;
 	}
 	OPENFILENAMEA ofn2;
@@ -229,6 +278,7 @@ void saveAsFile(){
 	else{
 	     //MessageBox(NULL, "创建失败", NULL, MB_OK);  //创建错误 
     }
+	isProcessFile = 0;
 }
 
 /*
@@ -283,11 +333,3 @@ void exitApplication(){
 		ExitGraphics();
 	}
 }
-
-
-
-
-
-
-
-

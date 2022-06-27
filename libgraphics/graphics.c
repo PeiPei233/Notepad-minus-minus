@@ -23,6 +23,9 @@
 #include "strlib.h"
 #include "extgraph.h"
 
+#include "file.h"
+#include "display.h"
+
 /*
  * Parameters
  * ----------
@@ -281,7 +284,7 @@ static int FindExistingFont(string name, int size, int style);
 static void SetLineBB(RECT *rp, double x, double y, double dx, double dy);
 static void SetArcBB(RECT *rp, double xc, double yc,
                      double rx, double ry, double start, double sweep);
-static void SetTextBB(RECT *rp, double x, double y, string text);
+static void SetTextBB(RECT *rp, double x, double y, const char *text);
 static void StartPolygon(void);
 static void AddSegment(int x0, int y0, int x1, int y1);
 static void DisplayPolygon(void);
@@ -450,7 +453,7 @@ void DrawTextString(string text)
     cx += TextStringWidth(text);
 }
 
-double TextStringWidth(string text)
+double TextStringWidth(const char *text)
 {
     RECT r;
 
@@ -859,8 +862,9 @@ static void InitDisplay(void)
     yResolution *= scaleFactor;
     SetRectFromSize(&graphicsRect, LeftMargin, TopMargin,
                     PixelsX(windowWidth), PixelsY(windowHeight));
-    style = WS_OVERLAPPEDWINDOW & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-    
+    // style = WS_OVERLAPPEDWINDOW & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+    style = WS_OVERLAPPEDWINDOW;
+
     g_keyboard = NULL;
 	g_mouse = NULL;
 	g_timer = NULL;
@@ -890,7 +894,7 @@ static void InitDisplay(void)
       (HMENU) NULL, 
       (HINSTANCE) NULL,
       (LPSTR) NULL);
-      
+
     if (graphicsWindow == NULL) {
         printf("InitGraphics: CreateGraphicsWindow failed.\n");
     }
@@ -1092,8 +1096,8 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
 			return 0; 
 
         case WM_PAINT:
-             DoUpdate();
-             return 0;
+            DoUpdate();
+            return 0;
 
         case WM_CHAR:
     		if (g_char != NULL)
@@ -1180,7 +1184,31 @@ static LONG FAR PASCAL GraphicsEventProc(HWND hwnd, UINT msg,
             LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
             lpMMI->ptMinTrackSize.x = 750;
             lpMMI->ptMinTrackSize.y = 250;
+            return 0;
         }
+        case WM_CLOSE:
+            if (!getSaveState()) {
+                string fileName = getCurrentFileName();
+                static char s[512];
+                if (fileName == NULL) {
+			        sprintf(s, "是否要保存对 无标题 的更改？");
+                } else {
+                    sprintf(s, "是否要保存对 %s 的更改？", fileName);
+                }
+                int state = MessageBoxA(graphicsWindow,s,"Notepad--",MB_YESNOCANCEL | MB_ICONWARNING | MB_TASKMODAL);
+                switch (state) {
+                    case IDYES:
+                        saveFile();
+                    case IDNO:
+                        DestroyWindow(graphicsWindow);
+                        break;
+                    case IDCANCEL:
+                        return 0;
+                }
+
+            }
+            DestroyWindow(graphicsWindow);
+            return 0;
 
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -1613,7 +1641,7 @@ static void SetArcBB(RECT *rp, double xc, double yc,
  * box of the text string using the current font and size.
  */
 
-static void SetTextBB(RECT *rp, double x, double y, string text)
+static void SetTextBB(RECT *rp, double x, double y, const char *text)
 {
     SIZE textSize;
     int ix, iy;
