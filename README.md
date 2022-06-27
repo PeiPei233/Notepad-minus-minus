@@ -1,4 +1,7 @@
-# UnableToCount
+# Notepad_minus_minus
+
+该程序为浙江大学2021-2022学年大一春夏学期程序设计专题课程小组大作业。
+基于 libgraphics 第三方图形库开发。我们也对图形库进行了一些非必要的修改。
 
 ## 编译说明
 
@@ -6,7 +9,7 @@
 
 **适用于宇宙最强编译器 Dev-Cpp**
 
-git 项目或下载并解压项目压缩包后，进入子文件夹 devcpp，打开工程文件 Notepad--.dev，即可使用 Dev-Cpp 进行编译运行。最终生成的 Notepad--.exe 将会在文件夹 devcpp 内。
+git 仓库或下载并解压仓库压缩包后，进入子文件夹 devcpp，打开工程文件 Notepad--.dev，即可使用 Dev-Cpp 进行编译运行。最终生成的 Notepad--.exe 将会在文件夹 devcpp 内。
 
 清除编译中间文件：使用 Dec-Cpp 自带的清除功能。
 
@@ -20,11 +23,11 @@ git 项目或下载并解压项目压缩包后，进入子文件夹 devcpp，打
 
 **适用于配置过 MinGW 环境变量且安装 VSCode 的系统**
 
-git 项目或下载并解压项目压缩包后，用 VSCode 打开该文件夹（即 `.vscode` 文件夹所在的文件夹），之后使用快捷键 `Ctrl+Shift+B` 运行生成任务，即可在工作文件夹内生成目标程序 Notepad--.exe
+git 该仓库或下载并解压仓库压缩包后，用 VSCode 打开该文件夹（即 `.vscode` 文件夹所在的文件夹），之后使用快捷键 `Ctrl+Shift+B` 运行生成任务，即可在工作文件夹内生成目标程序 Notepad--.exe
 
 注意：由于没有为 C 语言相关插件设置 CompilerPath，可能会导致提示一堆问题，但如果配置好环境变量，这不影响 mingw32-make 编译工程文件。你也可以在设置里搜索 `C_Cpp.default.compilerPath` 设置项并添加编译器路径。
 
-清除编译中间文件：在 VSCode 终端中使用命令 `mingw32-make clean` 或双击打开 SourceCode 文件夹下的 clean.bat。
+清除编译中间文件：在 VSCode 终端中使用命令 `mingw32-make clean`。注意该方法也会删除目标文件 Notepad--.exe。您可自行修改 `Makefile` 文件来避免删除目标文件。
 
 ## 运行说明
 
