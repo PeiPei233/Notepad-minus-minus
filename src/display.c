@@ -252,6 +252,7 @@ static void drawMenu() {
         if (getSaveState()) sprintf(name, "%s - Notepad--", fileName);
         else sprintf(name, "%s* - Notepad--", fileName);
     }
+    SetWindowTitle(name);
     double tw = TextStringWidth(name);
     double tx = max(winWidth / 2 - tw / 2, x + w * 3.5);
     int i = strlen(name) - 1;
