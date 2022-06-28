@@ -863,7 +863,7 @@ static void InitDisplay(void)
     SetRectFromSize(&graphicsRect, LeftMargin, TopMargin,
                     PixelsX(windowWidth), PixelsY(windowHeight));
     // style = WS_OVERLAPPEDWINDOW & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-    style = WS_OVERLAPPEDWINDOW;
+    style = WS_OVERLAPPEDWINDOW;    //启用最小化/最大化窗口
 
     g_keyboard = NULL;
 	g_mouse = NULL;
