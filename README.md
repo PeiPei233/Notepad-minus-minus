@@ -38,4 +38,4 @@ git 该仓库或下载并解压仓库压缩包后，用 VSCode 打开该文件�
 
 ## 使用说明
 
-[点击查看使用手册](/docs/README.md)
+[点击查看使用手册](/docs/MANUAL.md)
