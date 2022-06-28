@@ -237,7 +237,7 @@ static void drawMenu() {
             isShowAbout ^= 1;
             break;
         case 4:     //°ïÖú
-            WinExec("cmd.exe /k start https://stackoverflow.com/", SW_HIDE);
+            WinExec("cmd.exe /k start https://github.com/PeiPei233/Notepad_minus_minus/blob/main/docs/MANUAL.md", SW_HIDE);
             break;
     }
 
