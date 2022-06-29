@@ -1,20 +1,20 @@
-# ´ó³ÌÑéÊÕ±¨¸æ
+# å¤§ç¨‹éªŒæ”¶æŠ¥å‘Š
 
 ![screenshot](assets/appearance.jpg)
 
-## ¿ìËÙ¿ªÊ¼£º
+## å¿«é€Ÿå¼€å§‹ï¼š
 
- - [´ó³ÌÐò¼ò½é](INTRODUCTION.md)
- - [³ÌÐò¿ª·¢Éè¼Æ](DESIGN.md)
- - [±àÒëÔËÐÐËµÃ÷](COMPILE_RUN.md)
- - [ÓÃ»§Ê¹ÓÃÊÖ²á](MANUAL.md)
- - [ÍÅ¶ÓºÏ×÷](TEAMWORK.md)
+ - [å¤§ç¨‹åºç®€ä»‹](INTRODUCTION.md)
+ - [ç¨‹åºå¼€å‘è®¾è®¡](DESIGN.md)
+ - [ç¼–è¯‘è¿è¡Œè¯´æ˜Ž](COMPILE_RUN.md)
+ - [ç”¨æˆ·ä½¿ç”¨æ‰‹å†Œ](MANUAL.md)
+ - [å›¢é˜Ÿåˆä½œ](TEAMWORK.md)
 
-## ²Î¿¼×ÊÁÏ
+## å‚è€ƒèµ„æ–™
 
- - docs.microsoft.com
-   - Ö÷ÒªÓÃÓÚ²éÔÄ win32apiº¯ÊýÈçºÎÊ¹ÓÃ
- - stackoverflow.com ÒÔ¼° google.com
-   - Ö÷ÒªÓÃÓÚ²éÕÒÓöµ½µÄÓÐ¹Ø win32api µÄÎÊÌâÈçºÎ½â¾ö
- - docs.github.com
-   - Ö÷ÒªÓÃÓÚÑ§Ï°GithubÒÔ¼°GitµÄÊ¹ÓÃ
+ - <docs.microsoft.com>
+   - ä¸»è¦ç”¨äºŽæŸ¥é˜… win32apiå‡½æ•°å¦‚ä½•ä½¿ç”¨
+ - <stackoverflow.com> ä»¥åŠ <google.com>
+   - ä¸»è¦ç”¨äºŽæŸ¥æ‰¾é‡åˆ°çš„æœ‰å…³ win32api çš„é—®é¢˜å¦‚ä½•è§£å†³
+ - <docs.github.com>
+   - ä¸»è¦ç”¨äºŽå­¦ä¹  Github ä»¥åŠ Git çš„ä½¿ç”¨
