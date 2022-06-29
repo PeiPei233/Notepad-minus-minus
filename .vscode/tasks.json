@@ -6,14 +6,7 @@
 			"label": "build",
 			"command": "mingw32-make",
 			"args": [
-				// "-f",
-				// "${workspaceFolder}/makefile",
-				// "all",
-				// "-I",
-				// "${workspaceFolder}\\libgraphics"
-				// "-l",
-				// "${workspaceFolder}\\libgraphics",
-				// "taget=${workspaceFolder}.exe"
+				"-j8"
 			],
 			"problemMatcher": []
 		},
