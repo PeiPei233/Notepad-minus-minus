@@ -54,8 +54,8 @@ Notepad-- 当中一共有10个模块，分别实现了初始化，回调，界�
 ### 位置结构
 ```c
 typedef struct {
-? ? int row;    //行位置
-? ? int column; //列位置
+    int row;    //行位置
+    int column; //列位置
 } RCNode;
 
 RCNode windowCurrent;
@@ -91,12 +91,12 @@ char **str;             //储存内容字符串
 ### 操作记录存放结构
 ```c
 typedef struct node {
-? ? int op;             //操作类型
-? ? int id; ?           //操作id
-? ? RCNode pos; ?       //操作位置
-? ? char *str;          //操作字符串
-? ? struct node *next; ?//下一个节点
-? ? struct node *last; ?//上一个节点
+    int op;             //操作类型
+    int id;             //操作id
+    RCNode pos;         //操作位置
+    char *str;          //操作字符串
+    struct node *next;  //下一个节点
+    struct node *last;  //上一个节点
 } linkedList;
 linkedList *nodeHead, *nodeTail;
 linkedList *curNode;
