@@ -12,9 +12,9 @@
 
 ## 参考资料
 
- - <docs.microsoft.com>
+ - docs.microsoft.com
    - 主要用于查阅 win32api函数如何使用
- - <stackoverflow.com> 以及 <google.com>
+ - stackoverflow.com 以及 google.com
    - 主要用于查找遇到的有关 win32api 的问题如何解决
- - <docs.github.com>
+ - docs.github.com
    - 主要用于学习 Github 以及 Git 的使用
