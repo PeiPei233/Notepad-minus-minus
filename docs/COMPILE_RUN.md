@@ -1,31 +1,31 @@
-# ±àÒëÔËÐÐËµÃ÷
+# ç¼–è¯‘è¿è¡Œè¯´æ˜Ž
 
-## ±àÒëËµÃ÷
+## ç¼–è¯‘è¯´æ˜Ž
 
-### ·½·¨Ò»
+### æ–¹æ³•ä¸€
 
-**ÊÊÓÃÓÚÓîÖæ×îÇ¿±àÒëÆ÷ Dev-Cpp**
+**é€‚ç”¨äºŽå®‡å®™æœ€å¼ºç¼–è¯‘å™¨ Dev-Cpp**
 
-git ²Ö¿â»òÏÂÔØ²¢½âÑ¹²Ö¿âÑ¹Ëõ°üºó£¬½øÈë×ÓÎÄ¼þ¼Ð devcpp£¬´ò¿ª¹¤³ÌÎÄ¼þ Notepad--.dev£¬¼´¿ÉÊ¹ÓÃ Dev-Cpp ½øÐÐ±àÒëÔËÐÐ¡£×îÖÕÉú³ÉµÄ Notepad--.exe ½«»áÔÚÎÄ¼þ¼Ð devcpp ÄÚ¡£
+git ä»“åº“æˆ–ä¸‹è½½å¹¶è§£åŽ‹ä»“åº“åŽ‹ç¼©åŒ…åŽï¼Œè¿›å…¥å­æ–‡ä»¶å¤¹ devcppï¼Œæ‰“å¼€å·¥ç¨‹æ–‡ä»¶ Notepad--.devï¼Œå³å¯ä½¿ç”¨ Dev-Cpp è¿›è¡Œç¼–è¯‘è¿è¡Œã€‚æœ€ç»ˆç”Ÿæˆçš„ Notepad--.exe å°†ä¼šåœ¨æ–‡ä»¶å¤¹ devcpp å†…ã€‚
 
-Çå³ý±àÒëÖÐ¼äÎÄ¼þ£ºÊ¹ÓÃ Dec-Cpp ×Ô´øµÄÇå³ý¹¦ÄÜ¡£
+æ¸…é™¤ç¼–è¯‘ä¸­é—´æ–‡ä»¶ï¼šä½¿ç”¨ Dec-Cpp è‡ªå¸¦çš„æ¸…é™¤åŠŸèƒ½ã€‚
 
-**×¢Òâ** Dev-CppµÄ±àÒëÆ÷ÒªÉèÖÃÎª64Î»µÄ±àÒëÆ÷£¬ÈçÏÂÍ¼ËùÊ¾£º
+**æ³¨æ„** Dev-Cppçš„ç¼–è¯‘å™¨è¦è®¾ç½®ä¸º64ä½çš„ç¼–è¯‘å™¨ï¼Œå¦‚ä¸‹å›¾æ‰€ç¤ºï¼š
 
 ![png](assets/compile.png)
 
-### ·½·¨¶þ
+### æ–¹æ³•äºŒ
 
-**ÊÊÓÃÓÚÅäÖÃ¹ý MinGW »·¾³±äÁ¿ÇÒ°²×° VSCode µÄÏµÍ³**
+**é€‚ç”¨äºŽé…ç½®è¿‡ MinGW çŽ¯å¢ƒå˜é‡ä¸”å®‰è£… VSCode çš„ç³»ç»Ÿ**
 
-git ¸Ã²Ö¿â»òÏÂÔØ²¢½âÑ¹²Ö¿âÑ¹Ëõ°üºó£¬ÓÃ VSCode ´ò¿ª¸ÃÎÄ¼þ¼Ð£¨¼´ `.vscode` ÎÄ¼þ¼ÐËùÔÚµÄÎÄ¼þ¼Ð£©£¬Ö®ºóÊ¹ÓÃ¿ì½Ý¼ü `Ctrl+Shift+B` ÔËÐÐÉú³ÉÈÎÎñ£¬¼´¿ÉÔÚ¹¤×÷ÎÄ¼þ¼ÐÄÚÉú³ÉÄ¿±ê³ÌÐò Notepad--.exe
+git è¯¥ä»“åº“æˆ–ä¸‹è½½å¹¶è§£åŽ‹ä»“åº“åŽ‹ç¼©åŒ…åŽï¼Œç”¨ VSCode æ‰“å¼€è¯¥æ–‡ä»¶å¤¹ï¼ˆå³ `.vscode` æ–‡ä»¶å¤¹æ‰€åœ¨çš„æ–‡ä»¶å¤¹ï¼‰ï¼Œä¹‹åŽä½¿ç”¨å¿«æ·é”® `Ctrl+Shift+B` è¿è¡Œç”Ÿæˆä»»åŠ¡ï¼Œå³å¯åœ¨å·¥ä½œæ–‡ä»¶å¤¹å†…ç”Ÿæˆç›®æ ‡ç¨‹åº Notepad--.exe
 
-×¢Òâ£ºÓÉÓÚÃ»ÓÐÎª C ÓïÑÔÏà¹Ø²å¼þÉèÖÃ CompilerPath£¬¿ÉÄÜ»áµ¼ÖÂÌáÊ¾Ò»¶ÑÎÊÌâ£¬µ«Èç¹ûÅäÖÃºÃ»·¾³±äÁ¿£¬Õâ²»Ó°Ïì mingw32-make ±àÒë¹¤³ÌÎÄ¼þ¡£ÄãÒ²¿ÉÒÔÔÚÉèÖÃÀïËÑË÷ `C_Cpp.default.compilerPath` ÉèÖÃÏî²¢Ìí¼Ó±àÒëÆ÷Â·¾¶¡£
+æ³¨æ„ï¼šç”±äºŽæ²¡æœ‰ä¸º C è¯­è¨€ç›¸å…³æ’ä»¶è®¾ç½® CompilerPathï¼Œå¯èƒ½ä¼šå¯¼è‡´æç¤ºä¸€å †é—®é¢˜ï¼Œä½†å¦‚æžœé…ç½®å¥½çŽ¯å¢ƒå˜é‡ï¼Œè¿™ä¸å½±å“ mingw32-make ç¼–è¯‘å·¥ç¨‹æ–‡ä»¶ã€‚ä½ ä¹Ÿå¯ä»¥åœ¨è®¾ç½®é‡Œæœç´¢ `C_Cpp.default.compilerPath` è®¾ç½®é¡¹å¹¶æ·»åŠ ç¼–è¯‘å™¨è·¯å¾„ã€‚
 
-Çå³ý±àÒëÖÐ¼äÎÄ¼þ£ºÔÚ VSCode ÖÕ¶ËÖÐÊ¹ÓÃÃüÁî `mingw32-make clean`¡£×¢Òâ¸Ã·½·¨Ò²»áÉ¾³ýÄ¿±êÎÄ¼þ Notepad--.exe¡£Äú¿É×ÔÐÐÐÞ¸Ä `Makefile` ÎÄ¼þÀ´±ÜÃâÉ¾³ýÄ¿±êÎÄ¼þ¡£
+æ¸…é™¤ç¼–è¯‘ä¸­é—´æ–‡ä»¶ï¼šåœ¨ VSCode ç»ˆç«¯ä¸­ä½¿ç”¨å‘½ä»¤ `mingw32-make clean`ã€‚æ³¨æ„è¯¥æ–¹æ³•ä¹Ÿä¼šåˆ é™¤ç›®æ ‡æ–‡ä»¶ Notepad--.exeã€‚æ‚¨å¯è‡ªè¡Œä¿®æ”¹ `Makefile` æ–‡ä»¶æ¥é¿å…åˆ é™¤ç›®æ ‡æ–‡ä»¶ã€‚
 
-## ÔËÐÐËµÃ÷
+## è¿è¡Œè¯´æ˜Ž
 
-ÔÚÔËÐÐÇ°ÓÒ¼ü Notepad--.exe£¬Ñ¡ÔñÊôÐÔ > ¼æÈÝÐÔ£¬ÔÚÏÂ·½ÉèÖÃÖÐµã»÷ **¸ü¸Ä¸ßDPIÉèÖÃ** °´Å¥£¬ÔÚµ¯³öµÄ´°¿ÚÖÐ¹´Ñ¡ÏÂ·½µÄ **Ìæ´ú¸ßDPIËõ·ÅÐÐÎª**£¬²¢½«×îÏÂÃæÒ»¸öÏÂÀ­²Ëµ¥ **Ëõ·ÅÖ´ÐÐ** ÓÉ **Ó¦ÓÃ³ÌÐò** ¸ÄÎª **ÏµÍ³£¨ÔöÇ¿£©**¡£µã»÷È·¶¨ºóÔÙµã»÷È·¶¨£¬±£´æÉèÖÃºóË«»÷´ò¿ª Notepad--.exe
+åœ¨è¿è¡Œå‰å³é”® Notepad--.exeï¼Œé€‰æ‹©å±žæ€§ > å…¼å®¹æ€§ï¼Œåœ¨ä¸‹æ–¹è®¾ç½®ä¸­ç‚¹å‡» **æ›´æ”¹é«˜DPIè®¾ç½®** æŒ‰é’®ï¼Œåœ¨å¼¹å‡ºçš„çª—å£ä¸­å‹¾é€‰ä¸‹æ–¹çš„ **æ›¿ä»£é«˜DPIç¼©æ”¾è¡Œä¸º**ï¼Œå¹¶å°†æœ€ä¸‹é¢ä¸€ä¸ªä¸‹æ‹‰èœå• **ç¼©æ”¾æ‰§è¡Œ** ç”± **åº”ç”¨ç¨‹åº** æ”¹ä¸º **ç³»ç»Ÿï¼ˆå¢žå¼ºï¼‰**ã€‚ç‚¹å‡»ç¡®å®šåŽå†ç‚¹å‡»ç¡®å®šï¼Œä¿å­˜è®¾ç½®åŽåŒå‡»æ‰“å¼€ Notepad--.exe
 
-µ±È»ÄúÒ²¿ÉÒÔÖ±½ÓË«»÷ Notepad--.exe ´ò¿ª¡£ÉÏÊö¹ý³ÌÖ»ÊÇÎªÁËÈÃÆäÄÜ¹»¸ü¼ÓÊÊÓ¦¸ß·Ö±æÂÊ£¨ÓÐËõ·Å±¶ÂÊ£©µÄ¸ßÇåÆÁ¡£
+å½“ç„¶æ‚¨ä¹Ÿå¯ä»¥ç›´æŽ¥åŒå‡» Notepad--.exe æ‰“å¼€ã€‚ä¸Šè¿°è¿‡ç¨‹åªæ˜¯ä¸ºäº†è®©å…¶èƒ½å¤Ÿæ›´åŠ é€‚åº”é«˜åˆ†è¾¨çŽ‡ï¼ˆæœ‰ç¼©æ”¾å€çŽ‡ï¼‰çš„é«˜æ¸…å±ã€‚
